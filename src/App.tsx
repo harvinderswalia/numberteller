@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import NewHomepage from './components/NewHomepage';
+import LandingPage from './components/LandingPage';
+import TarotPage from './components/TarotPage';
+import VastuPage from './components/VastuPage';
+import FeaturesPage from './components/FeaturesPage';
+import PricingPage from './components/PricingPage';
+import AboutPage from './components/AboutPage';
+import ContactPage from './components/ContactPage';
+import ResourcesPage from './components/ResourcesPage';
+import TermsPage from './components/TermsPage';
+import PrivacyPage from './components/PrivacyPage';
+import BillingPage from './components/BillingPage';
 import CalculatorForm from './components/CalculatorForm';
 import ResultsDisplay from './components/ResultsDisplay';
 import CompatibilityCalculator from './components/CompatibilityCalculator';
@@ -12,10 +22,13 @@ import LoShuGridResults from './components/LoShuGridResults';
 import NameCorrectionTool from './components/NameCorrectionTool';
 import { exportToPDF } from './utils/pdfExport';
 import { useAuth } from './contexts/AuthContext';
-import { LogOut, User } from 'lucide-react';
 import { calculateLoShuGrid, LoShuGridData } from './utils/loShuGrid';
 
-type Page = 'home' | 'calculator' | 'results' | 'compatibility' | 'house' | 'saved' | 'loshu' | 'loshu-results' | 'name-correction';
+export type Page =
+  | 'home' | 'features' | 'pricing' | 'about' | 'contact' | 'resources'
+  | 'terms' | 'privacy' | 'billing'
+  | 'calculator' | 'results' | 'compatibility' | 'house'
+  | 'saved' | 'loshu' | 'loshu-results' | 'name-correction' | 'tarot' | 'vastu';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -23,7 +36,7 @@ function App() {
   const [loShuResults, setLoShuResults] = useState<LoShuGridData | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const { user, signOut, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -35,7 +48,10 @@ function App() {
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page as Page);
+    window.scrollTo(0, 0);
   };
+
+  const handleShowAuth = () => setShowAuthModal(true);
 
   const handleCalculate = (results: any) => {
     setCalculationResults(results);
@@ -43,13 +59,7 @@ function App() {
   };
 
   const handleExportPDF = () => {
-    if (calculationResults) {
-      exportToPDF(calculationResults);
-    }
-  };
-
-  const handleShowUpgrade = () => {
-    setShowUpgradeModal(true);
+    if (calculationResults) exportToPDF(calculationResults);
   };
 
   const handleLoadChart = (chartData: any) => {
@@ -58,23 +68,43 @@ function App() {
   };
 
   const handleLoShuCalculate = (data: { name: string; dateOfBirth: string; gender: string }) => {
-    console.log('Calculate Lo Shu Grid called with:', data);
     const results = calculateLoShuGrid(data.name, data.dateOfBirth, data.gender);
-    console.log('Lo Shu Results:', results);
     setLoShuResults(results);
     setCurrentPage('loshu-results');
   };
 
+  const sharedProps = { onNavigate: handleNavigate, onShowAuth: handleShowAuth };
+
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
-        return <NewHomepage onNavigate={handleNavigate} onShowAuth={() => setShowAuthModal(true)} onBack={() => setCurrentPage('home')} />;
+        return <LandingPage {...sharedProps} />;
+      case 'features':
+        return <FeaturesPage {...sharedProps} />;
+      case 'pricing':
+        return <PricingPage {...sharedProps} />;
+      case 'about':
+        return <AboutPage {...sharedProps} />;
+      case 'contact':
+        return <ContactPage {...sharedProps} />;
+      case 'resources':
+        return <ResourcesPage {...sharedProps} />;
+      case 'terms':
+        return <TermsPage {...sharedProps} />;
+      case 'privacy':
+        return <PrivacyPage {...sharedProps} />;
+      case 'billing':
+        return <BillingPage {...sharedProps} />;
+      case 'tarot':
+        return <TarotPage {...sharedProps} />;
+      case 'vastu':
+        return <VastuPage {...sharedProps} />;
       case 'calculator':
         return (
           <CalculatorForm
             onNavigate={handleNavigate}
             onCalculate={handleCalculate}
-            onShowUpgrade={handleShowUpgrade}
+            onShowUpgrade={() => setShowUpgradeModal(true)}
           />
         );
       case 'results':
@@ -85,13 +115,13 @@ function App() {
             onExportPDF={handleExportPDF}
           />
         ) : (
-          <NewHomepage onNavigate={handleNavigate} onShowAuth={() => setShowAuthModal(true)} onBack={() => setCurrentPage('home')} />
+          <LandingPage {...sharedProps} />
         );
       case 'compatibility':
         return (
           <CompatibilityCalculator
             onNavigate={handleNavigate}
-            onShowUpgrade={handleShowUpgrade}
+            onShowUpgrade={() => setShowUpgradeModal(true)}
           />
         );
       case 'house':
@@ -109,19 +139,17 @@ function App() {
       case 'name-correction':
         return <NameCorrectionTool onBack={() => setCurrentPage('home')} />;
       default:
-        return <NewHomepage onNavigate={handleNavigate} onShowAuth={() => setShowAuthModal(true)} onBack={() => setCurrentPage('home')} />;
+        return <LandingPage {...sharedProps} />;
     }
   };
 
   return (
     <>
       {renderPage()}
-
       <SubscriptionModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
       />
-
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
