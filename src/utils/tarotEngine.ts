@@ -467,6 +467,193 @@ function generateActionableGuidance(
   return actions.slice(0, 4).map((a, i) => `${i + 1}. ${a.charAt(0).toUpperCase() + a.slice(1)}`).join('\n\n');
 }
 
+// ─── YES / NO ORACLE ──────────────────────────────────────────────────────
+
+// Traditional yes/no polarity for each card (upright). Reversed flips the polarity.
+// YES cards: positive, expansive, affirming energy
+// NO cards: challenging, blocking, cautionary energy
+// CONDITIONAL: inherently ambiguous cards
+const CARD_YES_NO: Record<number, 'YES' | 'NO' | 'CONDITIONAL'> = {
+  // Major Arcana
+  0: 'YES',   // The Fool — new beginnings, yes
+  1: 'YES',   // The Magician — yes, manifesting
+  2: 'CONDITIONAL', // High Priestess — wait, reflect
+  3: 'YES',   // The Empress — yes, abundant
+  4: 'YES',   // The Emperor — yes, stable
+  5: 'CONDITIONAL', // Hierophant — depends on context
+  6: 'YES',   // The Lovers — yes, aligned
+  7: 'YES',   // The Chariot — yes, victory
+  8: 'YES',   // Strength — yes, with courage
+  9: 'CONDITIONAL', // The Hermit — not yet, wait
+  10: 'YES',  // Wheel of Fortune — yes, turning in your favour
+  11: 'YES',  // Justice — yes, if aligned with truth
+  12: 'NO',   // Hanged Man — no, pause needed
+  13: 'CONDITIONAL', // Death — transformation required first
+  14: 'YES',  // Temperance — yes, with balance
+  15: 'NO',   // The Devil — no, examine motivations
+  16: 'NO',   // The Tower — no, change is forced
+  17: 'YES',  // The Star — yes, hope and renewal
+  18: 'CONDITIONAL', // The Moon — unclear, hidden forces
+  19: 'YES',  // The Sun — YES, highest affirmation
+  20: 'YES',  // Judgement — yes, a new chapter
+  21: 'YES',  // The World — YES, completion and success
+  // Wands (22-35) — fire energy, mostly yes
+  22: 'YES',  // Ace of Wands
+  23: 'YES',  // 2 of Wands
+  24: 'YES',  // 3 of Wands
+  25: 'YES',  // 4 of Wands
+  26: 'NO',   // 5 of Wands (conflict)
+  27: 'YES',  // 6 of Wands (victory)
+  28: 'CONDITIONAL', // 7 of Wands (defensive)
+  29: 'YES',  // 8 of Wands (fast movement)
+  30: 'NO',   // 9 of Wands (exhaustion)
+  31: 'NO',   // 10 of Wands (burden)
+  32: 'YES',  // Page of Wands
+  33: 'YES',  // Knight of Wands
+  34: 'YES',  // Queen of Wands
+  35: 'YES',  // King of Wands
+  // Cups (36-49) — emotional energy, mostly yes for relationships
+  36: 'YES',  // Ace of Cups
+  37: 'YES',  // 2 of Cups
+  38: 'YES',  // 3 of Cups
+  39: 'NO',   // 4 of Cups (withdrawal)
+  40: 'NO',   // 5 of Cups (loss)
+  41: 'YES',  // 6 of Cups (nostalgia, warmth)
+  42: 'CONDITIONAL', // 7 of Cups (illusion, choices)
+  43: 'NO',   // 8 of Cups (walking away)
+  44: 'YES',  // 9 of Cups (wish card — YES)
+  45: 'YES',  // 10 of Cups
+  46: 'YES',  // Page of Cups
+  47: 'CONDITIONAL', // Knight of Cups
+  48: 'YES',  // Queen of Cups
+  49: 'YES',  // King of Cups
+  // Swords (50-63) — air/conflict, mostly no or conditional
+  50: 'YES',  // Ace of Swords (clarity — yes)
+  51: 'CONDITIONAL', // 2 of Swords (stalemate)
+  52: 'NO',   // 3 of Swords (heartbreak)
+  53: 'NO',   // 4 of Swords (rest, not yet)
+  54: 'NO',   // 5 of Swords (defeat)
+  55: 'YES',  // 6 of Swords (moving forward)
+  56: 'NO',   // 7 of Swords (deception)
+  57: 'CONDITIONAL', // 8 of Swords (trapped)
+  58: 'NO',   // 9 of Swords (anxiety)
+  59: 'NO',   // 10 of Swords (endings)
+  60: 'YES',  // Page of Swords
+  61: 'CONDITIONAL', // Knight of Swords (impulsive)
+  62: 'YES',  // Queen of Swords
+  63: 'YES',  // King of Swords
+  // Pentacles (64-77) — earth energy, grounded, mostly yes for material matters
+  64: 'YES',  // Ace of Pentacles
+  65: 'YES',  // 2 of Pentacles
+  66: 'YES',  // 3 of Pentacles
+  67: 'CONDITIONAL', // 4 of Pentacles (holding on)
+  68: 'NO',   // 5 of Pentacles (hardship)
+  69: 'YES',  // 6 of Pentacles
+  70: 'YES',  // 7 of Pentacles (patience — conditional growth)
+  71: 'YES',  // 8 of Pentacles
+  72: 'YES',  // 9 of Pentacles
+  73: 'YES',  // 10 of Pentacles
+  74: 'YES',  // Page of Pentacles
+  75: 'CONDITIONAL', // Knight of Pentacles (slow)
+  76: 'YES',  // Queen of Pentacles
+  77: 'YES',  // King of Pentacles
+};
+
+const YES_NO_BRIEFS: Record<string, Record<'YES' | 'NO' | 'CONDITIONAL', string[]>> = {
+  YES: {
+    YES: [
+      'The oracle is clear: yes. The energy is aligned and the timing is favourable.',
+      'A resounding yes — the cards confirm this path is open.',
+      'Yes. The universe is green-lighting this direction.',
+      'The oracle affirms it: yes. Move forward.',
+    ],
+    NO: [],
+    CONDITIONAL: [],
+  },
+  NO: {
+    YES: [],
+    NO: [
+      'The oracle speaks plainly: no. Something is not yet aligned. Trust the pause.',
+      'No — not this way, not right now. The energy is blocked or misdirected.',
+      'The oracle advises against it. There are forces not yet in your favour.',
+      'No. The cards urge you to reconsider before proceeding.',
+    ],
+    CONDITIONAL: [],
+  },
+  CONDITIONAL: {
+    YES: [],
+    NO: [],
+    CONDITIONAL: [
+      'The answer is conditional. Yes, but only if a specific condition is met first.',
+      'Not a clear yes or no — something must shift before this can resolve positively.',
+      'The oracle says: maybe. The outcome depends on choices you have not yet made.',
+      'Yes, with a caveat. The cards see potential but also a condition that must be addressed.',
+    ],
+  },
+};
+
+const YES_NO_CONDITIONS: Record<number, string> = {
+  2: 'Trust your intuition over logic before deciding.',
+  5: 'Only if aligned with established tradition or expert guidance.',
+  9: 'After a period of solitude and inner reflection.',
+  12: 'After surrendering the need to control the outcome.',
+  13: 'After accepting the necessary ending or transformation.',
+  18: 'Once hidden information comes to light.',
+  42: 'After gaining clarity on which option you truly desire.',
+  43: 'Only if you are willing to release what is no longer serving you.',
+  47: 'If you can slow the pace and approach with genuine intention.',
+  51: 'Once the indecision is resolved by gathering more information.',
+  57: 'After removing the self-imposed limitations blocking you.',
+  67: 'If you can release the grip of fear around loss or scarcity.',
+  70: 'After patient, sustained effort — the harvest is not yet ready.',
+  75: 'With steady, methodical action over an extended timeframe.',
+};
+
+function generateYesNoAnswer(
+  card: TarotCard,
+  reversed: boolean,
+  question: string,
+  numCtx: Record<string, string | number | undefined>
+): TarotReadingResult['yesNoAnswer'] {
+  // Get base polarity, then flip if reversed
+  const basePolarity = CARD_YES_NO[card.id] ?? 'CONDITIONAL';
+  let verdict: 'YES' | 'NO' | 'CONDITIONAL';
+
+  if (reversed) {
+    if (basePolarity === 'YES') verdict = 'NO';
+    else if (basePolarity === 'NO') verdict = 'YES';
+    else verdict = 'CONDITIONAL';
+  } else {
+    verdict = basePolarity;
+  }
+
+  // Numerology can influence conditional cards to lean YES or NO
+  if (verdict === 'CONDITIONAL' && numCtx.lifePath) {
+    const lpNum = parseInt(String(numCtx.lifePath).split('/').pop() || '0');
+    const ne = NUMBER_ESSENCE[lpNum];
+    // LP in action-oriented numbers (1, 3, 5, 8) tips toward YES on conditional
+    if ([1, 3, 5, 8].includes(lpNum) && ne) verdict = 'YES';
+    // LP in reflective numbers (2, 7, 9) keeps CONDITIONAL or tips NO
+    if ([2, 7, 9].includes(lpNum)) verdict = 'CONDITIONAL';
+  }
+
+  const verdictColor: Record<'YES' | 'NO' | 'CONDITIONAL', 'emerald' | 'rose' | 'amber'> = {
+    YES: 'emerald', NO: 'rose', CONDITIONAL: 'amber'
+  };
+
+  // Pick brief
+  const briefPool = YES_NO_BRIEFS[verdict][verdict] || [];
+  const brief = briefPool[Math.floor(Math.random() * briefPool.length)] ||
+    `The ${card.name} ${reversed ? '(reversed) ' : ''}speaks: ${verdict.toLowerCase()}.`;
+
+  // Condition if applicable
+  const condition = verdict === 'CONDITIONAL'
+    ? (YES_NO_CONDITIONS[card.id] || 'Reflect deeply on whether the timing and circumstances are truly right.')
+    : undefined;
+
+  return { verdict, verdictColor: verdictColor[verdict], brief, condition };
+}
+
 // ─── MAIN ENGINE FUNCTION ─────────────────────────────────────────────────
 
 export interface ReadingInput {
@@ -582,12 +769,20 @@ export function generateReading(input: ReadingInput): TarotReadingResult {
   // Actionable guidance
   const actionableGuidance = generateActionableGuidance(enrichedCards, question, numerologyContext, tone);
 
+  // Yes/No oracle logic — only for yes-no spreads
+  let yesNoAnswer: TarotReadingResult['yesNoAnswer'];
+  if (spread.yesNo && enrichedCards.length === 1) {
+    const { card, reversed } = enrichedCards[0];
+    yesNoAnswer = generateYesNoAnswer(card, reversed, question, numerologyContext);
+  }
+
   return {
     narrative,
     cardBreakdowns,
     overallTheme,
     actionableGuidance,
     numerologyIntegration: numerologyIntegration || undefined,
+    yesNoAnswer,
     generatedAt: new Date().toISOString(),
   };
 }

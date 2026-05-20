@@ -254,6 +254,17 @@ function buildZoneAnalysis(activeDoshaIds: string[]): ZoneAnalysis[] {
   });
 }
 
+// Zones associated with Expression numbers (what you project outward) and Soul Urge (inner desire)
+const EXPRESSION_ZONE_MAP: Record<number, VastuDirection[]> = {
+  1: ['E', 'NE'], 2: ['NW', 'N'], 3: ['E', 'N'], 4: ['SW', 'W'], 5: ['N', 'NW'],
+  6: ['SW', 'SE'], 7: ['NE', 'N'], 8: ['S', 'SW'], 9: ['N', 'NE'],
+};
+
+const SOUL_URGE_ZONE_MAP: Record<number, VastuDirection[]> = {
+  1: ['E', 'SE'], 2: ['NE', 'NW'], 3: ['N', 'NE'], 4: ['SW', 'W'], 5: ['NW', 'W'],
+  6: ['SW', 'NW'], 7: ['NE', 'N'], 8: ['S', 'SW'], 9: ['NE', 'N'],
+};
+
 // ─── PERSONAL HARMONY ANALYSIS ────────────────────────────────────────────
 
 function analysePersonalHarmony(
@@ -270,10 +281,8 @@ function analysePersonalHarmony(
   const affinity = NUMBER_VASTU_AFFINITY[lpNum];
   if (!affinity) return null;
 
-  const activeDoshaIds = detectedDoshas.map(d => d.dosha.id);
   const dosha = detectedDoshas.find(d => affinity.weakZones.includes(d.dosha.zone));
   const weakZonesAffected = !!dosha;
-
   const strongZoneActive = entranceDir && affinity.strongZones.includes(entranceDir as VastuDirection);
 
   let criticalZone: string | undefined;
@@ -282,11 +291,43 @@ function analysePersonalHarmony(
   if (lpNum === 1) criticalZone = 'East (solar energy — must be unobstructed for LP 1 leadership)';
   if (lpNum === 4) criticalZone = 'SW (foundation zone — LP 4 thrives with a strong anchor)';
 
+  // Expression Number integration — zones that support how they present to the world
+  let exInsight = '';
+  if (numCtx.expression) {
+    const exNum = parseInt(numCtx.expression.split('/').pop() || numCtx.expression);
+    const exZones = EXPRESSION_ZONE_MAP[exNum];
+    if (exZones) {
+      const exConflict = detectedDoshas.filter(d => exZones.includes(d.dosha.zone));
+      if (exConflict.length > 0) {
+        exInsight = ` Expression number ${exNum} draws power from the ${exZones.join('/')} zone — active doshas here are suppressing professional presence and outward success.`;
+      } else {
+        exInsight = ` Expression number ${exNum} zone (${exZones[0]}) is clean — outward expression and professional effectiveness are well-supported.`;
+      }
+    }
+  }
+
+  // Soul Urge Number integration — zones that nourish inner desires
+  let suInsight = '';
+  if (numCtx.soulUrge) {
+    const suNum = parseInt(numCtx.soulUrge.split('/').pop() || numCtx.soulUrge);
+    const suZones = SOUL_URGE_ZONE_MAP[suNum];
+    if (suZones) {
+      const suConflict = detectedDoshas.filter(d => suZones.includes(d.dosha.zone));
+      if (suConflict.length > 0) {
+        suInsight = ` Soul Urge number ${suNum} needs the ${suZones.join('/')} zone to feel at home — doshas here create inner restlessness and dissatisfaction in this space.`;
+      } else {
+        suInsight = ` Soul Urge number ${suNum} zone (${suZones[0]}) is harmonious — the space nourishes deep inner desires and emotional wellbeing.`;
+      }
+    }
+  }
+
+  const fullGuidance = affinity.guidance + exInsight + suInsight;
+
   return {
     lifePathNumber: lpNum,
     strongZonesMatch: !!strongZoneActive,
     weakZonesAffected,
-    guidance: affinity.guidance,
+    guidance: fullGuidance,
     affinity: `${affinity.primaryDevta} resonance | Strong zones: ${affinity.strongZones.join(', ')} | Weak zones: ${affinity.weakZones.join(', ')}`,
     criticalZone,
   };
@@ -294,21 +335,44 @@ function analysePersonalHarmony(
 
 // ─── REMEDY PRIORITISATION ────────────────────────────────────────────────
 
-function prioritiseRemedies(detectedDoshas: DetectedDosha[]): { priority: VastuRemedy[]; all: VastuRemedy[] } {
+function prioritiseRemedies(
+  detectedDoshas: DetectedDosha[],
+  numCtx?: VastuInput['numerologyContext']
+): { priority: VastuRemedy[]; all: VastuRemedy[] } {
   const allRemedies: VastuRemedy[] = [];
   const priorityRemedies: VastuRemedy[] = [];
 
-  // Sort doshas by severity first
+  // Build set of LP/EX/SU sensitive zones for boosted prioritisation
+  const sensitiveZones = new Set<VastuDirection>();
+  if (numCtx?.lifePath) {
+    const lpNum = parseInt(numCtx.lifePath.split('/').pop() || numCtx.lifePath);
+    const aff = NUMBER_VASTU_AFFINITY[lpNum];
+    if (aff) aff.weakZones.forEach(z => sensitiveZones.add(z));
+  }
+  if (numCtx?.expression) {
+    const exNum = parseInt(numCtx.expression.split('/').pop() || numCtx.expression);
+    (EXPRESSION_ZONE_MAP[exNum] || []).forEach(z => sensitiveZones.add(z));
+  }
+  if (numCtx?.soulUrge) {
+    const suNum = parseInt(numCtx.soulUrge.split('/').pop() || numCtx.soulUrge);
+    (SOUL_URGE_ZONE_MAP[suNum] || []).forEach(z => sensitiveZones.add(z));
+  }
+
+  // Sort doshas: severe first, then by whether zone is sensitive to the client's numbers
   const sorted = [...detectedDoshas].sort((a, b) => {
     const severityOrder = { severe: 0, moderate: 1, mild: 2 };
-    return severityOrder[a.dosha.severity] - severityOrder[b.dosha.severity];
+    const aSev = severityOrder[a.dosha.severity];
+    const bSev = severityOrder[b.dosha.severity];
+    if (aSev !== bSev) return aSev - bSev;
+    // Boost doshas in the client's sensitive zones
+    const aBoost = sensitiveZones.has(a.dosha.zone) ? -1 : 0;
+    const bBoost = sensitiveZones.has(b.dosha.zone) ? -1 : 0;
+    return aBoost - bBoost;
   });
 
   sorted.forEach(({ dosha }) => {
     const remedies = REMEDY_DATABASE.filter(r => r.doshId === dosha.id);
     allRemedies.push(...remedies);
-
-    // Priority = first non-structural remedy for each dosha
     const nonStructural = remedies.find(r => r.type === 'non-structural');
     if (nonStructural) priorityRemedies.push(nonStructural);
   });
@@ -471,8 +535,8 @@ export function analyseVastu(input: VastuInput): VastuReport {
   // Personal harmony
   const personalHarmony = analysePersonalHarmony(input.numerologyContext, allDetected, input.mainEntranceDirection);
 
-  // Remedies
-  const { priority: priorityRemedies, all: allRemedies } = prioritiseRemedies(allDetected);
+  // Remedies — weighted by client's LP/EX/SU sensitive zones
+  const { priority: priorityRemedies, all: allRemedies } = prioritiseRemedies(allDetected, input.numerologyContext);
 
   // Room guide
   const roomGuide = buildRoomGuide(input.rooms);

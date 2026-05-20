@@ -12,9 +12,19 @@ import {
 } from '../data/tarotCards';
 import { generateReading as nativeGenerateReading } from '../utils/tarotEngine';
 
+interface SharedNumerologyContext {
+  name?: string;
+  lifePath?: string;
+  expression?: string;
+  soulUrge?: string;
+  personalYear?: string;
+  birthday?: string;
+}
+
 interface TarotPageProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  sharedNumerology?: SharedNumerologyContext | null;
 }
 
 type Step = 'intention' | 'spread' | 'draw' | 'reading';
@@ -590,7 +600,7 @@ function CardBack({ size = 'md', onClick, empty }: { size?: 'sm' | 'md' | 'lg'; 
   );
 }
 
-export default function TarotPage({ onNavigate, onShowAuth }: TarotPageProps) {
+export default function TarotPage({ onNavigate, onShowAuth, sharedNumerology }: TarotPageProps) {
   const [step, setStep] = useState<Step>('intention');
   const [selectedSpread, setSelectedSpread] = useState<SpreadTemplate | null>(null);
   const [drawnCards, setDrawnCards] = useState<Array<{ cardId: number; reversed: boolean } | null>>([]);
@@ -599,8 +609,14 @@ export default function TarotPage({ onNavigate, onShowAuth }: TarotPageProps) {
   const [question, setQuestion] = useState('');
   const [tone, setTone] = useState<ToneType>('empowering');
   const [numerologyContext, setNumerologyContext] = useState({
-    name: '', lifePath: '', expression: '', soulUrge: '', personalYear: '', birthday: ''
+    name: sharedNumerology?.name || '',
+    lifePath: sharedNumerology?.lifePath || '',
+    expression: sharedNumerology?.expression || '',
+    soulUrge: sharedNumerology?.soulUrge || '',
+    personalYear: sharedNumerology?.personalYear || '',
+    birthday: sharedNumerology?.birthday || '',
   });
+  const [chartAutoFilled, setChartAutoFilled] = useState(!!(sharedNumerology?.lifePath || sharedNumerology?.name));
   const [reading, setReading] = useState<TarotReadingResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -693,6 +709,7 @@ export default function TarotPage({ onNavigate, onShowAuth }: TarotPageProps) {
     setReading(null);
     setError('');
     setPractitionerNotes('');
+    setChartAutoFilled(false);
     setNumerologyContext({ name: '', lifePath: '', expression: '', soulUrge: '', personalYear: '', birthday: '' });
   };
 
@@ -832,9 +849,17 @@ export default function TarotPage({ onNavigate, onShowAuth }: TarotPageProps) {
               <div className="flex items-center gap-2 mb-4">
                 <Hash className="w-5 h-5 text-cyan-400" />
                 <h3 className="text-white font-semibold">Numerology Integration</h3>
-                <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">Optional but powerful</span>
+                {chartAutoFilled ? (
+                  <span className="text-xs font-semibold text-emerald-300 bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 rounded-full">Pre-filled from Core Chart</span>
+                ) : (
+                  <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">Optional but powerful</span>
+                )}
               </div>
-              <p className="text-gray-500 text-xs mb-4">Adding core numerology numbers lets the engine draw precise bridges between the cards and your client's numerological profile.</p>
+              {chartAutoFilled ? (
+                <p className="text-emerald-400/80 text-xs mb-4">Core numbers from the calculator have been pre-loaded. Edit any field if needed.</p>
+              ) : (
+                <p className="text-gray-500 text-xs mb-4">Adding core numerology numbers lets the engine draw precise bridges between the cards and your client's numerological profile.</p>
+              )}
               <div className="grid sm:grid-cols-2 gap-3">
                 {[
                   { key: 'name', label: 'Client Name', placeholder: 'e.g. Priya Sharma' },
@@ -856,12 +881,14 @@ export default function TarotPage({ onNavigate, onShowAuth }: TarotPageProps) {
                   </div>
                 ))}
               </div>
-              <button
-                onClick={() => onNavigate('calculator')}
-                className="mt-4 flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
-              >
-                <Zap className="w-3.5 h-3.5" /> Calculate client's numerology first in Core Chart
-              </button>
+              {!chartAutoFilled && (
+                <button
+                  onClick={() => onNavigate('calculator')}
+                  className="mt-4 flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                >
+                  <Zap className="w-3.5 h-3.5" /> Calculate client's numerology first in Core Chart
+                </button>
+              )}
             </div>
 
             <div className="flex justify-end">
@@ -1145,11 +1172,45 @@ export default function TarotPage({ onNavigate, onShowAuth }: TarotPageProps) {
               })}
             </div>
 
+            {/* Yes/No Verdict — shown prominently for yes-no spreads */}
+            {reading.yesNoAnswer && (
+              <div className={`rounded-2xl p-6 mb-6 border ${
+                reading.yesNoAnswer.verdictColor === 'emerald'
+                  ? 'bg-emerald-950/50 border-emerald-500/30'
+                  : reading.yesNoAnswer.verdictColor === 'rose'
+                  ? 'bg-rose-950/50 border-rose-500/30'
+                  : 'bg-amber-950/50 border-amber-500/30'
+              }`}>
+                <div className="text-center mb-4">
+                  <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full text-4xl font-black mb-3 ${
+                    reading.yesNoAnswer.verdictColor === 'emerald'
+                      ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500/40'
+                      : reading.yesNoAnswer.verdictColor === 'rose'
+                      ? 'bg-rose-500/20 text-rose-300 border-2 border-rose-500/40'
+                      : 'bg-amber-500/20 text-amber-300 border-2 border-amber-500/40'
+                  }`}>
+                    {reading.yesNoAnswer.verdict === 'YES' ? 'YES' : reading.yesNoAnswer.verdict === 'NO' ? 'NO' : '?'}
+                  </div>
+                  <p className={`text-lg font-semibold mb-1 ${
+                    reading.yesNoAnswer.verdictColor === 'emerald' ? 'text-emerald-300'
+                    : reading.yesNoAnswer.verdictColor === 'rose' ? 'text-rose-300' : 'text-amber-300'
+                  }`}>{reading.yesNoAnswer.verdict === 'CONDITIONAL' ? 'Conditional' : reading.yesNoAnswer.verdict}</p>
+                  <p className="text-gray-300 text-sm leading-relaxed max-w-lg mx-auto">{reading.yesNoAnswer.brief}</p>
+                </div>
+                {reading.yesNoAnswer.condition && (
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Condition</p>
+                    <p className="text-amber-200 text-sm leading-relaxed">{reading.yesNoAnswer.condition}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Overall Theme */}
             <div className="bg-gradient-to-br from-blue-950/60 to-slate-900/60 border border-blue-500/20 rounded-2xl p-6 mb-6">
               <div className="flex items-center gap-2 mb-3">
                 <Star className="w-5 h-5 text-blue-400 fill-blue-400" />
-                <h3 className="text-white font-bold">Overall Theme</h3>
+                <h3 className="text-white font-bold">{reading.yesNoAnswer ? 'Oracle Context' : 'Overall Theme'}</h3>
               </div>
               <p className="text-gray-200 leading-relaxed">{reading.overallTheme}</p>
             </div>

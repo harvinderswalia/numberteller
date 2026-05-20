@@ -266,6 +266,7 @@ export interface SpreadTemplate {
   cardCount: number;
   positions: SpreadPosition[];
   category: 'general' | 'relationship' | 'career' | 'spiritual' | 'numerology';
+  yesNo?: boolean;
 }
 
 export const SPREAD_TEMPLATES: SpreadTemplate[] = [
@@ -370,6 +371,18 @@ export const SPREAD_TEMPLATES: SpreadTemplate[] = [
     ]
   },
   {
+    id: 'yes-no',
+    name: 'Yes / No Oracle',
+    description: 'A direct binary answer — the oracle speaks with a single card, a clear verdict, and a one-line brief',
+    icon: '?',
+    cardCount: 1,
+    category: 'general',
+    yesNo: true,
+    positions: [
+      { id: 0, label: 'Oracle Answer', description: 'The card delivers a direct yes, no, or conditional answer to your question', numerologyLink: 'lifePath', x: 50, y: 50 }
+    ]
+  },
+  {
     id: 'personal-year',
     name: 'Personal Year Forecast',
     description: 'Map your Personal Year energy with tarot guidance for each quarter',
@@ -414,5 +427,11 @@ export interface TarotReadingResult {
   overallTheme: string;
   actionableGuidance: string;
   numerologyIntegration?: string;
+  yesNoAnswer?: {
+    verdict: 'YES' | 'NO' | 'CONDITIONAL';
+    verdictColor: 'emerald' | 'rose' | 'amber';
+    brief: string;
+    condition?: string;
+  };
   generatedAt: string;
 }

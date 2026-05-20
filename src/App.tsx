@@ -30,10 +30,21 @@ export type Page =
   | 'calculator' | 'results' | 'compatibility' | 'house'
   | 'saved' | 'loshu' | 'loshu-results' | 'name-correction' | 'tarot' | 'vastu';
 
+// Shared numerology context that flows between the calculator and Tarot/Vastu tools
+export interface SharedNumerologyContext {
+  name?: string;
+  lifePath?: string;
+  expression?: string;
+  soulUrge?: string;
+  personalYear?: string;
+  birthday?: string;
+}
+
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [calculationResults, setCalculationResults] = useState<any>(null);
   const [loShuResults, setLoShuResults] = useState<LoShuGridData | null>(null);
+  const [sharedNumerology, setSharedNumerology] = useState<SharedNumerologyContext | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { loading } = useAuth();
@@ -53,8 +64,18 @@ function App() {
 
   const handleShowAuth = () => setShowAuthModal(true);
 
+  const extractNumerology = (results: any): SharedNumerologyContext => ({
+    name: results?.fullName || '',
+    lifePath: String(results?.coreNumbers?.lifePath ?? ''),
+    expression: String(results?.coreNumbers?.expression ?? ''),
+    soulUrge: String(results?.coreNumbers?.soulUrge ?? ''),
+    personalYear: String(results?.personalYear ?? ''),
+    birthday: String(results?.coreNumbers?.birthday ?? ''),
+  });
+
   const handleCalculate = (results: any) => {
     setCalculationResults(results);
+    if (results) setSharedNumerology(extractNumerology(results));
     setCurrentPage('results');
   };
 
@@ -64,6 +85,7 @@ function App() {
 
   const handleLoadChart = (chartData: any) => {
     setCalculationResults(chartData);
+    if (chartData) setSharedNumerology(extractNumerology(chartData));
     setCurrentPage('results');
   };
 
@@ -74,6 +96,7 @@ function App() {
   };
 
   const sharedProps = { onNavigate: handleNavigate, onShowAuth: handleShowAuth };
+  const numerologyTools = { ...sharedProps, sharedNumerology };
 
   const renderPage = () => {
     switch (currentPage) {
@@ -96,9 +119,9 @@ function App() {
       case 'billing':
         return <BillingPage {...sharedProps} />;
       case 'tarot':
-        return <TarotPage {...sharedProps} />;
+        return <TarotPage {...numerologyTools} />;
       case 'vastu':
-        return <VastuPage {...sharedProps} />;
+        return <VastuPage {...numerologyTools} />;
       case 'calculator':
         return (
           <CalculatorForm
@@ -113,6 +136,8 @@ function App() {
             results={calculationResults}
             onNavigate={handleNavigate}
             onExportPDF={handleExportPDF}
+            onNavigateToTarot={() => { handleNavigate('tarot'); }}
+            onNavigateToVastu={() => { handleNavigate('vastu'); }}
           />
         ) : (
           <LandingPage {...sharedProps} />

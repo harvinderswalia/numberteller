@@ -9,9 +9,19 @@ import {
   analyseVastu, VastuInput, VastuReport, RoomEntry,
 } from '../utils/vastuEngine';
 
+interface SharedNumerologyContext {
+  name?: string;
+  lifePath?: string;
+  expression?: string;
+  soulUrge?: string;
+  personalYear?: string;
+  birthday?: string;
+}
+
 interface VastuPageProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  sharedNumerology?: SharedNumerologyContext | null;
 }
 
 type Step = 'input' | 'analysis' | 'remedies' | 'report';
@@ -484,7 +494,7 @@ function LayoutImageAnalyser({
 
 // ─── MAIN PAGE COMPONENT ───────────────────────────────────────────────────
 
-export default function VastuPage({ onNavigate, onShowAuth }: VastuPageProps) {
+export default function VastuPage({ onNavigate, onShowAuth, sharedNumerology }: VastuPageProps) {
   const [step, setStep] = useState<Step>('input');
   const [report, setReport] = useState<VastuReport | null>(null);
   const [remedyTab, setRemedyTab] = useState<RemedyTab>('non-structural');
@@ -498,7 +508,14 @@ export default function VastuPage({ onNavigate, onShowAuth }: VastuPageProps) {
   const [rooms, setRooms] = useState<RoomEntry[]>(() => buildDefaultRooms('apartment'));
   const [structuralIssues, setStructuralIssues] = useState<string[]>([]);
   const [slopeDir, setSlopeDir] = useState<VastuInput['slopeDirection']>('');
-  const [numerologyCtx, setNumerologyCtx] = useState({ name: '', lifePath: '', expression: '', soulUrge: '', personalYear: '' });
+  const [numerologyCtx, setNumerologyCtx] = useState({
+    name: sharedNumerology?.name || '',
+    lifePath: sharedNumerology?.lifePath || '',
+    expression: sharedNumerology?.expression || '',
+    soulUrge: sharedNumerology?.soulUrge || '',
+    personalYear: sharedNumerology?.personalYear || '',
+  });
+  const chartAutoFilled = !!(sharedNumerology?.lifePath || sharedNumerology?.name);
 
   function buildDefaultRooms(type: PropertyType): RoomEntry[] {
     // Pre-fill the most important rooms per type with empty zones
@@ -853,16 +870,26 @@ export default function VastuPage({ onNavigate, onShowAuth }: VastuPageProps) {
 
             {/* ── 7. Numerology Integration ── */}
             <div className="bg-slate-800/40 border border-white/10 rounded-2xl p-5">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
                 <Hash className="w-4 h-4 text-cyan-400" />
                 <span className="text-white font-semibold text-sm">{cfg.clientLabel} Integration</span>
-                <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">Optional</span>
+                {chartAutoFilled ? (
+                  <span className="text-xs font-semibold text-emerald-300 bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 rounded-full">Pre-filled from Core Chart</span>
+                ) : (
+                  <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">Optional</span>
+                )}
               </div>
-              <p className="text-gray-500 text-xs mb-4">Adds Personal Vastu Harmony analysis — how the property's zone energy aligns with the client's numerological blueprint.</p>
+              {chartAutoFilled ? (
+                <p className="text-emerald-400/80 text-xs mb-4">Core numbers from the calculator have been pre-loaded. All five numbers are used for Personal Vastu Harmony — edit any field if needed.</p>
+              ) : (
+                <p className="text-gray-500 text-xs mb-4">Adds Personal Vastu Harmony — how the property's zone energy aligns with the client's full numerological blueprint (LP, Expression, Soul Urge, Personal Year).</p>
+              )}
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
                 {[
                   { key: 'name', label: propertyType === 'office' ? 'Owner / Business Name' : 'Client Name', placeholder: propertyType === 'office' ? 'e.g. Rajiv Mehra' : 'e.g. Priya Sharma' },
-                  { key: 'lifePath', label: 'Life Path', placeholder: 'e.g. 8' },
+                  { key: 'lifePath', label: 'Life Path Number', placeholder: 'e.g. 8 or 22/4' },
+                  { key: 'expression', label: 'Expression Number', placeholder: 'e.g. 3' },
+                  { key: 'soulUrge', label: 'Soul Urge Number', placeholder: 'e.g. 9' },
                   { key: 'personalYear', label: 'Personal Year', placeholder: 'e.g. 4' },
                 ].map(f => (
                   <div key={f.key}>
@@ -877,12 +904,14 @@ export default function VastuPage({ onNavigate, onShowAuth }: VastuPageProps) {
                   </div>
                 ))}
               </div>
-              <button
-                onClick={() => onNavigate('calculator')}
-                className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
-              >
-                <Zap className="w-3 h-3" /> Calculate numerology in Core Chart first
-              </button>
+              {!chartAutoFilled && (
+                <button
+                  onClick={() => onNavigate('calculator')}
+                  className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
+                >
+                  <Zap className="w-3 h-3" /> Calculate numerology in Core Chart first
+                </button>
+              )}
             </div>
 
             {/* ── RUN ANALYSIS ── */}
