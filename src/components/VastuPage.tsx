@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { Compass, ChevronRight, RotateCcw, Home, AlertTriangle, CheckCircle, RefreshCw, Hash, Zap, Shield, ChevronDown, BookOpen, Layers, TrendingUp, Upload, X, Image as ImageIcon, Info, Plus } from 'lucide-react';
+import { Compass, ChevronRight, RotateCcw, Home, AlertTriangle, CheckCircle, RefreshCw, Hash, Zap, Shield, ChevronDown, BookOpen, Layers, TrendingUp, Upload, X, Image as ImageIcon, Info, Plus, Scan, Sparkles } from 'lucide-react';
 import SiteNavigation from './SiteNavigation';
 import SiteFooter from './SiteFooter';
 import {
@@ -250,31 +250,41 @@ function CompassRing({ direction, onSelect }: { direction: VastuDirection | ''; 
 
 // ─── LAYOUT IMAGE OVERLAY ──────────────────────────────────────────────────
 
-interface NorthMark { x: number; y: number }
+interface ScanResult {
+  detectedRooms: Array<{ roomType: string; zone: string; confidence: string; notes?: string }>;
+  entranceDirection: string;
+  entranceConfidence: string;
+  structuralIssues: string[];
+  slopeDirection: string;
+  propertyNotes: string;
+  rawDescription: string;
+  analysisQuality: string;
+}
 
 function LayoutImageAnalyser({
-  onDirectionDetected,
+  propertyType,
+  onScanComplete,
   onClear,
 }: {
-  onDirectionDetected: (dir: VastuDirection) => void;
+  propertyType: string;
+  onScanComplete: (result: ScanResult) => void;
   onClear: () => void;
 }) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [northMark, setNorthMark] = useState<NorthMark | null>(null);
-  const [entranceMark, setEntranceMark] = useState<NorthMark | null>(null);
-  const [markMode, setMarkMode] = useState<'north' | 'entrance' | null>(null);
-  const [detectedDir, setDetectedDir] = useState<VastuDirection | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const imgRef = useRef<HTMLDivElement>(null);
 
   const handleFile = (file: File) => {
     if (!file.type.startsWith('image/')) return;
     const url = URL.createObjectURL(file);
     setImageUrl(url);
-    setNorthMark(null);
-    setEntranceMark(null);
-    setDetectedDir(null);
+    setImageFile(file);
+    setScanResult(null);
+    setScanError(null);
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -284,64 +294,57 @@ function LayoutImageAnalyser({
     if (file) handleFile(file);
   }, []);
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!markMode || !imgRef.current) return;
-    const rect = imgRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    if (markMode === 'north') {
-      setNorthMark({ x, y });
-      setMarkMode(null);
-    } else if (markMode === 'entrance') {
-      setEntranceMark({ x, y });
-      setMarkMode(null);
+  const toBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(',')[1]);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const runScan = async () => {
+    if (!imageFile) return;
+    setScanning(true);
+    setScanError(null);
+    try {
+      const base64 = await toBase64(imageFile);
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/vastu-analysis`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
+          'Apikey': anonKey,
+        },
+        body: JSON.stringify({
+          imageBase64: base64,
+          mimeType: imageFile.type,
+          propertyType,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || 'Scan failed');
+
+      setScanResult(data);
+      onScanComplete(data);
+    } catch (err) {
+      setScanError(err instanceof Error ? err.message : 'Scan failed');
+    } finally {
+      setScanning(false);
     }
-  };
-
-  // Compute direction from north and entrance marks
-  const computeDirection = () => {
-    if (!northMark || !entranceMark) return;
-    // Center of property (assumed midpoint of image)
-    const cx = 50, cy = 50;
-    // North vector: from center to north mark
-    const nVec = { x: northMark.x - cx, y: northMark.y - cy };
-    // Entrance vector: from center to entrance mark
-    const eVec = { x: entranceMark.x - cx, y: entranceMark.y - cy };
-
-    // Angle of north vector (reference direction)
-    const northAngle = Math.atan2(nVec.y, nVec.x) * (180 / Math.PI);
-    // Angle of entrance vector
-    const entranceAngle = Math.atan2(eVec.y, eVec.x) * (180 / Math.PI);
-
-    // Compass bearing: 0 = North, clockwise
-    // SVG y-axis is flipped vs compass. Compass north bearing of entrance:
-    let bearing = entranceAngle - northAngle;
-    // Normalize bearing: In SVG, y increases downward. North in compass = up = SVG y negative.
-    // North mark going upward means nVec.y < 0 (smaller y = up in SVG).
-    // We need the compass angle of the entrance relative to true north.
-    // Compass bearing formula: angle where North=0, East=90, South=180, West=270
-    // If north mark is "up" (nVec pointing upward in SVG = negative y), then
-    // the SVG angle of north = -90 degrees from SVG x-axis.
-    // We rotate the entrance vector by -(northAngle + 90) to align north with 0.
-    let compassBearing = entranceAngle - northAngle - 90;
-    // Normalize to 0-360
-    compassBearing = ((compassBearing % 360) + 360) % 360;
-
-    // Map to 16 zones
-    const zones: VastuDirection[] = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-    const zoneAngle = 360 / 16;
-    const idx = Math.round(compassBearing / zoneAngle) % 16;
-    const dir = zones[idx];
-    setDetectedDir(dir);
-    onDirectionDetected(dir);
   };
 
   const clearImage = () => {
     setImageUrl(null);
-    setNorthMark(null);
-    setEntranceMark(null);
-    setDetectedDir(null);
-    setMarkMode(null);
+    setImageFile(null);
+    setScanResult(null);
+    setScanError(null);
     onClear();
   };
 
@@ -358,13 +361,19 @@ function LayoutImageAnalyser({
       >
         <input ref={fileRef} type="file" accept="image/*" className="hidden"
           onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
-        <Upload className="w-10 h-10 text-gray-500 mx-auto mb-3" />
-        <p className="text-white font-semibold mb-1">Upload Floor Plan to Auto-Detect Entrance Direction</p>
-        <p className="text-gray-500 text-sm mb-3">Drag & drop or click to upload JPG, PNG, or PDF screenshot</p>
-        <div className="inline-flex items-center gap-1.5 bg-slate-700 border border-white/10 text-gray-400 text-xs px-3 py-1.5 rounded-full">
-          <Info className="w-3 h-3 flex-shrink-0" />
-          Detects entrance direction only — assign room zones manually below
+        <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Scan className="w-7 h-7 text-amber-400" />
         </div>
+        <p className="text-white font-bold text-lg mb-1">AI Floor Plan Scanner</p>
+        <p className="text-gray-400 text-sm mb-3">Upload your floor plan — AI will detect rooms, directions, and Vastu doshas automatically</p>
+        <div className="flex flex-wrap justify-center gap-2 mb-4">
+          {['Rooms & zones', 'Entrance direction', 'Structural doshas', 'Devta mapping'].map(f => (
+            <span key={f} className="inline-flex items-center gap-1 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
+              <CheckCircle className="w-3 h-3" /> {f}
+            </span>
+          ))}
+        </div>
+        <p className="text-gray-600 text-xs">Drag & drop or click · JPG, PNG, PDF screenshot</p>
       </div>
     );
   }
@@ -372,122 +381,126 @@ function LayoutImageAnalyser({
   return (
     <div className="bg-slate-800/60 border border-white/10 rounded-2xl overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/10 flex-wrap">
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setMarkMode(markMode === 'north' ? null : 'north')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-              markMode === 'north' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300' :
-              northMark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-slate-700 border-white/10 text-gray-400 hover:text-white'
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-blue-400" />
-            {northMark ? 'N marked' : markMode === 'north' ? 'Click image for North' : 'Mark North'}
-          </button>
-          <button
-            onClick={() => setMarkMode(markMode === 'entrance' ? null : 'entrance')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-              markMode === 'entrance' ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' :
-              entranceMark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-slate-700 border-white/10 text-gray-400 hover:text-white'
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-amber-400" />
-            {entranceMark ? 'Entrance marked' : markMode === 'entrance' ? 'Click image for Entrance' : 'Mark Entrance'}
-          </button>
-          {northMark && entranceMark && (
-            <button
-              onClick={computeDirection}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition-all"
-            >
-              <Compass className="w-3.5 h-3.5" /> Auto-Detect Direction
-            </button>
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-white/10">
+        <div className="flex items-center gap-2">
+          <ImageIcon className="w-4 h-4 text-gray-400" />
+          <span className="text-sm text-gray-300 font-medium truncate max-w-[200px]">{imageFile?.name}</span>
+          {scanResult && (
+            <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+              Scanned
+            </span>
           )}
         </div>
-        <button onClick={clearImage} className="text-gray-500 hover:text-red-400 transition-colors">
-          <X className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          {!scanResult && !scanning && (
+            <button
+              onClick={runScan}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white transition-all shadow-lg shadow-amber-500/20"
+            >
+              <Sparkles className="w-4 h-4" /> AI Scan
+            </button>
+          )}
+          {scanning && (
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-amber-300 bg-amber-500/10 border border-amber-500/20">
+              <RefreshCw className="w-4 h-4 animate-spin" /> Scanning floor plan…
+            </div>
+          )}
+          {scanResult && (
+            <button
+              onClick={runScan}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white bg-slate-700 border border-white/10 transition-all"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Re-scan
+            </button>
+          )}
+          <button onClick={clearImage} className="text-gray-500 hover:text-red-400 transition-colors p-1">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Image canvas */}
-      <div
-        ref={imgRef}
-        className={`relative overflow-hidden bg-slate-900 ${markMode ? 'cursor-crosshair' : 'cursor-default'}`}
-        style={{ maxHeight: 400 }}
-        onClick={handleClick}
-      >
-        <img src={imageUrl} alt="Floor plan" className="w-full object-contain" style={{ maxHeight: 400 }} />
-
-        {/* North marker */}
-        {northMark && (
-          <div
-            className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ left: `${northMark.x}%`, top: `${northMark.y}%` }}
-          >
-            <div className="w-7 h-7 rounded-full bg-blue-500/90 border-2 border-white flex items-center justify-center shadow-lg shadow-blue-500/50">
-              <span className="text-white text-[10px] font-black">N</span>
+      {/* Image preview */}
+      <div className="relative bg-slate-900" style={{ maxHeight: 320 }}>
+        <img src={imageUrl} alt="Floor plan" className="w-full object-contain" style={{ maxHeight: 320 }} />
+        {scanning && (
+          <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full border-2 border-amber-500/30 flex items-center justify-center">
+                <Scan className="w-8 h-8 text-amber-400 animate-pulse" />
+              </div>
+              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-amber-500 animate-spin" />
             </div>
-            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-blue-300 text-[9px] font-bold whitespace-nowrap">True North</div>
-          </div>
-        )}
-
-        {/* Entrance marker */}
-        {entranceMark && (
-          <div
-            className="absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ left: `${entranceMark.x}%`, top: `${entranceMark.y}%` }}
-          >
-            <div className="w-7 h-7 rounded-full bg-amber-500/90 border-2 border-white flex items-center justify-center shadow-lg shadow-amber-500/50">
-              <span className="text-white text-[9px] font-black">E</span>
-            </div>
-            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-amber-300 text-[9px] font-bold whitespace-nowrap">Entrance</div>
-          </div>
-        )}
-
-        {/* Direction line between marks */}
-        {northMark && entranceMark && (
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 10 }}>
-            <defs>
-              <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(245,158,11,0.8)" />
-              </marker>
-            </defs>
-            <line
-              x1={`${northMark.x}%`} y1={`${northMark.y}%`}
-              x2={`${entranceMark.x}%`} y2={`${entranceMark.y}%`}
-              stroke="rgba(245,158,11,0.4)" strokeWidth="1.5" strokeDasharray="4 3"
-              markerEnd="url(#arrow)"
-            />
-          </svg>
-        )}
-
-        {/* Mode hint overlay */}
-        {markMode && (
-          <div className="absolute top-2 left-0 right-0 flex justify-center pointer-events-none">
-            <div className="bg-slate-900/90 text-amber-300 text-xs px-3 py-1.5 rounded-full border border-amber-500/30 font-medium">
-              {markMode === 'north' ? 'Click to mark North direction on the plan' : 'Click to mark the Main Entrance position'}
-            </div>
+            <p className="text-amber-300 text-sm font-semibold">Analysing floor plan with AI…</p>
+            <p className="text-gray-400 text-xs">Detecting rooms, directions, and Vastu doshas</p>
           </div>
         )}
       </div>
 
-      {/* Detected result */}
-      {detectedDir && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-emerald-500/10 border-t border-emerald-500/20">
-          <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-          <p className="text-emerald-300 text-sm font-semibold">
-            Direction auto-detected: <span className="text-white">{DIRECTION_LABELS[detectedDir]}</span>
-          </p>
-          <span className="text-emerald-400/60 text-xs ml-auto">Applied to entrance selector</span>
+      {/* Scan error */}
+      {scanError && (
+        <div className="flex items-start gap-2 px-4 py-3 bg-red-950/40 border-t border-red-500/20">
+          <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-red-300 text-sm font-semibold">Scan failed</p>
+            <p className="text-red-300/70 text-xs mt-0.5">{scanError}</p>
+            <p className="text-gray-500 text-xs mt-1">The AI service may not be configured. You can still assign room zones manually below.</p>
+          </div>
         </div>
       )}
 
-      {(!northMark || !entranceMark) && (
+      {/* Scan results summary */}
+      {scanResult && !scanning && (
+        <div className="px-4 py-4 border-t border-white/10 space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <p className="text-emerald-300 font-semibold text-sm">AI Scan Complete — form pre-populated below</p>
+            <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+              scanResult.analysisQuality === 'clear' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
+              scanResult.analysisQuality === 'partial' ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' :
+              'text-red-400 bg-red-500/10 border-red-500/20'
+            }`}>
+              {scanResult.analysisQuality === 'clear' ? 'High Quality' : scanResult.analysisQuality === 'partial' ? 'Partial Scan' : 'Low Quality'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+            <div className="bg-slate-700/60 rounded-xl p-2.5">
+              <p className="text-white font-bold text-lg">{scanResult.detectedRooms.length}</p>
+              <p className="text-gray-500 text-[10px]">Rooms detected</p>
+            </div>
+            <div className="bg-slate-700/60 rounded-xl p-2.5">
+              <p className={`font-bold text-lg ${scanResult.entranceDirection ? 'text-amber-400' : 'text-gray-500'}`}>
+                {scanResult.entranceDirection || '—'}
+              </p>
+              <p className="text-gray-500 text-[10px]">Entrance dir.</p>
+            </div>
+            <div className="bg-slate-700/60 rounded-xl p-2.5">
+              <p className="text-red-400 font-bold text-lg">{scanResult.structuralIssues.length}</p>
+              <p className="text-gray-500 text-[10px]">Doshas flagged</p>
+            </div>
+            <div className="bg-slate-700/60 rounded-xl p-2.5">
+              <p className={`font-bold text-lg ${scanResult.slopeDirection && scanResult.slopeDirection !== 'flat' ? 'text-amber-400' : 'text-gray-400'}`}>
+                {scanResult.slopeDirection === 'NE-high' ? 'NE↑' : scanResult.slopeDirection === 'SW-high' ? 'SW↑' : 'Flat'}
+              </p>
+              <p className="text-gray-500 text-[10px]">Slope</p>
+            </div>
+          </div>
+
+          {scanResult.propertyNotes && (
+            <div className="bg-slate-700/40 rounded-xl p-3 text-xs text-gray-300 leading-relaxed">
+              <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-1">AI Notes</p>
+              {scanResult.propertyNotes}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Prompt to scan */}
+      {!scanResult && !scanning && !scanError && (
         <div className="flex items-start gap-2 px-4 py-3 border-t border-white/5">
-          <Info className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
-          <p className="text-gray-500 text-xs leading-relaxed">
-            {!northMark && !entranceMark && 'Click "Mark North" then tap the true north point on your floor plan. Then "Mark Entrance" and tap the main door position.'}
-            {northMark && !entranceMark && 'North marked. Now click "Mark Entrance" and tap the main entrance/door on the plan.'}
-            {!northMark && entranceMark && 'Entrance marked. Now click "Mark North" and tap where north is on the plan.'}
+          <Sparkles className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+          <p className="text-gray-400 text-xs leading-relaxed">
+            Click <span className="text-amber-300 font-semibold">AI Scan</span> to automatically detect rooms, zones, entrance direction, and Vastu doshas from this floor plan. All fields will be pre-filled — you can review and adjust before running the analysis.
           </p>
         </div>
       )}
@@ -679,12 +692,37 @@ export default function VastuPage({ onNavigate, onShowAuth, sharedNumerology }: 
             {/* ── 2. Layout Image Upload ── */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <ImageIcon className="w-4 h-4 text-amber-400" />
-                <span className="text-sm font-semibold text-white">Floor Plan Upload</span>
-                <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">Optional — Detects entrance direction only</span>
+                <Scan className="w-4 h-4 text-amber-400" />
+                <span className="text-sm font-semibold text-white">AI Floor Plan Scanner</span>
+                <span className="text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Auto-detects rooms, directions & doshas</span>
               </div>
               <LayoutImageAnalyser
-                onDirectionDetected={(dir) => setEntranceDir(dir)}
+                propertyType={propertyType}
+                onScanComplete={(result) => {
+                  // Apply entrance direction
+                  if (result.entranceDirection) {
+                    setEntranceDir(result.entranceDirection as VastuDirection);
+                  }
+                  // Apply slope
+                  if (result.slopeDirection && result.slopeDirection !== '') {
+                    setSlopeDir(result.slopeDirection as VastuInput['slopeDirection']);
+                  }
+                  // Apply structural issues (merge with any already checked)
+                  if (result.structuralIssues?.length > 0) {
+                    setStructuralIssues(prev => {
+                      const merged = new Set([...prev, ...result.structuralIssues]);
+                      return Array.from(merged);
+                    });
+                  }
+                  // Apply detected rooms — replace default rooms with AI-detected ones
+                  if (result.detectedRooms?.length > 0) {
+                    const newRooms: RoomEntry[] = result.detectedRooms.map(r => ({
+                      roomType: r.roomType,
+                      zone: (r.zone || '') as VastuDirection | '',
+                    }));
+                    setRooms(newRooms);
+                  }
+                }}
                 onClear={() => {}}
               />
             </div>
