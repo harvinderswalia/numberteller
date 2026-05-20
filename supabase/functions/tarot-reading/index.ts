@@ -66,8 +66,34 @@ When mentioning numerology numbers, ALWAYS explain what they mean in context —
   ${c.numerologyLink ? `Numerology Link: This position is connected to the querent's ${c.numerologyLink}` : ''}`
   ).join('\n\n');
 
+  // Detect question intent for smarter prompt priming
+  const q = question.toLowerCase();
+  let questionIntent = '';
+  if (/marr(y|ied|iage)|propose|proposal/.test(q)) {
+    questionIntent = `\nQUESTION INTENT: Marriage decision. The querent is asking specifically whether to marry or about the future of marriage with this person. EVERY card interpretation and the narrative must speak directly to marriage readiness, compatibility for a lifelong union, and whether this commitment is wise. Do NOT give generic relationship advice — speak specifically to the marriage question. The Outcome/Future positions must directly address whether marriage is advised.`;
+  } else if (/get back together|reconcil|second chance|rekindle/.test(q)) {
+    questionIntent = `\nQUESTION INTENT: Reconciliation. The querent wants to know if getting back together is possible and wise. Every card must address the specific question of whether this reunion would be genuine and lasting, what caused the original break, and whether real change has occurred. Do not give generic love advice.`;
+  } else if (/will (he|she|they) come back|ex (come|return)|miss me/.test(q)) {
+    questionIntent = `\nQUESTION INTENT: Ex returning. The querent wants to know if their ex will come back. Address this directly and honestly. The Outcome/Future cards must speak to whether a return is likely. Also address whether a return would be healthy for the querent.`;
+  } else if (/should i (quit|leave|change|switch) (my )?(job|career|work)|new job offer|accept the (offer|position)|resign/.test(q)) {
+    questionIntent = `\nQUESTION INTENT: Career change decision. Every card must be interpreted through the lens of this specific career move — whether to take it, what it will bring, and what the risks are. The Outcome card must directly address whether the career change is wise.`;
+  } else if (/start (a|my|the) business|launch|entrepreneur|my own (business|company|venture)/.test(q)) {
+    questionIntent = `\nQUESTION INTENT: Business launch decision. Interpret every card through the lens of this business venture — its viability, timing, risks, and potential. Give specific, actionable business guidance, not generic encouragement.`;
+  } else if (/invest|should i (buy|sell)|financial decision|real estate|property|stock|crypto/.test(q)) {
+    questionIntent = `\nQUESTION INTENT: Financial investment decision. Every card must address this specific financial decision — the timing, the risk, the likely return, and whether to proceed. Be specific and honest, not vague.`;
+  } else if (/pregnant|baby|conceiv|fertility|ivf|trying to conceive/.test(q)) {
+    questionIntent = `\nQUESTION INTENT: Fertility and pregnancy. This is a deeply personal and emotionally significant question. Address fertility, the timing of new life, and the emotional journey with both honesty and compassion. Speak directly to the likelihood and conditions of pregnancy.`;
+  } else if (/should i (leave|break up|end|divorce)|break up|end (this|the|our) (relationship|marriage)|divorce/.test(q)) {
+    questionIntent = `\nQUESTION INTENT: Breakup or divorce decision. Speak directly to whether ending this relationship is the right path. The cards must address both what staying and leaving would mean, with honest assessment of the relationship's true state.`;
+  } else if (/cheat(ing)?|is (he|she|they) (loyal|faithful)|affair|unfaithful|hiding something/.test(q)) {
+    questionIntent = `\nQUESTION INTENT: Trust and fidelity question. Address the truth of this situation as clearly as the cards allow. The querent needs honesty, not reassurance. Speak to what the cards reveal about the other person's behaviour and intentions.`;
+  } else if (/soulmate|twin flame|when will i (find|meet)|divine timing/.test(q)) {
+    questionIntent = `\nQUESTION INTENT: Soulmate timing. Address when and under what conditions love is likely to arrive. Speak to what the querent needs to release or embody to draw their soulmate closer. Be specific about timing indicators in the cards.`;
+  }
+
   return `SPREAD: ${spreadName}
 QUESTION / INTENTION: "${question}"
+${questionIntent}
 ${numCtx}
 
 CARDS DRAWN:
@@ -75,22 +101,24 @@ ${cardList}
 
 TONE: ${tone}
 
+CRITICAL RULE — QUESTION RELEVANCE: Every single sentence of this reading must be directly relevant to the specific question asked: "${question}". Do NOT give a generic reading that could apply to anyone. The querent asked this specific question — answer it. Use the exact words and framing of their question when interpreting key cards, especially the Outcome, Advice, and central positions.
+
 INSTRUCTIONS:
 Generate a complete, deeply contextual tarot reading. Structure your response as valid JSON matching this exact schema:
 {
-  "overallTheme": "2-3 sentence overview of the central message of this spread",
+  "overallTheme": "2-3 sentences that directly address the central message of this spread IN RELATION TO THE SPECIFIC QUESTION ASKED. Name what the cards are collectively saying about the querent's question.",
   "cardBreakdowns": [
     {
       "positionLabel": "exact label of position",
       "cardName": "exact card name",
       "reversed": true/false,
-      "interpretation": "2-4 sentences interpreting this card in its position, connected to the question",
+      "interpretation": "2-4 sentences interpreting this card in its position, SPEAKING DIRECTLY to the question asked. The interpretation must feel like it was written specifically for this question, not as a generic card meaning.",
       "numerologyBridge": "1-2 sentences connecting this card to the numerology context (omit if no numerology provided)"
     }
   ],
-  "narrative": "A flowing 3-5 paragraph narrative that weaves all cards together into a cohesive story. This should feel like a master reader speaking. Connect cards to each other. Connect to the question. Integrate numerology naturally.",
-  "numerologyIntegration": "1-2 paragraphs specifically about how the numerology core numbers interact with the spread — only include if numerology context was provided",
-  "actionableGuidance": "3-5 concrete, specific action steps or insights the querent can act on immediately. Be practical and specific, not vague."
+  "narrative": "A flowing 3-5 paragraph narrative that speaks DIRECTLY to the querent's question throughout. Open by restating what was asked and what the cards are collectively saying about it. Connect every card reference back to the specific question. The narrative should feel like a wise advisor who has genuinely considered this exact situation, not a generic reading.",
+  "numerologyIntegration": "1-2 paragraphs specifically about how the numerology core numbers interact with the question and spread — only include if numerology context was provided",
+  "actionableGuidance": "3-5 concrete, specific action steps that are directly relevant to the querent's specific question. If they asked about marriage, give marriage-specific guidance. If about a career change, give career-change-specific guidance. NEVER give generic advice that could apply to any situation."
 }
 
 Rules:
@@ -99,8 +127,9 @@ Rules:
 - Never use phrases like "As an AI" or "I should note"
 - Never predict death, serious illness, or catastrophe — reframe as transformation
 - Keep the tone consistent throughout with the specified tone
-- The narrative should be the richest, most immersive section
-- Numerology bridges must be specific and insightful, not generic`;
+- The narrative must open by speaking directly to the question asked
+- Numerology bridges must be specific and insightful, not generic
+- The actionableGuidance must be specific to the question's domain and situation`;
 }
 
 Deno.serve(async (req: Request) => {

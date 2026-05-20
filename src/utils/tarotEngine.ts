@@ -233,6 +233,580 @@ function buildNumerologyBridge(
   return bridges[0] || '';
 }
 
+// ─── QUESTION INTENT CLASSIFIER ───────────────────────────────────────────
+
+type QuestionDomain =
+  | 'marriage_decision'
+  | 'reconciliation'
+  | 'new_relationship'
+  | 'relationship_future'
+  | 'breakup_divorce'
+  | 'ex_return'
+  | 'cheating_trust'
+  | 'unrequited_love'
+  | 'soulmate_timing'
+  | 'general_love'
+  | 'job_change'
+  | 'business_start'
+  | 'career_growth'
+  | 'financial_decision'
+  | 'money_abundance'
+  | 'investment_risk'
+  | 'job_loss'
+  | 'general_career'
+  | 'health_recovery'
+  | 'mental_health'
+  | 'general_health'
+  | 'life_purpose'
+  | 'spiritual_awakening'
+  | 'past_life'
+  | 'grief_loss'
+  | 'family_conflict'
+  | 'moving_travel'
+  | 'housing_decision'
+  | 'legal_matter'
+  | 'pregnancy_fertility'
+  | 'education_study'
+  | 'addiction_habit'
+  | 'general_guidance';
+
+interface QuestionIntent {
+  domain: QuestionDomain;
+  subject: string;
+  verbForm: string;
+  positionLenses: Record<string, string>;
+  narrativeFrame: string;
+  actionFrame: string;
+  outcomeLanguage: string;
+  cardContextualiser: (cardName: string, suit: string | undefined, reversed: boolean, positionLabel: string) => string;
+}
+
+const INTENT_PATTERNS: Array<{
+  domain: QuestionDomain;
+  patterns: RegExp[];
+  subject: string;
+  verbForm: string;
+  narrativeFrame: string;
+  actionFrame: string;
+  outcomeLanguage: string;
+  positionLenses: Record<string, string>;
+}> = [
+  {
+    domain: 'marriage_decision',
+    patterns: [/should\s+(i|we)\s+(get\s+)?marr/i, /marr(y|ied|iage)/i, /propose|proposal/i, /will\s+(we|they|he|she)\s+(ever\s+)?marr/i, /ready\s+for\s+marriage/i],
+    subject: 'marriage',
+    verbForm: 'marrying this person',
+    narrativeFrame: 'whether marriage is the right next step in this relationship',
+    actionFrame: 'making this lifelong commitment',
+    outcomeLanguage: 'for this union',
+    positionLenses: {
+      'Past': 'The foundation this relationship has been built upon — and whether that foundation is strong enough to support a lifelong union',
+      'Present': 'The current state of the bond between you — is there genuine readiness for marriage in both hearts right now',
+      'Future': 'What marriage or the path toward it would bring — the trajectory ahead if this commitment is made',
+      'Situation': 'The true state of this relationship and its readiness for the commitment of marriage',
+      'Challenge': 'What stands between you and a truly fulfilling marriage — the obstacle to address before committing',
+      'Advice': 'The wisest counsel the universe offers on the question of marriage at this time',
+      'The Heart': 'The core truth at the centre of whether this marriage would truly serve both souls',
+      'The Cross': 'The complicating force — what may need to be resolved or accepted before a marriage can thrive',
+      'Foundation': 'The bedrock this potential marriage stands on — its deep roots',
+      'Outcome': 'The most likely outcome of this marriage if you proceed given current energies',
+      'You': 'Your deepest readiness and true feelings about this marriage',
+      'Them': 'Their inner energy, readiness and true feelings about marrying you',
+      'The Bond': 'The soul-level compatibility and quality of this connection for a lifelong partnership',
+      'Hopes & Fears': 'What you most desire and most fear about committing to this marriage',
+    },
+  },
+  {
+    domain: 'reconciliation',
+    patterns: [/get\s+back\s+together/i, /reconcil/i, /should\s+(i|we)\s+try\s+again/i, /second\s+chance/i, /restart\s+(our\s+)?relationship/i, /rekindle/i],
+    subject: 'reconciliation',
+    verbForm: 'getting back together',
+    narrativeFrame: 'whether reconciliation is possible and wise',
+    actionFrame: 'attempting to reconcile',
+    outcomeLanguage: 'for this reconciliation',
+    positionLenses: {
+      'Past': 'What originally broke this connection — the pattern or wound that caused the separation',
+      'Present': 'The current energy between you both — whether the conditions for genuine reconciliation exist now',
+      'Future': 'What reuniting would actually bring — the honest trajectory of a rekindled relationship',
+      'Situation': 'The true state of this potential reconciliation — what is actually possible between you',
+      'Challenge': 'The unresolved issue or pattern that must be addressed for reconciliation to be real, not just repetition',
+      'Advice': 'The cards\' honest counsel on whether and how to pursue getting back together',
+      'Outcome': 'The most likely outcome if you pursue reconciliation given current energies',
+      'You': 'Your true motivation and readiness for reconciliation — what is driving this desire',
+      'Them': 'Their true inner state regarding the possibility of getting back together',
+      'The Bond': 'Whether the connection between you is genuinely revivable or has run its course',
+    },
+  },
+  {
+    domain: 'ex_return',
+    patterns: [/will\s+(he|she|they)\s+(come\s+back|return)/i, /ex\s+(come|coming|return|back)/i, /is\s+(he|she)\s+thinking\s+of\s+(me|coming)/i, /miss\s+(me|them)/i],
+    subject: 'their return',
+    verbForm: 'whether your ex will return',
+    narrativeFrame: 'whether this person will come back and whether that is truly what you want',
+    actionFrame: 'this situation with your ex',
+    outcomeLanguage: 'regarding their possible return',
+    positionLenses: {
+      'Past': 'The connection you shared — what drew you together and what drove you apart',
+      'Present': 'The energy between you right now — whether there is a real pull from their side',
+      'Future': 'The honest trajectory — whether a return is coming and what it would actually mean',
+      'Situation': 'The real state of this dynamic — what is truly happening between you and your ex',
+      'Challenge': 'What stands in the way — either of their return or of your own healing and moving forward',
+      'Advice': 'The wisest path: whether to remain open, let go, or focus your energy elsewhere',
+      'You': 'Your own energy and what you are energetically broadcasting toward this person',
+      'Them': 'Their actual inner state — what they feel and whether return is genuinely on their mind',
+      'The Bond': 'The nature of the soul tie between you — whether it is truly alive or a memory you are holding onto',
+      'Outcome': 'The most honest prediction of how this situation will unfold',
+    },
+  },
+  {
+    domain: 'new_relationship',
+    patterns: [/will\s+(i|we)\s+(find|meet|start)/i, /new\s+(love|relationship|partner)/i, /is\s+(he|she|this\s+person)\s+right\s+for\s+me/i, /should\s+i\s+(date|go\s+out|pursue)/i, /is\s+this\s+the\s+one/i, /falling\s+in\s+love/i],
+    subject: 'this new connection',
+    verbForm: 'pursuing this new relationship',
+    narrativeFrame: 'whether to pursue this new connection and what it truly holds',
+    actionFrame: 'moving forward with this new person',
+    outcomeLanguage: 'for this new relationship',
+    positionLenses: {
+      'Past': 'The love history and patterns you bring into this new connection',
+      'Present': 'The current chemistry and potential between you — what is genuinely here',
+      'Future': 'Where this connection leads if you pursue it — the honest trajectory',
+      'Situation': 'The true nature of this connection and whether it has real potential',
+      'Challenge': 'What might complicate or test this new relationship',
+      'Advice': 'Whether and how to move forward with this person',
+      'You': 'Your true readiness for a new relationship and what you bring to it',
+      'Them': 'Their energy, intentions and genuine interest in you',
+      'The Bond': 'The soul-level compatibility and true nature of this new connection',
+      'Outcome': 'Where this new relationship is most likely heading',
+    },
+  },
+  {
+    domain: 'breakup_divorce',
+    patterns: [/should\s+i\s+(leave|break\s+up|end|divorce)/i, /break\s+up/i, /end\s+(this|the|our)\s+(relationship|marriage)/i, /divorce/i, /is\s+it\s+(over|done)/i, /leave\s+(him|her|them)/i],
+    subject: 'this ending',
+    verbForm: 'ending this relationship',
+    narrativeFrame: 'whether leaving this relationship is the right path',
+    actionFrame: 'the decision to end this relationship',
+    outcomeLanguage: 'if you choose to leave',
+    positionLenses: {
+      'Past': 'The history and deep roots of this relationship — what you built together and what eroded',
+      'Present': 'The honest current state — the real energy between you right now',
+      'Future': 'What staying versus leaving truly holds — the honest path ahead in both directions',
+      'Situation': 'The core truth about where this relationship actually stands',
+      'Challenge': 'The hardest part of this decision — what makes leaving or staying so difficult',
+      'Advice': 'The wisest guidance the cards offer on this ending or continuation',
+      'You': 'Your true feelings beneath the confusion or exhaustion — what your soul knows',
+      'Them': 'Their inner state and the energy they bring to this relationship dynamic',
+      'The Bond': 'The true quality of what remains between you — whether it is worth preserving',
+      'Outcome': 'The most honest reading of how this situation will resolve',
+    },
+  },
+  {
+    domain: 'cheating_trust',
+    patterns: [/cheat(ing)?/i, /is\s+(he|she|they)\s+(loyal|faithful|honest)/i, /trust/i, /lying|lied/i, /affair/i, /unfaithful/i, /hiding\s+something/i],
+    subject: 'trust and fidelity',
+    verbForm: 'navigating this trust issue',
+    narrativeFrame: 'the truth about fidelity and trust in this relationship',
+    actionFrame: 'addressing this trust issue',
+    outcomeLanguage: 'for the trustworthiness of this relationship',
+    positionLenses: {
+      'Past': 'The history of trust in this relationship — what patterns have been established',
+      'Present': 'The honest energy in this relationship right now — what is actually happening',
+      'Situation': 'The truth the cards are willing to illuminate about this situation',
+      'Challenge': 'What is genuinely at stake and what is being hidden or unaddressed',
+      'Advice': 'How to navigate this situation with wisdom — whether to confront, investigate, or step back',
+      'You': 'Your own instincts and what your gut is already telling you',
+      'Them': 'Their energy and the honesty or deception present in their actions',
+      'Outcome': 'Where this trust situation is likely to lead',
+    },
+  },
+  {
+    domain: 'soulmate_timing',
+    patterns: [/when\s+will\s+i\s+(find|meet)\s+(love|my\s+soulmate|the\s+one)/i, /soulmate/i, /twin\s+flame/i, /divine\s+timing/i, /am\s+i\s+(going\s+to|ever)\s+(find|meet)/i],
+    subject: 'love and soulmate connection',
+    verbForm: 'finding your soulmate',
+    narrativeFrame: 'the timing and conditions for meeting your soulmate',
+    actionFrame: 'opening yourself to love',
+    outcomeLanguage: 'for meeting your soulmate',
+    positionLenses: {
+      'Past': 'The love lessons and wounds you are bringing into this next chapter of your love life',
+      'Present': 'Where you stand energetically in terms of readiness to receive love',
+      'Future': 'The timing and conditions under which love is most likely to arrive',
+      'Situation': 'Your current energetic state as it relates to attracting your soulmate',
+      'Challenge': 'What is energetically blocking or delaying the arrival of deep love',
+      'Advice': 'What you need to do, release or embody to draw your soulmate closer',
+      'Outcome': 'The love story the cards see on the horizon for you',
+    },
+  },
+  {
+    domain: 'job_change',
+    patterns: [/should\s+i\s+(quit|leave|change|switch)\s+(my\s+)?(job|career|work|position)/i, /new\s+job\s+offer/i, /accept\s+(the\s+)?(offer|position|role)/i, /resign/i, /job\s+(change|switch|offer)/i],
+    subject: 'this career change',
+    verbForm: 'making this career change',
+    narrativeFrame: 'whether to make this career move and what it truly holds',
+    actionFrame: 'taking this new role or leaving your current position',
+    outcomeLanguage: 'for this career change',
+    positionLenses: {
+      'Past': 'The professional journey that has brought you to this decision point',
+      'Present': 'The honest energy at your current workplace and within you professionally right now',
+      'Future': 'What this career change would bring — the true trajectory of the new path',
+      'Situation': 'The real state of this career decision and what is driving it',
+      'Challenge': 'The risk, fear or obstacle that makes this career change difficult',
+      'Advice': 'The wisest course of action regarding this job change',
+      'Current Path': 'Where your current professional path actually stands and where it is heading',
+      'Outcome': 'The most likely career outcome given the energies present',
+    },
+  },
+  {
+    domain: 'business_start',
+    patterns: [/start\s+(a|my|the)\s+business/i, /launch/i, /entrepreneur/i, /my\s+(own\s+)?(business|company|venture|startup)/i, /should\s+i\s+(start|open|launch)/i],
+    subject: 'this business',
+    verbForm: 'launching this business',
+    narrativeFrame: 'the potential and timing of launching this business',
+    actionFrame: 'starting this business venture',
+    outcomeLanguage: 'for this business',
+    positionLenses: {
+      'Past': 'The experience, skills and patterns you bring to this entrepreneurial venture',
+      'Present': 'The current market energy and your own readiness to launch this business now',
+      'Future': 'The potential trajectory of this business — what it could become',
+      'Situation': 'The true state of this business idea and its timing',
+      'Challenge': 'The primary risk or obstacle this business needs to navigate',
+      'Advice': 'The strategic wisdom the cards offer for launching and growing this business',
+      'Strengths': 'The genuine competitive advantages and assets you bring to this venture',
+      'Obstacles': 'What could derail or delay this business if not addressed',
+      'Outcome': 'The most likely business outcome given current energies and timing',
+    },
+  },
+  {
+    domain: 'financial_decision',
+    patterns: [/invest(ment|ing)?/i, /should\s+i\s+(buy|sell|invest|put\s+money)/i, /financial\s+(decision|choice|move)/i, /real\s+estate/i, /property/i, /stock|crypto|bitcoin/i],
+    subject: 'this financial decision',
+    verbForm: 'making this financial move',
+    narrativeFrame: 'the wisdom and timing of this financial decision',
+    actionFrame: 'committing to this investment or financial move',
+    outcomeLanguage: 'for this financial decision',
+    positionLenses: {
+      'Past': 'Your financial patterns and relationship with money — what has shaped your current situation',
+      'Present': 'The honest state of this financial opportunity right now — is the timing right',
+      'Future': 'The financial trajectory if you proceed with this decision',
+      'Situation': 'The true energetic quality of this investment or financial opportunity',
+      'Challenge': 'The primary financial risk or blind spot that needs to be addressed',
+      'Advice': 'The cards\' counsel on whether and how to proceed with this financial move',
+      'Outcome': 'The most likely financial outcome given current energies',
+    },
+  },
+  {
+    domain: 'money_abundance',
+    patterns: [/money|finances|wealth|abundance|prosperity/i, /financial\s+(situation|stability|freedom)/i, /will\s+i\s+(be\s+)?(rich|wealthy|financially)/i, /attract\s+money/i, /debt/i],
+    subject: 'your financial life',
+    verbForm: 'improving your financial situation',
+    narrativeFrame: 'your financial abundance and the path to prosperity',
+    actionFrame: 'transforming your relationship with money and abundance',
+    outcomeLanguage: 'for your financial future',
+    positionLenses: {
+      'Past': 'The financial patterns, beliefs and history you carry — the roots of your current money situation',
+      'Present': 'The honest state of your finances and your energy around money right now',
+      'Future': 'The financial trajectory ahead — where your current money patterns are leading',
+      'Situation': 'The true energetic state of your finances and what is influencing them',
+      'Challenge': 'The primary block or limiting belief that is restricting your financial abundance',
+      'Advice': 'The most powerful action or shift to unlock greater financial flow',
+      'Outcome': 'The financial picture the cards see ahead for you',
+    },
+  },
+  {
+    domain: 'career_growth',
+    patterns: [/promot(ion|ed)/i, /career\s+(growth|advancement|progress)/i, /will\s+i\s+(get|be)\s+(promoted|successful)/i, /professional\s+success/i, /move\s+up/i, /leadership/i],
+    subject: 'your career advancement',
+    verbForm: 'advancing in your career',
+    narrativeFrame: 'your professional growth and the path to career advancement',
+    actionFrame: 'pursuing this promotion or career growth',
+    outcomeLanguage: 'for your career advancement',
+    positionLenses: {
+      'Past': 'The professional foundation you have built — the experience and reputation you have established',
+      'Present': 'Your current professional standing and the opportunities genuinely available to you now',
+      'Future': 'The career trajectory ahead — the growth and advancement that is possible',
+      'Situation': 'The real dynamics at play in your professional environment right now',
+      'Challenge': 'What is blocking or delaying your advancement — the obstacle to navigate',
+      'Advice': 'The strategic guidance for accelerating your career growth',
+      'Strengths': 'The genuine professional strengths and advantages you bring',
+      'Obstacles': 'What you need to overcome or change to achieve the promotion or growth you desire',
+      'Outcome': 'The career outcome the cards see as most likely given current conditions',
+    },
+  },
+  {
+    domain: 'health_recovery',
+    patterns: [/health|illness|sick|healing|recover/i, /will\s+i\s+(heal|get\s+better|recover)/i, /medical|surgery|treatment/i, /chronic/i, /pain/i],
+    subject: 'your health and healing',
+    verbForm: 'healing and recovery',
+    narrativeFrame: 'your health situation and the path to healing',
+    actionFrame: 'supporting your body\'s healing',
+    outcomeLanguage: 'for your health and recovery',
+    positionLenses: {
+      'Past': 'The root causes or history that has contributed to this health situation',
+      'Present': 'The current state of your body\'s energy and healing process',
+      'Future': 'The health trajectory ahead — where this healing journey is heading',
+      'Situation': 'The deeper energetic or emotional component of this health situation',
+      'Challenge': 'What is impeding healing — the physical, emotional or lifestyle factor to address',
+      'Advice': 'The holistic guidance for supporting your body and accelerating recovery',
+      'Outcome': 'The health picture the cards see ahead for you',
+    },
+  },
+  {
+    domain: 'life_purpose',
+    patterns: [/purpose|calling|mission|destiny|path\s+in\s+life/i, /what\s+am\s+i\s+(supposed\s+to|meant\s+to)\s+do/i, /meaning\s+of\s+(my\s+)?life/i, /right\s+direction/i, /true\s+path/i],
+    subject: 'your life purpose',
+    verbForm: 'finding and living your purpose',
+    narrativeFrame: 'your soul\'s purpose and the direction of your path',
+    actionFrame: 'aligning with your true life purpose',
+    outcomeLanguage: 'for living your purpose',
+    positionLenses: {
+      'Past': 'The experiences, skills and soul lessons that have been shaping you for your purpose',
+      'Present': 'Where you stand right now on your path — how close or far you are from your true direction',
+      'Future': 'The path of purpose that is opening ahead — where your soul is being drawn',
+      'Situation': 'The true state of your alignment with your soul\'s mission right now',
+      'Challenge': 'What is pulling you away from your purpose — the distraction or fear to overcome',
+      'Advice': 'The most powerful step toward living in alignment with your soul\'s calling',
+      'Outcome': 'The life the cards see opening before you as you step into your purpose',
+    },
+  },
+  {
+    domain: 'grief_loss',
+    patterns: [/grief|griev|mourn|loss|lost\s+(someone|a\s+(friend|family|pet))/i, /death\s+of/i, /passed\s+away/i, /bereavement/i, /dealing\s+with\s+loss/i],
+    subject: 'this grief and loss',
+    verbForm: 'healing from this loss',
+    narrativeFrame: 'your grief journey and the path toward healing',
+    actionFrame: 'moving through this grief',
+    outcomeLanguage: 'for your healing from this loss',
+    positionLenses: {
+      'Past': 'The bond you shared and the love that makes this loss so profound',
+      'Present': 'Where you are in your grief right now — the energy of this moment in your mourning',
+      'Future': 'The path of healing ahead — not forgetting, but finding your way through',
+      'Situation': 'The emotional landscape you are navigating in this time of loss',
+      'Challenge': 'The part of grief that is hardest for you to move through right now',
+      'Advice': 'The gentlest and wisest guidance for honouring your grief while continuing to live',
+      'Outcome': 'How your heart and life will look as you emerge through this grief',
+    },
+  },
+  {
+    domain: 'family_conflict',
+    patterns: [/family|parent|mother|father|sibling|brother|sister|in-law/i, /family\s+(conflict|issue|problem|drama)/i, /relationship\s+with\s+my/i, /toxic\s+family/i],
+    subject: 'this family situation',
+    verbForm: 'navigating this family dynamic',
+    narrativeFrame: 'the family situation and how to navigate it wisely',
+    actionFrame: 'addressing this family conflict or dynamic',
+    outcomeLanguage: 'for this family relationship',
+    positionLenses: {
+      'Past': 'The root of this family pattern or conflict — where it originated',
+      'Present': 'The current energy within this family dynamic — what is actually happening between you',
+      'Future': 'Where this family situation is heading — the direction it is moving in',
+      'Situation': 'The deeper truth of what is at play in this family relationship',
+      'Challenge': 'The hardest aspect of this family situation to navigate or resolve',
+      'Advice': 'The wisest way to approach this family situation',
+      'Outcome': 'How this family situation is most likely to resolve',
+    },
+  },
+  {
+    domain: 'pregnancy_fertility',
+    patterns: [/pregnan|baby|conceiv|fertility|ivf|trying\s+to\s+conceive|will\s+i\s+(have\s+a\s+baby|get\s+pregnant)/i],
+    subject: 'pregnancy and fertility',
+    verbForm: 'this fertility journey',
+    narrativeFrame: 'fertility, pregnancy and the possibility of new life',
+    actionFrame: 'supporting this fertility journey',
+    outcomeLanguage: 'for this fertility path',
+    positionLenses: {
+      'Past': 'The journey you have already walked to get to this point — what has been part of your story',
+      'Present': 'The energetic conditions around fertility and new life right now',
+      'Future': 'The possibility of new life and what the path ahead holds',
+      'Situation': 'The deeper energetic and emotional landscape of this fertility journey',
+      'Challenge': 'What may be creating difficulty in this area — the block or obstacle to address',
+      'Advice': 'The guidance for supporting your body, mind and spirit on this journey',
+      'Outcome': 'What the cards see ahead on this fertility and new life path',
+    },
+  },
+  {
+    domain: 'moving_travel',
+    patterns: [/should\s+i\s+(move|relocate|travel)/i, /moving\s+(to|away)/i, /relocation/i, /new\s+(city|country|place)/i, /living\s+abroad/i],
+    subject: 'this move or relocation',
+    verbForm: 'making this move',
+    narrativeFrame: 'whether to move and what the new location holds',
+    actionFrame: 'committing to this relocation',
+    outcomeLanguage: 'for this move or new chapter in a new place',
+    positionLenses: {
+      'Past': 'What you are truly leaving behind — the roots and the ties that will be affected',
+      'Present': 'The honest state of readiness — is this the right time to make this move',
+      'Future': 'What the new location or chapter holds — the life that awaits you there',
+      'Situation': 'The real driver behind this desire to move — what is pushing or pulling you',
+      'Challenge': 'The primary difficulty or risk of this move to navigate consciously',
+      'Advice': 'The wisest approach to this decision about moving',
+      'Outcome': 'The life trajectory most likely to unfold if you make this move',
+    },
+  },
+  {
+    domain: 'spiritual_awakening',
+    patterns: [/spiritual|awakening|enlighten|consciousness|meditation|higher\s+self/i, /soul\s+(growth|journey|purpose)/i, /karma|dharma/i, /past\s+life/i],
+    subject: 'your spiritual path',
+    verbForm: 'deepening your spiritual journey',
+    narrativeFrame: 'your spiritual evolution and soul growth',
+    actionFrame: 'advancing your spiritual practice and consciousness',
+    outcomeLanguage: 'for your spiritual evolution',
+    positionLenses: {
+      'Past': 'The spiritual experiences and awakenings that have shaped your soul\'s current level of consciousness',
+      'Present': 'Where you stand on your spiritual path right now — the growth and the work at hand',
+      'Future': 'The next level of spiritual evolution opening before you',
+      'Situation': 'The deeper spiritual lesson or initiation currently active in your life',
+      'Challenge': 'The spiritual obstacle, ego pattern or shadow material asking to be worked through',
+      'Advice': 'The spiritual practice, shift or surrender most needed right now',
+      'Outcome': 'The state of consciousness and spiritual development the cards see ahead for you',
+    },
+  },
+  {
+    domain: 'general_love',
+    patterns: [/love|relationship|partner|romantic/i],
+    subject: 'your love life',
+    verbForm: 'navigating this relationship',
+    narrativeFrame: 'your love life and the relationship energies at play',
+    actionFrame: 'this relationship situation',
+    outcomeLanguage: 'for your love life',
+    positionLenses: {},
+  },
+  {
+    domain: 'general_career',
+    patterns: [/career|work|job|professional|business/i],
+    subject: 'your career',
+    verbForm: 'navigating this professional situation',
+    narrativeFrame: 'your career and professional direction',
+    actionFrame: 'this career situation',
+    outcomeLanguage: 'for your professional life',
+    positionLenses: {},
+  },
+  {
+    domain: 'general_guidance',
+    patterns: [/.*/],
+    subject: 'this situation',
+    verbForm: 'navigating this situation',
+    narrativeFrame: 'what is most important in your life right now',
+    actionFrame: 'this situation',
+    outcomeLanguage: 'ahead',
+    positionLenses: {},
+  },
+];
+
+const GENERIC_POSITION_LENSES: Record<string, string> = {
+  'Past': 'The foundation and history underlying this situation',
+  'Present': 'The current energy you are navigating right now',
+  'Future': 'The trajectory ahead if current patterns continue',
+  'Situation': 'The landscape of what is actually occurring',
+  'Challenge': 'What is creating friction or asking for growth',
+  'Advice': 'The wisdom the universe offers for your highest outcome',
+  'The Heart': 'The core essence of this entire matter',
+  'The Cross': 'The opposing force or complicating energy',
+  'Foundation': 'The deep root from which this situation grew',
+  'Recent Past': 'What is now fading from the field',
+  'Potential': 'The highest possible outcome available',
+  'Near Future': 'What approaches on the horizon',
+  'Your Stance': 'How you are perceiving and approaching this',
+  'External Forces': 'Energies outside your direct control',
+  'Hopes & Fears': 'The dual pull of what you want and what you dread',
+  'Outcome': 'The most likely resolution given current energies',
+  'You': 'Your energy and stance within this dynamic',
+  'Them': 'The energy and position of the other person',
+  'The Bond': 'The nature and quality of the connection itself',
+  'Current Path': 'Where your professional journey currently stands',
+  'Strengths': 'The assets and capabilities at your disposal',
+  'Obstacles': 'What stands between current position and desired outcome',
+  'Action': 'The most potent step to take in this moment',
+  'Your Message': 'The single most important message for you right now',
+  'Q1 Theme': 'The energy and focus for the first quarter of your year',
+  'Q2 Theme': 'The energy and focus for the second quarter',
+  'Q3 Theme': 'The energy and focus for the third quarter',
+  'Annual Lesson': 'The overarching theme your soul is working with this year',
+  'Current Name Energy': 'The vibration your current name carries',
+  'Transition Energy': 'The energy of the name change process itself',
+  'New Name Potential': 'What the corrected name can bring into your life',
+};
+
+function classifyQuestionIntent(question: string): typeof INTENT_PATTERNS[0] {
+  for (const intent of INTENT_PATTERNS) {
+    for (const pattern of intent.patterns) {
+      if (pattern.test(question)) return intent;
+    }
+  }
+  return INTENT_PATTERNS[INTENT_PATTERNS.length - 1];
+}
+
+// Produces a contextual sentence linking a card's energy to the specific question intent
+function buildCardQuestionBridge(
+  cardName: string,
+  suit: string | undefined,
+  reversed: boolean,
+  positionLabel: string,
+  intent: typeof INTENT_PATTERNS[0]
+): string {
+  const { domain, subject, verbForm } = intent;
+
+  // Position-specific bridges for key positions
+  const marriagePositionBridges: Record<string, string> = {
+    'You': `In the context of ${verbForm}, this card reflects your authentic inner state — are you truly ready for this commitment, or is something still unresolved within you`,
+    'Them': `This card speaks to your partner's energy regarding ${verbForm} — their true readiness, their fears, and what they are genuinely bringing to this decision`,
+    'The Bond': `In a marriage reading, this card describes the actual quality of your soul connection — whether it has the depth to sustain a lifetime partnership`,
+    'Outcome': `This is the cards' answer to your question about ${verbForm} — the energy of the outcome if current conditions hold`,
+    'Challenge': `In your question about ${verbForm}, this card names the specific issue that must be addressed — it would be the fault line in the marriage if left unresolved`,
+    'Advice': `The cards' direct counsel on ${verbForm} is carried here — this is what wisdom requires of you before you decide`,
+  };
+
+  const reconciliationPositionBridges: Record<string, string> = {
+    'You': `Your true motivation for reconciliation shows here — ${reversed ? 'there may be unhealed wounds or unhealthy patterns driving this desire' : 'your heart is coming from a genuine place'}`,
+    'Them': `This reveals the other person's actual energy toward getting back together — ${reversed ? 'they may not be in a genuine place of change or openness' : 'there is authentic energy from their side worth paying attention to'}`,
+    'Outcome': `This is the honest answer to whether reconciliation will succeed — read it carefully`,
+    'Challenge': `This names exactly what caused the original break and what must change for a reunion to be different from the first time`,
+  };
+
+  if (domain === 'marriage_decision' && marriagePositionBridges[positionLabel]) {
+    return marriagePositionBridges[positionLabel] + '.';
+  }
+  if (domain === 'reconciliation' && reconciliationPositionBridges[positionLabel]) {
+    return reconciliationPositionBridges[positionLabel] + '.';
+  }
+
+  // Suit-based bridges tailored to the question domain
+  const suitBridges: Partial<Record<typeof domain, Partial<Record<string, string>>>> = {
+    marriage_decision: {
+      cups: `In the context of your marriage question, this Cups card speaks directly to the emotional and soul-level readiness for this union`,
+      pentacles: `This Pentacles energy addresses the practical and financial foundations of the marriage — stability, security, and shared material values`,
+      swords: `The Swords energy here brings a sharp, honest message about communication and truth-telling within this potential marriage`,
+      wands: `This Wands card speaks to the passion and long-term vitality of the relationship — whether the fire will sustain a lifetime`,
+    },
+    ex_return: {
+      cups: `In the context of your question about their return, this Cups card speaks to the emotional current between you — whether love is genuinely flowing back`,
+      swords: `This Swords energy carries a clear message about the truth of this situation — sometimes what we miss was never really what we thought it was`,
+      wands: `The Wands card here speaks to desire and passion — whether the spark is genuinely reignitable`,
+    },
+    business_start: {
+      pentacles: `For your business question, this Pentacles card speaks directly to financial viability, practical foundations, and tangible return on this venture`,
+      wands: `This Wands energy addresses the entrepreneurial fire and vision — whether the passion that drives this business will sustain the hard work ahead`,
+      swords: `The Swords energy here calls for clear thinking and honest risk assessment about this business`,
+    },
+    financial_decision: {
+      pentacles: `For your investment question, this Pentacles card speaks directly to the material and financial quality of this decision`,
+      cups: `Interestingly, a Cups card here in your financial question suggests that emotions — hope, fear, or desire — may be influencing this financial decision more than pure logic`,
+    },
+  };
+
+  const domainBridges = suitBridges[domain];
+  if (domainBridges && suit && domainBridges[suit]) {
+    return domainBridges[suit] + '.';
+  }
+
+  // Fallback: generic subject reference
+  if (positionLabel === 'Outcome' || positionLabel === 'Future') {
+    return `This card carries the answer to your question about ${subject} — read its energy as the most likely trajectory.`;
+  }
+  if (positionLabel === 'Advice') {
+    return `In the context of your question about ${subject}, this is the most important guidance the cards offer you right now.`;
+  }
+
+  return '';
+}
+
 // ─── POSITION INTERPRETATION LAYER ────────────────────────────────────────
 
 function interpretCardInPosition(
@@ -240,66 +814,89 @@ function interpretCardInPosition(
   reversed: boolean,
   position: { label: string; description: string },
   question: string,
-  tone: ToneType
+  tone: ToneType,
+  intent: ReturnType<typeof classifyQuestionIntent>
 ): string {
   const baseMeaning = reversed ? card.meaningReversed : card.meaning;
   const keywords = (reversed ? card.keywordsReversed : card.keywords).slice(0, 3);
   const tc = TONE_CONFIGS[tone];
 
-  const positionContext: Record<string, string> = {
-    'Past': 'The foundation of where this situation began',
-    'Present': 'The current energy you are navigating right now',
-    'Future': 'The trajectory ahead if current patterns continue',
-    'Situation': 'The landscape of what is actually occurring',
-    'Challenge': 'What is creating friction or asking for growth',
-    'Advice': 'The wisdom the universe offers for your highest outcome',
-    'The Heart': 'The core essence of this entire matter',
-    'The Cross': 'The opposing force or complicating energy',
-    'Foundation': 'The deep root from which this situation grew',
-    'Recent Past': 'What is now fading from the field',
-    'Potential': 'The highest possible outcome available',
-    'Near Future': 'What approaches on the horizon',
-    'Your Stance': 'How you are perceiving and approaching this',
-    'External Forces': 'Energies outside your direct control',
-    'Hopes & Fears': 'The dual pull of what you want and what you dread',
-    'Outcome': 'The most likely resolution given current energies',
-    'You': 'Your energy and stance within this dynamic',
-    'Them': 'The energy and position of the other person',
-    'The Bond': 'The nature and quality of the connection itself',
-    'Current Path': 'Where your professional journey currently stands',
-    'Strengths': 'The assets and capabilities at your disposal',
-    'Obstacles': 'What stands between current position and desired outcome',
-    'Action': 'The most potent step to take in this moment',
-    'Your Message': 'The single most important message for you right now',
-    'Q1 Theme': 'The energy and focus for the first quarter of your year',
-    'Q2 Theme': 'The energy and focus for the second quarter',
-    'Q3 Theme': 'The energy and focus for the third quarter',
-    'Annual Lesson': 'The overarching theme your soul is working with this year',
-    'Current Name Energy': 'The vibration your current name carries',
-    'Transition Energy': 'The energy of the name change process itself',
-    'New Name Potential': 'What the corrected name can bring into your life',
-  };
+  // Use intent-specific position lens if available, fall back to generic
+  const posCtx = intent.positionLenses[position.label]
+    || GENERIC_POSITION_LENSES[position.label]
+    || position.description;
 
-  const posCtx = positionContext[position.label] || position.description;
+  // Build question-specific card bridge
+  const questionBridge = buildCardQuestionBridge(card.name, card.suit, reversed, position.label, intent);
 
-  // Detect question theme for contextual adaptation
-  const qLower = question.toLowerCase();
-  const isCareer = qLower.includes('career') || qLower.includes('job') || qLower.includes('business') || qLower.includes('work') || qLower.includes('money') || qLower.includes('financial');
-  const isRelationship = qLower.includes('relationship') || qLower.includes('love') || qLower.includes('partner') || qLower.includes('marriage');
-  const isSpiritual = qLower.includes('spiritual') || qLower.includes('purpose') || qLower.includes('soul') || qLower.includes('path');
-
-  let contextLayer = '';
-  if (isCareer && card.suit === 'pentacles') contextLayer = ' In the context of your career question, this Pentacles energy speaks directly to material outcomes and practical progress.';
-  else if (isCareer && card.suit === 'wands') contextLayer = ' The Wands energy here brings passion and drive into your career question — ambition and creative fire are the relevant forces.';
-  else if (isRelationship && card.suit === 'cups') contextLayer = ' The Cups energy here speaks directly to the emotional undercurrents of your relationship question.';
-  else if (isSpiritual && card.arcana === 'major') contextLayer = ' As a Major Arcana card in a spiritual reading, this carries particular weight — the universe is making its message clear.';
+  // Major arcana in spiritual or purpose questions gets extra weight
+  const arcanaLayer = card.arcana === 'major' && (intent.domain === 'life_purpose' || intent.domain === 'spiritual_awakening')
+    ? ` As a Major Arcana card, this carries the weight of a soul-level truth directly relevant to your question about ${intent.subject}.`
+    : '';
 
   const prefix = reversed ? tc.challengePrefix[0] : '';
 
-  return `${posCtx}: ${prefix} ${baseMeaning}${contextLayer} The key energies at play here are ${keywords.join(', ')}.`.trim();
+  const parts = [
+    `${posCtx}: ${prefix} ${baseMeaning}`.trim(),
+    questionBridge,
+    arcanaLayer,
+    `The key energies at play here are ${keywords.join(', ')}.`,
+  ].filter(Boolean);
+
+  return parts.join(' ');
 }
 
 // ─── NARRATIVE SYNTHESISER ────────────────────────────────────────────────
+
+// Domain-specific narrative openers that speak directly to the question's purpose
+const DOMAIN_OPENERS: Partial<Record<string, string[]>> = {
+  marriage_decision: [
+    'The cards have been asked a profound question — whether this marriage is truly the right path — and their answer is layered, honest, and specific',
+    'A question about marriage asks the cards to weigh the full weight of a lifelong union, and they do not take this lightly',
+    'When we ask the cards about marriage, we are asking about one of life\'s most significant commitments — the spread speaks directly to this',
+  ],
+  reconciliation: [
+    'The question of getting back together is one of the most common — and most emotionally charged — questions asked of the cards, and they answer with characteristic honesty',
+    'Reconciliation asks whether a love that has been broken can be truly rebuilt, and the cards address this with nuance',
+    'The cards have been asked whether a second chance is worth taking — and their answer is neither simply yes nor no',
+  ],
+  ex_return: [
+    'The question of whether someone will come back is perhaps the most asked question in all of tarot — and the cards answer it honestly, which means neither with false hope nor unnecessary cruelty',
+    'When we ask "will they return", we are really asking two questions: will they come back, and if they do, should we want them to',
+    'The cards have been asked to look at the energy between you and your ex — and what they reveal may shift the question itself',
+  ],
+  marriage_decision_answer: [],
+  job_change: [
+    'A career change is both a practical and a soul-level question — the cards address both dimensions simultaneously',
+    'The question of whether to make this career move has a practical answer and a deeper answer — the cards speak to both',
+    'Career decisions of this magnitude carry the weight of not just income but identity — the cards recognise this',
+  ],
+  business_start: [
+    'The question of whether to start this business is one of both timing and readiness — the cards assess both honestly',
+    'Entrepreneurship requires both external opportunity and internal readiness — the spread speaks to both',
+    'Launching a business is a question of vision, timing and foundation — the cards address all three',
+  ],
+  financial_decision: [
+    'The cards have been asked to weigh in on a financial decision — and they bring both practical and intuitive intelligence to bear',
+    'Financial decisions benefit from both rational analysis and intuitive wisdom — the spread offers both',
+  ],
+  health_recovery: [
+    'Health questions ask the cards to address both body and soul — and they answer at both levels',
+    'The cards have been asked about healing — they speak not only to symptoms but to root causes and conditions',
+  ],
+  life_purpose: [
+    'Questions about life purpose are the deepest questions the cards can be asked — and they answer from the deepest level',
+    'The soul\'s purpose is not always obvious from the outside — the cards illuminate what the rational mind cannot easily see',
+  ],
+  grief_loss: [
+    'Grief questions ask the cards to speak into one of the most profound human experiences — they do so with compassion and honesty',
+    'The cards cannot undo loss, but they can illuminate the path through it — which is what was asked',
+  ],
+  pregnancy_fertility: [
+    'Questions of fertility and new life carry tremendous emotional weight — the cards hold this with you and respond with care',
+    'The possibility of new life is one of the most sacred questions — the cards approach this reading with reverence',
+  ],
+};
 
 function synthesiseNarrative(
   cards: Array<{ card: TarotCard; reversed: boolean; position: { label: string; description: string; numerologyLink?: string } }>,
@@ -307,46 +904,98 @@ function synthesiseNarrative(
   spreadName: string,
   numCtx: Record<string, string | number | undefined>,
   tone: ToneType,
-  interactions: string[]
+  interactions: string[],
+  intent: ReturnType<typeof classifyQuestionIntent>
 ): string {
   const tc = TONE_CONFIGS[tone];
   const paragraphs: string[] = [];
 
-  // Opening paragraph — question + overall energy
-  const opener = tc.opener[Math.floor(Math.random() * tc.opener.length)];
   const cardNames = cards.map(c => `${c.card.name}${c.reversed ? ' (reversed)' : ''}`);
-  const overallEnergy = cards.filter(c => !c.reversed).length > cards.length / 2 ? 'largely supportive and forward-moving' : 'complex and inward-turning';
-  paragraphs.push(`${opener} in response to your question: "${question}". The ${spreadName} draws ${cardNames.join(', ')} — an ${overallEnergy} combination of energies.`);
+  const uprightCount = cards.filter(c => !c.reversed).length;
+  const overallEnergy = uprightCount > cards.length / 2 ? 'largely supportive' : 'complex and inward-turning';
 
-  // Card-by-card flow paragraph
-  if (cards.length === 1) {
+  // Opening — use domain-specific opener when available, then address the question directly
+  const domainOpeners = DOMAIN_OPENERS[intent.domain];
+  let opener: string;
+  if (domainOpeners && domainOpeners.length > 0) {
+    opener = domainOpeners[Math.floor(Math.random() * domainOpeners.length)];
+  } else {
+    opener = tc.opener[Math.floor(Math.random() * tc.opener.length)];
+  }
+
+  paragraphs.push(
+    `${opener}. You asked: "${question}". The ${spreadName} reveals ${cardNames.join(', ')} — ${overallEnergy} energy. Here is what the cards are specifically saying about ${intent.narrativeFrame}.`
+  );
+
+  // Second paragraph: directly address the question's core concern using the cards
+  const outcomeCard = cards.find(c => ['Outcome', 'Future', 'Near Future', 'Potential', 'Your Message'].includes(c.position.label));
+  const adviceCard = cards.find(c => ['Advice', 'Action', 'Annual Lesson'].includes(c.position.label));
+  const challengeCard = cards.find(c => ['Challenge', 'Obstacles', 'The Cross'].includes(c.position.label));
+  const youCard = cards.find(c => c.position.label === 'You');
+  const themCard = cards.find(c => c.position.label === 'Them');
+  const bondCard = cards.find(c => c.position.label === 'The Bond');
+
+  // Domain-specific focused paragraph
+  if (intent.domain === 'marriage_decision') {
+    const readinessParts: string[] = [];
+    if (youCard) {
+      const ym = youCard.reversed ? youCard.card.meaningReversed : youCard.card.meaning;
+      readinessParts.push(`Your own energy in this question is shown by ${youCard.card.name}${youCard.reversed ? ' reversed' : ''}: ${ym.split('.')[0].toLowerCase()}`);
+    }
+    if (themCard) {
+      const tm = themCard.reversed ? themCard.card.meaningReversed : themCard.card.meaning;
+      readinessParts.push(`your partner's energy is represented by ${themCard.card.name}${themCard.reversed ? ' reversed' : ''}: ${tm.split('.')[0].toLowerCase()}`);
+    }
+    if (bondCard) {
+      const bm = bondCard.reversed ? bondCard.card.meaningReversed : bondCard.card.meaning;
+      readinessParts.push(`the bond between you carries the energy of ${bondCard.card.name}${bondCard.reversed ? ' reversed' : ''}: ${bm.split('.')[0].toLowerCase()}`);
+    }
+    if (readinessParts.length > 0) {
+      paragraphs.push(`On the specific question of whether to marry: ${readinessParts.join('; and ')}. These three elements — your readiness, their readiness, and the quality of the bond — are the three pillars the cards are asking you to weigh before committing.`);
+    }
+  } else if (intent.domain === 'reconciliation' || intent.domain === 'ex_return') {
+    const them = themCard || cards.find(c => c.position.label === 'Them');
+    const you = youCard || cards.find(c => c.position.label === 'You');
+    if (them && you) {
+      const ym = you.reversed ? you.card.meaningReversed : you.card.meaning;
+      const tm = them.reversed ? them.card.meaningReversed : them.card.meaning;
+      paragraphs.push(`Looking at the two energies in this situation: your energy (${you.card.name}${you.reversed ? ' reversed' : ''}) shows ${ym.split('.')[0].toLowerCase()}. Their energy (${them.card.name}${them.reversed ? ' reversed' : ''}) shows ${tm.split('.')[0].toLowerCase()}. Whether these two energies can genuinely meet is the question the remaining cards will answer.`);
+    }
+  } else if (intent.domain === 'job_change' || intent.domain === 'business_start' || intent.domain === 'career_growth') {
+    const currentCard = cards.find(c => c.position.label === 'Current Path' || c.position.label === 'Present' || c.position.label === 'Situation');
+    const futureCard = cards.find(c => ['Future', 'Near Future', 'Outcome', 'Potential'].includes(c.position.label));
+    if (currentCard && futureCard) {
+      const cm = currentCard.reversed ? currentCard.card.meaningReversed : currentCard.card.meaning;
+      const fm = futureCard.reversed ? futureCard.card.meaningReversed : futureCard.card.meaning;
+      paragraphs.push(`The cards address your question about ${intent.verbForm} with a clear before-and-after picture. Where you stand now (${currentCard.card.name}${currentCard.reversed ? ' reversed' : ''}): ${cm.split('.')[0].toLowerCase()}. Where this move leads (${futureCard.card.name}${futureCard.reversed ? ' reversed' : ''}): ${fm.split('.')[0].toLowerCase()}. The distance between these two cards tells the story.`);
+    }
+  } else if (cards.length === 1) {
     const c = cards[0];
     const meaning = c.reversed ? c.card.meaningReversed : c.card.meaning;
-    paragraphs.push(`${c.card.name}${c.reversed ? ', in its reversed position,' : ''} delivers a singular, focused message: ${meaning} ${c.card.arcana === 'major' ? 'As a Major Arcana card, this carries the weight of a universal principle operating in your life.' : `The ${c.card.suit} energy grounds this message in the domain of ${c.card.suit ? SUIT_DOMAINS[c.card.suit] : 'daily experience'}.`}`);
+    paragraphs.push(`In the context of your question about ${intent.subject}, ${c.card.name}${c.reversed ? ' in its reversed position' : ''} delivers this specific message: ${meaning} ${c.card.arcana === 'major' ? `As a Major Arcana card, this is a soul-level answer — not just a circumstantial reading but a deeper truth about ${intent.subject}.` : ''}`);
   } else if (cards.length <= 3) {
     const bridge = tc.bridge[Math.floor(Math.random() * tc.bridge.length)];
-    const flowParts = cards.map((c, i) => {
+    const flowParts = cards.map(c => {
       const meaning = c.reversed ? c.card.meaningReversed : c.card.meaning;
-      const posLabel = c.position.label;
-      return `in the ${posLabel} position, ${c.card.name}${c.reversed ? ' reversed' : ''} brings the energy of ${(c.reversed ? c.card.keywordsReversed : c.card.keywords).slice(0, 2).join(' and ')} — ${meaning.split('.')[0]}`;
+      return `in the ${c.position.label} position — directly relevant to ${intent.positionLenses[c.position.label] || intent.subject} — ${c.card.name}${c.reversed ? ' reversed' : ''} carries ${(c.reversed ? c.card.keywordsReversed : c.card.keywords).slice(0, 2).join(' and ')}: ${meaning.split('.')[0]}`;
     });
-    paragraphs.push(`${bridge} the interplay between all three positions. ${flowParts[0].charAt(0).toUpperCase() + flowParts[0].slice(1)}. ${cards.length > 1 ? (flowParts[1].charAt(0).toUpperCase() + flowParts[1].slice(1) + '.') : ''} ${cards.length > 2 ? (flowParts[2].charAt(0).toUpperCase() + flowParts[2].slice(1) + '.') : ''}`);
+    paragraphs.push(`${bridge} the way each card speaks to your specific question about ${intent.subject}. ${flowParts.map(f => f.charAt(0).toUpperCase() + f.slice(1) + '.').join(' ')}`);
   } else {
-    // Larger spreads — group by energy type
+    // Larger spreads — group by supportive vs challenging energy
     const challengeCards = cards.filter(c => c.reversed || ['The Tower', '9 of Swords', '3 of Swords', '5 of Swords', 'The Devil', 'Death'].includes(c.card.name));
     const strengthCards = cards.filter(c => !c.reversed && !challengeCards.includes(c));
 
     if (strengthCards.length > 0) {
       const sc = strengthCards[0];
       const meaning = sc.card.meaning;
-      paragraphs.push(`The supportive current running through this spread flows from ${sc.card.name} in the ${sc.position.label} position — ${meaning.split('.')[0]}. ${strengthCards.length > 1 ? `This supportive energy is reinforced by ${strengthCards[1].card.name} in the ${strengthCards[1].position.label} position.` : ''}`);
+      paragraphs.push(`In your question about ${intent.subject}, the supportive energy flows from ${sc.card.name} in the ${sc.position.label} position — ${meaning.split('.')[0]}. ${strengthCards.length > 1 ? `This is reinforced by ${strengthCards[1].card.name} in the ${strengthCards[1].position.label} position, amplifying the positive current around ${intent.subject}.` : ''}`);
     }
 
     if (challengeCards.length > 0) {
       const cc = challengeCards[0];
       const challengePrefix = tc.challengePrefix[Math.floor(Math.random() * tc.challengePrefix.length)];
       const meaning = cc.reversed ? cc.card.meaningReversed : cc.card.meaning;
-      paragraphs.push(`${challengePrefix} ${cc.card.name} in the ${cc.position.label} position signals that ${meaning.split('.')[0].toLowerCase()}. This is not a sign to retreat — it is an invitation to meet this energy with clarity and intention.`);
+      paragraphs.push(`${challengePrefix} in your question about ${intent.subject}: ${cc.card.name} in the ${cc.position.label} position signals that ${meaning.split('.')[0].toLowerCase()}. The cards are not saying this to discourage — they are identifying the exact issue that, if addressed, clears the path toward ${intent.outcomeLanguage}.`);
     }
   }
 
@@ -393,16 +1042,98 @@ function synthesiseNarrative(
 
 // ─── ACTIONABLE GUIDANCE GENERATOR ────────────────────────────────────────
 
+// Intent-specific action sets that speak directly to what was asked
+const DOMAIN_ACTIONS: Partial<Record<string, string[]>> = {
+  marriage_decision: [
+    'Before making this decision, have one completely honest conversation with your partner about your individual expectations for marriage — not the wedding, but the life. What do each of you expect day-to-day? What are your non-negotiables? The cards suggest this conversation will clarify more than any amount of internal deliberation.',
+    'Write down three things you are genuinely afraid of about this marriage, and three things you deeply desire from it. Show it to no one — this is for you to see what you are actually carrying into this decision.',
+    'Ask yourself this single question and sit with it quietly: "If this marriage were exactly as it is right now — no change — would I still choose it?" Your first, unchosen answer is the one that matters.',
+    'If there is a specific unresolved issue showing in the Challenge card, address it directly and explicitly before any engagement or proposal. The cards identify it as the fault line — it does not disappear after marriage, it amplifies.',
+  ],
+  reconciliation: [
+    'Before any contact, write down specifically what has genuinely changed — in you, in them, or in the circumstances — since the original breakup. If the list is empty or vague, the cards are warning against repetition.',
+    'Give yourself a 7-day no-contact period to observe what your desire for reconciliation feels like without the distraction of communication. Is it love, loneliness, habit, or genuine incompleteness?',
+    'If you do reach out, lead with acknowledgement of what went wrong — not a pitch for getting back together. The cards suggest that genuine accountability from both sides is the only foundation for a real second chapter.',
+    'Distinguish clearly between "I miss them" and "this relationship is genuinely right for me." These are different feelings and they lead to different outcomes.',
+  ],
+  ex_return: [
+    'Redirect your energy from waiting and watching for signs from them, to building something you are genuinely excited about in your own life. The cards consistently show that those who attract their exes back are not the ones waiting — they are the ones moving forward.',
+    'Ask yourself: "If they called me right now and wanted to meet, what specific issues would we need to address for this to be genuinely different?" Have those conversations ready. If you cannot name them clearly, the desire may be more about comfort than genuine compatibility.',
+    'Give yourself a clear time boundary: "I will not contact them or wait for them beyond [date]." This is not giving up — it is respecting yourself enough to create space for what is truly meant for you.',
+    'Focus on one meaningful improvement in your own life this week that has nothing to do with them. This shifts your energy from passive waiting to active living — which is both healthier and, ironically, more attractive.',
+  ],
+  job_change: [
+    'Before making this career move, get crystal clear on what you are running toward versus what you are running from. A change made primarily to escape is less likely to succeed than one made toward something genuinely compelling.',
+    'Have one direct conversation with someone who has already made a similar career move — not for validation, but for the specific unexpected challenges they encountered. The cards suggest the information gap is where the real risk lives.',
+    'Set a clear decision deadline — give yourself 7-14 days maximum to decide, then commit. The cards indicate prolonged indecision drains the energy needed for the transition itself.',
+    'If you proceed with this change, identify the single most important relationship to nurture in the new professional context. Career transitions succeed or fail on relationships more than on skills.',
+  ],
+  business_start: [
+    'Identify your first paying customer before you invest significantly in infrastructure, branding, or systems. If you cannot find one paying customer for the core offer, the market is telling you something important before you spend.',
+    'Write down the single riskiest assumption in your business plan — the one that, if wrong, would make the whole thing fail. Then design a small, cheap experiment to test that assumption within the next 30 days.',
+    'Separate "I am passionate about this" from "people will pay money for this." The cards suggest your passion is real, but the business will only survive if both are true.',
+    'Identify the one person you know whose opinion about this business idea you most respect and have most avoided asking. Ask them this week — specifically asking for concerns, not encouragement.',
+  ],
+  financial_decision: [
+    'Before committing to this financial decision, apply the 72-hour rule: wait 72 hours and then revisit it. Note whether the desire to proceed has increased, decreased, or changed in quality.',
+    'Identify the maximum amount you can afford to lose in this investment without it materially affecting your life. Only invest up to that amount. The cards suggest protection of downside is the priority right now.',
+    'Speak to someone with direct, recent experience with this specific type of investment — not a general financial advisor, but someone who has actually done this. Their lived experience is worth more than any projected return.',
+    'Ask yourself what story you are telling yourself about why this investment is right. Then ask what the counter-story would be. Both are probably partially true, and the decision should account for both.',
+  ],
+  money_abundance: [
+    'Identify the single largest financial leak in your life right now — the one expense or pattern that, if addressed, would create the most immediate improvement. Address it this week, not next month.',
+    'Write down your honest beliefs about money — what you actually believe about wealth, people who have it, and whether you deserve it. These beliefs are active in your financial life whether you acknowledge them or not.',
+    'Identify one specific skill or value you possess that you are currently undercharging for or not monetising at all. The cards point toward undervalued assets as the most accessible path to greater financial flow.',
+    'Create a simple 30-day financial tracking practice: record every inflow and outflow for one month without judgment. Clarity about what is actually happening is the foundation of any meaningful change.',
+  ],
+  breakup_divorce: [
+    'Before making a final decision, have one completely honest conversation — with yourself or in writing — about what you would need to see change for this relationship to actually work. If the list is impossible or unwilling to be met, you have your answer.',
+    'Speak to one person who knows both you and the situation well, and ask them specifically: "What do you see that I might not be seeing?" This is not about getting permission — it is about closing blind spots.',
+    'Give yourself a specific transition timeline and begin taking one practical step toward independence or change now, even if the final decision is not yet made. Action creates clarity that deliberation cannot.',
+    'Separate grief from regret. Missing what a relationship could have been is not the same as the relationship being right for you. Sit with which one you are experiencing.',
+  ],
+  health_recovery: [
+    'Identify the one lifestyle factor — sleep, movement, nutrition, or stress — that is most out of balance right now, and make one specific, sustainable change to it this week. Not a dramatic overhaul, one thing.',
+    'Notice the emotional pattern or life circumstance that is most often present when your symptoms are worst. The cards suggest the emotional-physical connection in your situation is significant.',
+    'Ensure you have at least one healthcare professional whose opinion you fully trust for this condition. If you do not, finding that person is the first priority.',
+    'Build in one genuinely restorative practice daily — even 10 minutes — that has no purpose other than to let your body and mind recover. Not productivity recovery, actual recovery.',
+  ],
+  life_purpose: [
+    'Look back at the last five years and identify the three moments when you felt most alive, most useful, or most yourself. The intersection of those moments often points directly toward purpose.',
+    'Identify the one thing you do that makes time disappear — where you lose track of hours. That is not a coincidence — it is directional information.',
+    'Speak your purpose out loud to one person you trust this week, even if it feels premature or uncertain. The act of articulating it will reveal what is genuinely there and what is still unclear.',
+    'Ask yourself: "What would I do if money were not a factor and I could not fail?" Then ask: "What version of that could I begin in the next 30 days with the resources I actually have?" That second question is where purpose becomes a path.',
+  ],
+  grief_loss: [
+    'Allow yourself to grieve without a timeline. The cards are not asking you to move on quickly — they are asking you to move through. There is a difference. Give yourself explicit permission to feel what you feel.',
+    'Find one ritual or act of remembrance that honours what was lost — not to hold on, but to acknowledge. This might be a letter, a visit, a piece of music, or a recurring act of kindness done in their memory.',
+    'Identify one person in your life who is genuinely comfortable sitting with grief without trying to fix it. Spend time with them.',
+    'Notice when you are pushing grief down in order to function. When it is safe to do so, allow it to rise. Grief unexpressed does not disappear — it accumulates.',
+  ],
+  general_love: [
+    'Have the conversation you have been having internally about this relationship out loud — with the person it concerns, or at minimum with yourself on paper. The cards suggest clarity requires expression.',
+    'Identify what you most need from this relationship that you are not currently receiving. Then identify whether you have actually communicated this need clearly, or only hoped it would be understood.',
+    'Give the relationship or decision 7 days of intentional presence — not analysis, but genuine attention. Often the answer is already visible once we stop overthinking and start noticing.',
+    'Ask yourself what the most loving version of yourself would do in this situation. Not the most fearful version, not the most logical version — the most loving.',
+  ],
+  general_career: [
+    'Identify the one career decision you have been putting off and give it a deadline of 14 days. Research what you need, make the decision, and move.',
+    'Have one direct conversation with someone who is where you want to be professionally in 5 years. Ask specifically what they would do differently at your current stage. Listen without defending.',
+    'Identify your single highest-value professional skill right now and find one way to express or leverage it more visibly this month.',
+    'Write down the three professional outcomes you most want in the next 12 months, then identify the one action that most influences all three. Do that action first.',
+  ],
+};
+
 function generateActionableGuidance(
   cards: Array<{ card: TarotCard; reversed: boolean; position: { label: string } }>,
   question: string,
   numCtx: Record<string, string | number | undefined>,
-  tone: ToneType
+  tone: ToneType,
+  intent: ReturnType<typeof classifyQuestionIntent>
 ): string {
   const tc = TONE_CONFIGS[tone];
   const actions: string[] = [];
 
-  // Extract the most actionable card (prefer advice/outcome positions)
   const adviceCard = cards.find(c =>
     ['Advice', 'Outcome', 'Action', 'Near Future', 'Your Message', 'Annual Lesson'].includes(c.position.label)
   ) || cards[cards.length - 1];
@@ -414,54 +1145,42 @@ function generateActionableGuidance(
   const py = numCtx.personalYear ? parseInt(String(numCtx.personalYear)) : null;
   const lp = numCtx.lifePath ? String(numCtx.lifePath) : null;
 
-  // Primary action from advice card
-  if (adviceCard) {
+  // Domain-specific actions get priority — they speak directly to what was asked
+  const domainActionPool = DOMAIN_ACTIONS[intent.domain] || DOMAIN_ACTIONS['general_guidance'];
+  if (domainActionPool && domainActionPool.length >= 2) {
+    // Shuffle and pick 2 domain-specific actions
+    const shuffled = [...domainActionPool].sort(() => Math.random() - 0.5);
+    actions.push(shuffled[0]);
+    if (shuffled[1]) actions.push(shuffled[1]);
+  }
+
+  // Challenge card → specific named card response
+  if (challengeCard && actions.length < 3) {
+    const ckw = (challengeCard.reversed ? challengeCard.card.keywordsReversed : challengeCard.card.keywords)[0];
+    actions.push(`The ${challengeCard.card.name} in your Challenge position names "${ckw}" as the specific energy creating difficulty in this situation. Write down one concrete action that addresses this directly — not in general, but in the specific context of your question about ${intent.subject}.`);
+  }
+
+  // Advice card — specific card-based guidance
+  if (adviceCard && actions.length < 3) {
     const keywords = (adviceCard.reversed ? adviceCard.card.keywordsReversed : adviceCard.card.keywords);
     const prefix = tc.advicePrefix[Math.floor(Math.random() * tc.advicePrefix.length)];
-
-    if (adviceCard.card.suit === 'pentacles' || keywords.some(k => ['abundance', 'wealth', 'financial', 'security', 'work', 'skill'].includes(k))) {
-      actions.push(`${prefix} making one concrete, practical decision this week. Write down the specific material or financial step the cards are guiding you toward.`);
-    } else if (adviceCard.card.suit === 'cups' || keywords.some(k => ['love', 'emotion', 'relationship', 'intuition', 'healing'].includes(k))) {
-      actions.push(`${prefix} an honest emotional inventory. Journal or speak aloud what you are truly feeling about this situation — the body knows before the mind does.`);
-    } else if (adviceCard.card.suit === 'swords' || keywords.some(k => ['truth', 'clarity', 'communication', 'decision', 'cut', 'boundary'].includes(k))) {
-      actions.push(`${prefix} having the conversation you have been avoiding, or making the decision you have been delaying. Mental clarity comes from action, not more analysis.`);
-    } else if (adviceCard.card.suit === 'wands' || keywords.some(k => ['action', 'passion', 'fire', 'ambition', 'move', 'create'].includes(k))) {
-      actions.push(`${prefix} directing your energy into one bold, creative act. Momentum is built by moving, not waiting.`);
-    } else {
-      const meaning = adviceCard.reversed ? adviceCard.card.meaningReversed : adviceCard.card.meaning;
-      actions.push(`${prefix} ${meaning.split('.')[0].toLowerCase()}.`);
-    }
+    const meaning = adviceCard.reversed ? adviceCard.card.meaningReversed : adviceCard.card.meaning;
+    actions.push(`The ${adviceCard.card.name} in the ${adviceCard.position.label} position carries the most direct guidance for your question about ${intent.subject}: ${prefix} ${meaning.split('.')[0].toLowerCase()}. The key energy is ${keywords.slice(0, 2).join(' and ')}.`);
   }
 
-  // Challenge card → specific response action
-  if (challengeCard) {
-    const ckw = (challengeCard.reversed ? challengeCard.card.keywordsReversed : challengeCard.card.keywords)[0];
-    actions.push(`To address the challenge energy (${challengeCard.card.name}): identify one specific instance of "${ckw}" in your current situation and write down a single, concrete response to it.`);
-  }
-
-  // Numerology-based timing action
-  if (py) {
+  // Numerology timing action
+  if (py && actions.length < 4) {
     const pyTheme = PERSONAL_YEAR_THEMES[py];
     if (pyTheme) {
-      actions.push(`Align your next major decision with your Personal Year ${py} energy — a year of ${pyTheme}. Ask yourself: does the action I am considering move with or against this annual current?`);
+      actions.push(`Your Personal Year ${py} is a year of ${pyTheme}. Ask yourself: does the action I am considering around ${intent.subject} move with this annual current, or against it? Decisions made in alignment with the Personal Year energy carry significantly more momentum.`);
     }
   }
 
-  // Question-specific action
-  const qLower = question.toLowerCase();
-  if (qLower.includes('should i') || qLower.includes('shall i')) {
-    actions.push(`Create a simple pros/cons list, then sit with it for 24 hours before deciding. Notice which column feels heavier in your body, not just your mind.`);
-  } else if (qLower.includes('relationship') || qLower.includes('partner')) {
-    actions.push(`Have one honest, vulnerability-led conversation with the person in question this week. Speak your truth without agenda — the cards suggest transparency is the key.`);
-  } else if (qLower.includes('career') || qLower.includes('business')) {
-    actions.push(`Identify the single highest-leverage action in your career or business right now and commit to completing it within 72 hours. Energy follows commitment.`);
-  }
-
-  // LP-based life alignment action
-  if (lp) {
+  // LP-based alignment action
+  if (lp && actions.length < 4) {
     const lpNum = parseInt(lp.split('/').pop() || lp);
     const ne = NUMBER_ESSENCE[lpNum];
-    if (ne) actions.push(`Reconnect with your Life Path ${lp} gift of ${ne.gift}. Ask: how can the action I am considering express this gift more fully?`);
+    if (ne) actions.push(`Your Life Path ${lp} carries the gift of ${ne.gift}. In the context of your question about ${intent.subject}: how does the choice you are facing either honour or compromise this core gift? That alignment question often holds the answer.`);
   }
 
   return actions.slice(0, 4).map((a, i) => `${i + 1}. ${a.charAt(0).toUpperCase() + a.slice(1)}`).join('\n\n');
@@ -667,6 +1386,9 @@ export interface ReadingInput {
 export function generateReading(input: ReadingInput): TarotReadingResult {
   const { question, spread, drawnCards, numerologyContext, tone } = input;
 
+  // Classify the question intent — used throughout the reading
+  const intent = classifyQuestionIntent(question);
+
   // Build enriched card objects
   const enrichedCards = drawnCards
     .filter((d): d is { cardId: number; reversed: boolean } => d !== null)
@@ -681,7 +1403,7 @@ export function generateReading(input: ReadingInput): TarotReadingResult {
 
   // Build card breakdowns
   const cardBreakdowns = enrichedCards.map(({ card, reversed, position }) => {
-    const interpretation = interpretCardInPosition(card, reversed, position, question, tone);
+    const interpretation = interpretCardInPosition(card, reversed, position, question, tone, intent);
     const numerologyBridge = buildNumerologyBridge(card, reversed, position.numerologyLink, numerologyContext);
 
     return {
@@ -702,19 +1424,19 @@ export function generateReading(input: ReadingInput): TarotReadingResult {
     return Object.entries(suitCount).sort((a, b) => b[1] - a[1])[0]?.[0];
   })();
 
-  let overallTheme = `This ${spread.name} reading for "${question}" `;
+  let overallTheme = `This ${spread.name} reading on the question of ${intent.subject} `;
   if (majorCards.length === enrichedCards.length) {
-    overallTheme += `is dominated entirely by Major Arcana energy — ${majorCards.map(c => c.card.name).join(', ')} — indicating that this situation operates at the level of major life lessons and soul-directed experience, not surface-level circumstances.`;
+    overallTheme += `is dominated entirely by Major Arcana energy — ${majorCards.map(c => c.card.name).join(', ')} — indicating that your question about ${intent.subject} operates at the level of major life lessons and soul-directed forces, not surface-level circumstances.`;
   } else if (majorCards.length > 0) {
-    overallTheme += `carries a blend of Major Arcana depth (${majorCards.map(c => c.card.name).join(', ')}) and ${dominantSuit ? dominantSuit + '-domain' : 'day-to-day'} practical energy. `;
-    overallTheme += reversedCount > 0 ? `With ${reversedCount} reversed card${reversedCount > 1 ? 's' : ''}, internal resistance or review is part of this journey.` : 'The predominantly upright energy signals readiness for forward movement.';
+    overallTheme += `carries Major Arcana depth (${majorCards.map(c => c.card.name).join(', ')}) alongside ${dominantSuit ? dominantSuit + '-domain' : 'everyday'} energy. `;
+    overallTheme += reversedCount > 0 ? `The ${reversedCount} reversed card${reversedCount > 1 ? 's' : ''} suggest internal resistance or something unresolved that is directly relevant to ${intent.outcomeLanguage}.` : `The predominantly upright energy indicates the conditions ${intent.outcomeLanguage} are more open than blocked.`;
   } else {
-    overallTheme += `works through the everyday world — ${dominantSuit ? 'primarily the domain of ' + SUIT_DOMAINS[dominantSuit] : 'across multiple life domains'}. `;
-    overallTheme += reversedCount > 0 ? 'Some internal blocks need addressing before outer progress flows freely.' : 'The energy is available and actionable right now.';
+    overallTheme += `works through practical, day-to-day energies — ${dominantSuit ? 'specifically in the domain of ' + SUIT_DOMAINS[dominantSuit] : 'across multiple life domains'}. `;
+    overallTheme += reversedCount > 0 ? `Some internal blocks are affecting ${intent.subject} — these need attention before the outer situation can shift.` : `The energy around ${intent.subject} is available and actionable right now.`;
   }
 
   // Full narrative
-  const narrative = synthesiseNarrative(enrichedCards, question, spread.name, numerologyContext, tone, interactions);
+  const narrative = synthesiseNarrative(enrichedCards, question, spread.name, numerologyContext, tone, interactions, intent);
 
   // Numerology integration section
   let numerologyIntegration: string | undefined;
@@ -767,7 +1489,7 @@ export function generateReading(input: ReadingInput): TarotReadingResult {
   }
 
   // Actionable guidance
-  const actionableGuidance = generateActionableGuidance(enrichedCards, question, numerologyContext, tone);
+  const actionableGuidance = generateActionableGuidance(enrichedCards, question, numerologyContext, tone, intent);
 
   // Yes/No oracle logic — only for yes-no spreads
   let yesNoAnswer: TarotReadingResult['yesNoAnswer'];

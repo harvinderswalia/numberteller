@@ -328,8 +328,14 @@ function LayoutImageAnalyser({
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok || data.error) throw new Error(data.error || 'Scan failed');
+      const text = await res.text();
+      let data: Record<string, unknown>;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error('AI analysis service is unavailable. Please ensure your OpenAI API key is configured.');
+      }
+      if (!res.ok || data.error) throw new Error((data.error as string) || 'Scan failed');
 
       setScanResult(data);
       onScanComplete(data);
