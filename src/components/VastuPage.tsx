@@ -6,7 +6,7 @@ import {
   DIRECTION_ZONES, ALL_DOSHAS, ROOM_PLACEMENTS, VASTU_DEVTAS, VastuDirection,
 } from '../data/vastuData';
 import {
-  analyseVastu, VastuInput, VastuReport, RoomEntry,
+  analyseVastu, VastuInput, VastuReport, RoomEntry, DevtaStatus,
 } from '../utils/vastuEngine';
 
 interface SharedNumerologyContext {
@@ -359,9 +359,12 @@ function LayoutImageAnalyser({
         <input ref={fileRef} type="file" accept="image/*" className="hidden"
           onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
         <Upload className="w-10 h-10 text-gray-500 mx-auto mb-3" />
-        <p className="text-white font-semibold mb-1">Upload Floor Plan / Layout Image</p>
-        <p className="text-gray-500 text-sm mb-3">Drag & drop or click to upload JPG, PNG, PDF screenshot</p>
-        <p className="text-gray-600 text-xs">After uploading: mark North direction on the image, then mark the main entrance — direction will be auto-calculated</p>
+        <p className="text-white font-semibold mb-1">Upload Floor Plan to Auto-Detect Entrance Direction</p>
+        <p className="text-gray-500 text-sm mb-3">Drag & drop or click to upload JPG, PNG, or PDF screenshot</p>
+        <div className="inline-flex items-center gap-1.5 bg-slate-700 border border-white/10 text-gray-400 text-xs px-3 py-1.5 rounded-full">
+          <Info className="w-3 h-3 flex-shrink-0" />
+          Detects entrance direction only — assign room zones manually below
+        </div>
       </div>
     );
   }
@@ -677,8 +680,8 @@ export default function VastuPage({ onNavigate, onShowAuth, sharedNumerology }: 
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <ImageIcon className="w-4 h-4 text-amber-400" />
-                <span className="text-sm font-semibold text-white">Floor Plan / Layout Image</span>
-                <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">Optional — Auto-Detects Direction</span>
+                <span className="text-sm font-semibold text-white">Floor Plan Upload</span>
+                <span className="text-xs text-gray-500 bg-slate-700 px-2 py-0.5 rounded-full">Optional — Detects entrance direction only</span>
               </div>
               <LayoutImageAnalyser
                 onDirectionDetected={(dir) => setEntranceDir(dir)}
@@ -797,9 +800,12 @@ export default function VastuPage({ onNavigate, onShowAuth, sharedNumerology }: 
                   </div>
                 ))}
               </div>
-              {/* Quick add free-text input */}
-              <div className="mt-3 pt-3 border-t border-white/5">
-                <p className="text-xs text-gray-600">Custom space not in list? Click "Add" above, then type a custom name in the dropdown and assign a zone.</p>
+              <div className="mt-4 pt-4 border-t border-white/5 flex items-start gap-2 bg-amber-500/5 border border-amber-500/15 rounded-xl p-3 -mx-1">
+                <Info className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-amber-300 text-xs font-semibold mb-0.5">Zone assignment drives dosha detection</p>
+                  <p className="text-gray-400 text-xs leading-relaxed">Select a direction zone for each room — dosha detection is fully automatic once zones are set. E.g. Toilet in NE auto-detects the most severe dosha. The more zones you fill, the richer the analysis.</p>
+                </div>
               </div>
             </div>
 
@@ -960,10 +966,14 @@ export default function VastuPage({ onNavigate, onShowAuth, sharedNumerology }: 
             <div className="flex gap-1 bg-slate-800/60 p-1 rounded-xl mb-8 overflow-x-auto">
               {(['overview', 'zones', 'rooms', 'devtas'] as const).map(t => (
                 <button key={t} onClick={() => setActiveTab(t)}
-                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium capitalize whitespace-nowrap transition-all ${
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                     activeTab === t ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-white'
                   }`}>
-                  {t === 'devtas' ? '45 Devtas' : t.charAt(0).toUpperCase() + t.slice(1)}
+                  {t === 'devtas'
+                    ? report.disturbedDevtas.length > 0
+                      ? `Devtas (${report.disturbedDevtas.length} disturbed)`
+                      : '45 Devtas'
+                    : t.charAt(0).toUpperCase() + t.slice(1)}
                 </button>
               ))}
             </div>
@@ -977,6 +987,18 @@ export default function VastuPage({ onNavigate, onShowAuth, sharedNumerology }: 
                   </h3>
                   <div className="text-gray-300 text-sm leading-[1.9] whitespace-pre-line">{report.narrative}</div>
                 </div>
+
+                {report.detectedDoshas.length === 0 && (
+                  <div className="bg-emerald-950/40 border border-emerald-500/20 rounded-2xl p-6 mb-6">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-white font-bold mb-1">No Doshas Detected</p>
+                        <p className="text-emerald-300/80 text-sm leading-relaxed">Based on the information provided, no significant Vastu doshas were identified. Assign zone directions to more rooms in Step 1 for a deeper analysis — dosha detection is automatic once room zones are mapped.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {report.topDoshas.length > 0 && (
                   <div>
@@ -1186,24 +1208,97 @@ export default function VastuPage({ onNavigate, onShowAuth, sharedNumerology }: 
             {/* DEVTAS */}
             {activeTab === 'devtas' && (
               <div>
-                <p className="text-gray-400 text-sm mb-6">The 45 Devtas of the Vastu Purusha Mandala preside over each zone. Identifying disturbed Devtas is the foundation of targeted Vastu remediation.</p>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {VASTU_DEVTAS.slice(0, 27).map(dev => (
-                    <div key={dev.id} className="bg-slate-800/60 border border-white/10 rounded-xl p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/20 flex items-center justify-center text-xs font-bold text-amber-400 flex-shrink-0">
-                          {dev.id}
-                        </div>
-                        <div>
-                          <p className="text-white font-semibold text-sm">{dev.name}</p>
-                          <p className="text-amber-300/70 text-xs mb-1">{dev.zone} zone</p>
-                          <p className="text-gray-400 text-xs leading-relaxed">{dev.domain}</p>
-                          <p className="text-gray-600 text-[10px] mt-1.5 leading-relaxed">Remedy: {dev.offeringRemedy}</p>
-                        </div>
-                      </div>
+                {report.disturbedDevtas.length > 0 ? (
+                  <>
+                    <div className="bg-red-950/40 border border-red-500/20 rounded-2xl p-4 mb-6">
+                      <p className="text-red-300 font-semibold text-sm mb-1 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4" />
+                        {report.disturbedDevtas.length} Disturbed Devta{report.disturbedDevtas.length !== 1 ? 's' : ''} Detected
+                      </p>
+                      <p className="text-red-300/70 text-xs">These presiding deities of the Vastu Purusha Mandala are being disturbed by active doshas. Apply the specific offering remedies to restore their blessings.</p>
                     </div>
-                  ))}
-                </div>
+
+                    <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-400" /> Disturbed Devtas — Priority Remediation
+                    </h3>
+                    <div className="grid sm:grid-cols-2 gap-4 mb-10">
+                      {(report.disturbedDevtas as DevtaStatus[]).map(({ devta, doshasInZone }) => (
+                        <div key={devta.id} className="bg-red-950/30 border border-red-500/25 rounded-2xl p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center text-xs font-bold text-red-400 flex-shrink-0 mt-0.5">
+                              {devta.id}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-semibold text-sm">{devta.name}</p>
+                              <p className="text-red-300/70 text-xs mb-1">{devta.zone} zone · {devta.padaPosition}</p>
+                              <p className="text-gray-300 text-xs leading-relaxed mb-2">{devta.domain}</p>
+                              {doshasInZone.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mb-2">
+                                  {doshasInZone.map(d => (
+                                    <span key={d.id} className="text-[9px] bg-red-500/15 text-red-300 border border-red-500/20 px-1.5 py-0.5 rounded-full">{d.name}</span>
+                                  ))}
+                                </div>
+                              )}
+                              <div className="bg-amber-500/10 border border-amber-500/15 rounded-xl p-2.5">
+                                <p className="text-[10px] text-amber-400 font-semibold mb-0.5 uppercase tracking-wider">Offering Remedy</p>
+                                <p className="text-amber-200/80 text-xs leading-relaxed">{devta.offeringRemedy}</p>
+                              </div>
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {devta.affectedAreas.map(a => (
+                                  <span key={a} className="text-[9px] bg-slate-700 text-gray-400 px-1.5 py-0.5 rounded-full capitalize">{a}</span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <h3 className="text-white font-semibold mb-3 text-sm flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-400" /> Active Blessings — Undisturbed Devtas
+                    </h3>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {(report.devtaStatuses as DevtaStatus[]).filter(s => !s.disturbed).slice(0, 18).map(({ devta }) => (
+                        <div key={devta.id} className="bg-slate-800/40 border border-white/8 rounded-xl p-3 flex items-start gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/15 flex items-center justify-center text-xs font-bold text-emerald-400 flex-shrink-0 mt-0.5">
+                            {devta.id}
+                          </div>
+                          <div>
+                            <p className="text-gray-200 font-medium text-sm">{devta.name}</p>
+                            <p className="text-gray-500 text-xs">{devta.zone} · {devta.domain.split(',')[0]}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="bg-emerald-950/40 border border-emerald-500/20 rounded-2xl p-5 mb-6">
+                      <p className="text-emerald-300 font-semibold text-sm mb-1 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" /> All Devtas Undisturbed
+                      </p>
+                      <p className="text-emerald-300/70 text-xs leading-relaxed">No active doshas are disturbing the presiding deities. The Vastu Purusha Mandala is in a favourable state. Maintain balance through regular cleansing, fresh flowers in NE, and keeping the Brahmasthan (center) open and uncluttered.</p>
+                    </div>
+                    <p className="text-gray-400 text-sm mb-6">The 45 Devtas of the Vastu Purusha Mandala preside over each zone. Their blessings are active when their respective zones are free of doshas.</p>
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {VASTU_DEVTAS.slice(0, 27).map(dev => (
+                        <div key={dev.id} className="bg-slate-800/60 border border-white/10 rounded-xl p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/20 flex items-center justify-center text-xs font-bold text-amber-400 flex-shrink-0">
+                              {dev.id}
+                            </div>
+                            <div>
+                              <p className="text-white font-semibold text-sm">{dev.name}</p>
+                              <p className="text-amber-300/70 text-xs mb-1">{dev.zone} zone</p>
+                              <p className="text-gray-400 text-xs leading-relaxed">{dev.domain}</p>
+                              <p className="text-gray-600 text-[10px] mt-1.5 leading-relaxed">Remedy: {dev.offeringRemedy}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>

@@ -6,6 +6,7 @@
 import {
   VastuDirection, DIRECTION_ZONES, ALL_DOSHAS, VastuDosha,
   REMEDY_DATABASE, VastuRemedy, ROOM_PLACEMENTS, RoomPlacement,
+  VASTU_DEVTAS, Devta,
   getZoneScore, getOverallHarmonyScore, NUMBER_VASTU_AFFINITY,
   HarmonyScore
 } from '../data/vastuData';
@@ -61,6 +62,12 @@ export interface PersonalHarmony {
   criticalZone?: string;
 }
 
+export interface DevtaStatus {
+  devta: Devta;
+  disturbed: boolean;
+  doshasInZone: VastuDosha[];
+}
+
 export interface VastuReport {
   overallScore: number;
   scoreLabel: string;
@@ -75,6 +82,8 @@ export interface VastuReport {
   positiveFeatures: string[];
   narrative: string;
   personalYearVastu?: string;
+  devtaStatuses: DevtaStatus[];
+  disturbedDevtas: DevtaStatus[];
   generatedAt: string;
 }
 
@@ -108,79 +117,88 @@ export const DIRECTION_DEGREES: Record<VastuDirection, number> = {
 
 // ─── AUTO-DETECT DOSHAS FROM ROOM PLACEMENTS ──────────────────────────────
 
+function isToilet(n: string) { return n.includes('toilet') || n.includes('bathroom') || n.includes('washroom') || n.includes(' wc') || n.includes('lavatory'); }
+function isKitchen(n: string) { return n.includes('kitchen') || n.includes('pantry') || n.includes('cooking'); }
+function isBedroom(n: string) { return n.includes('bedroom') || n.includes('bed room') || n.includes('master') || n.includes('sleeping'); }
+function isPrayer(n: string) { return n.includes('prayer') || n.includes('puja') || n.includes('pooja') || n.includes('temple') || n.includes('mandir'); }
+function isWater(n: string) { return n.includes('water') || n.includes('well') || n.includes('borewell') || n.includes('tank') || n.includes('fountain') || n.includes('pool') || n.includes('sump') || n.includes('underground'); }
+function isStaircase(n: string) { return n.includes('staircase') || n.includes('stair') || n.includes('steps') || n.includes('lift') || n.includes('elevator'); }
+
 function detectRoomDoshas(rooms: RoomEntry[]): DetectedDosha[] {
   const detected: DetectedDosha[] = [];
 
+  const push = (id: string, source: DetectedDosha['source'] = 'room-placement') => {
+    const dosha = ALL_DOSHAS.find(d => d.id === id);
+    if (dosha) detected.push({ dosha, source, autoDetected: true });
+  };
+
   rooms.forEach(entry => {
     if (!entry.zone) return;
-    const roomName = entry.roomType.toLowerCase();
-    const zone = entry.zone;
+    const n = entry.roomType.toLowerCase();
+    const z = entry.zone as string;
 
-    // Toilet in NE
-    if ((roomName.includes('toilet') || roomName.includes('bathroom') || roomName.includes('wc')) && zone === 'NE') {
-      const dosha = ALL_DOSHAS.find(d => d.id === 'ne-toilet');
-      if (dosha) detected.push({ dosha, source: 'room-placement', autoDetected: true });
+    if (z === 'NE') {
+      if (isToilet(n)) push('ne-toilet');
+      if (isKitchen(n)) push('ne-kitchen');
+      if (isBedroom(n)) push('ne-master-bed');
     }
-
-    // Kitchen in NE
-    if (roomName.includes('kitchen') && zone === 'NE') {
-      const dosha = ALL_DOSHAS.find(d => d.id === 'ne-kitchen');
-      if (dosha) detected.push({ dosha, source: 'room-placement', autoDetected: true });
+    if (z === 'SE') {
+      if (isWater(n)) push('se-water');
+      if (isBedroom(n)) push('se-master-bed');
     }
-
-    // Kitchen in SW
-    if (roomName.includes('kitchen') && zone === 'SW') {
-      const dosha = ALL_DOSHAS.find(d => d.id === 'sw-entrance');
-      // Create a dynamic "Kitchen in SW" marker
-      const swKitchenDosha: VastuDosha = {
-        id: 'sw-kitchen', name: 'Kitchen in SW', zone: 'SW', category: 'placement', severity: 'moderate',
-        devtaDisturbed: 'Nairita', effect: 'Fire in the stability zone causes instability, relationship heat and financial drain',
-        lifeArea: ['relationships', 'stability', 'finances'], shortDescription: 'Fire element destabilises the SW anchor zone'
-      };
-      detected.push({ dosha: swKitchenDosha, source: 'room-placement', autoDetected: true });
+    if (z === 'SW') {
+      if (isToilet(n)) push('sw-toilet');
+      if (isKitchen(n)) detected.push({ dosha: { id: 'sw-kitchen', name: 'Kitchen in SW', zone: 'SW', category: 'placement', severity: 'moderate', devtaDisturbed: 'Nairita', effect: 'Fire in the stability zone causes instability, relationship heat and financial drain', lifeArea: ['relationships', 'stability', 'finances'], shortDescription: 'Fire element destabilises the SW anchor zone' }, source: 'room-placement', autoDetected: true });
+      if (isPrayer(n)) detected.push({ dosha: { id: 'sw-prayer', name: 'Prayer Room in SW', zone: 'SW', category: 'placement', severity: 'moderate', devtaDisturbed: 'Nairita', effect: 'Spiritual energy in the stability zone creates imbalance — divine energy is best in NE', lifeArea: ['spirituality', 'stability'], shortDescription: 'Prayer room in heavy stability zone — better suited for NE' }, source: 'room-placement', autoDetected: true });
+      if (isWater(n)) push('sw-open');
     }
-
-    // Bedroom in NE
-    if ((roomName.includes('bedroom') || roomName.includes('master')) && zone === 'NE') {
-      const dosha = ALL_DOSHAS.find(d => d.id === 'ne-master-bed');
-      if (dosha) detected.push({ dosha, source: 'room-placement', autoDetected: true });
+    if (z === 'S') {
+      if (isToilet(n)) detected.push({ dosha: { id: 's-toilet', name: 'Toilet in South', zone: 'S', category: 'placement', severity: 'mild', devtaDisturbed: 'Yama', effect: 'Minor karmic disturbance — South tolerates bathrooms better than sacred zones', lifeArea: ['health', 'karma'], shortDescription: 'South toilet — mildly acceptable, keep clean' }, source: 'room-placement', autoDetected: true });
     }
-
-    // Toilet in N
-    if ((roomName.includes('toilet') || roomName.includes('bathroom')) && zone === 'N') {
-      const dosha = ALL_DOSHAS.find(d => d.id === 'n-toilet');
-      if (dosha) detected.push({ dosha, source: 'room-placement', autoDetected: true });
+    if (z === 'N') {
+      if (isToilet(n)) push('n-toilet');
     }
-
-    // Toilet in E
-    if ((roomName.includes('toilet') || roomName.includes('bathroom')) && zone === 'E') {
-      const dosha = ALL_DOSHAS.find(d => d.id === 'e-toilet');
-      if (dosha) detected.push({ dosha, source: 'room-placement', autoDetected: true });
+    if (z === 'E') {
+      if (isToilet(n)) push('e-toilet');
     }
-
-    // Master bedroom in SE
-    if ((roomName.includes('master') || roomName.includes('bedroom')) && zone === 'SE') {
-      const dosha = ALL_DOSHAS.find(d => d.id === 'se-master-bed');
-      if (dosha) detected.push({ dosha, source: 'room-placement', autoDetected: true });
+    if (z === 'NW') {
+      if (isKitchen(n)) push('nw-kitchen');
     }
-
-    // Prayer room in SW
-    if ((roomName.includes('prayer') || roomName.includes('puja') || roomName.includes('temple')) && zone === 'SW') {
-      const swPrayerDosha: VastuDosha = {
-        id: 'sw-prayer', name: 'Prayer Room in SW', zone: 'SW', category: 'placement', severity: 'moderate',
-        devtaDisturbed: 'Nairita', effect: 'Spiritual energy in the stability zone creates imbalance — divine energy is best in NE',
-        lifeArea: ['spirituality', 'finances', 'stability'], shortDescription: 'Prayer room in heavy stability zone — better suited for NE'
-      };
-      detected.push({ dosha: swPrayerDosha, source: 'room-placement', autoDetected: true });
+    if (z === 'ESE' || z === 'SSE') {
+      if (isWater(n)) push('se-water');
     }
-
-    // Toilet/kitchen in Brahmasthan (center) — user needs to indicate center zone
-    if ((roomName.includes('toilet') || roomName.includes('kitchen') || roomName.includes('staircase')) && entry.zone === 'N') {
-      // N as proxy for center in our simplified model — handle in structural
+    if (z === 'Center') {
+      if (isToilet(n)) push('bs-toilet');
+      if (isStaircase(n)) push('bs-staircase');
     }
   });
 
   return detected;
+}
+
+// ─── DEVTA STATUS COMPUTATION ─────────────────────────────────────────────
+
+function computeDevtaStatuses(detectedDoshas: DetectedDosha[]): { all: DevtaStatus[]; disturbed: DevtaStatus[] } {
+  const zoneDosha = new Map<string, VastuDosha[]>();
+  detectedDoshas.forEach(({ dosha }) => {
+    const list = zoneDosha.get(dosha.zone) || [];
+    list.push(dosha);
+    zoneDosha.set(dosha.zone, list);
+  });
+
+  const disturbedNames = new Set(
+    detectedDoshas.flatMap(d => d.dosha.devtaDisturbed.toLowerCase().split('/').map(s => s.trim()))
+  );
+
+  const all: DevtaStatus[] = VASTU_DEVTAS.map(devta => {
+    const doshasInZone = zoneDosha.get(devta.zone) || [];
+    const namedDisturbed = disturbedNames.has(devta.name.toLowerCase()) ||
+      [...disturbedNames].some(n => devta.name.toLowerCase().includes(n) || n.includes(devta.name.split(' ')[0].toLowerCase()));
+    const disturbed = namedDisturbed || doshasInZone.length > 0;
+    return { devta, disturbed, doshasInZone };
+  });
+
+  return { all, disturbed: all.filter(s => s.disturbed) };
 }
 
 function detectEntranceDoshas(entranceDir: VastuDirection | ''): DetectedDosha[] {
@@ -567,6 +585,9 @@ export function analyseVastu(input: VastuInput): VastuReport {
     return sev[a.dosha.severity] - sev[b.dosha.severity];
   }).slice(0, 3);
 
+  // Devta statuses
+  const { all: devtaStatuses, disturbed: disturbedDevtas } = computeDevtaStatuses(allDetected);
+
   return {
     overallScore,
     scoreLabel,
@@ -581,6 +602,8 @@ export function analyseVastu(input: VastuInput): VastuReport {
     positiveFeatures,
     narrative,
     personalYearVastu,
+    devtaStatuses,
+    disturbedDevtas,
     generatedAt: new Date().toISOString(),
   };
 }
