@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Mail, Lock, Hash, AlertCircle, Eye, EyeOff, CheckCircle, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { startTrial } from '../utils/subscription';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -83,7 +82,6 @@ export default function AuthModal({ isOpen, onClose, onNavigate, initialMode = '
         if (error) {
           setError(error.message);
         } else {
-          startTrial();
           setSuccess('Account created! You have a 7-day free trial with 5 calculations.');
           setTimeout(() => {
             onClose();

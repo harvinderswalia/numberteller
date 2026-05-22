@@ -471,6 +471,10 @@ export default function SuperAdminPortal() {
                                     <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Calc Limit Override</p>
                                     <p className="text-gray-300">{override?.trial_calc_limit ?? 'Default (5)'}</p>
                                   </div>
+                                  <div>
+                                    <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Calcs Used (DB)</p>
+                                    <p className="text-gray-300">{(override as any)?.calc_used ?? 0}</p>
+                                  </div>
                                   {override?.notes && (
                                     <div className="sm:col-span-3">
                                       <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Admin Notes</p>

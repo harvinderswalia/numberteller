@@ -8,6 +8,7 @@ import {
   getElementRemediesForNumber, FiveElement,
 } from '../data/loShuInterpretations';
 import { exportLoShuGridToPDF } from '../utils/pdfExport';
+import { usePlanContext } from '../contexts/PlanContext';
 
 interface LoShuGridResultsProps {
   results: LoShuGridData;
@@ -29,6 +30,7 @@ const CYCLE_COLORS = {
 
 export default function LoShuGridResults({ results, onNavigate }: LoShuGridResultsProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['grid']));
+  const { planId } = usePlanContext();
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -107,7 +109,7 @@ export default function LoShuGridResults({ results, onNavigate }: LoShuGridResul
             Back
           </button>
           <button
-            onClick={() => exportLoShuGridToPDF(results)}
+            onClick={() => exportLoShuGridToPDF(results, planId)}
             className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors font-medium text-sm md:text-base"
           >
             <Download className="w-4 h-4 md:w-5 md:h-5" />

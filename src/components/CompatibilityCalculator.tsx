@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Heart, Calendar, User } from 'lucide-react';
 import * as numerology from '../utils/numerology';
-import { canPerformCalculation, incrementCalculationCount, getRemainingCalculations } from '../utils/subscription';
+import { usePlanContext } from '../contexts/PlanContext';
 
 interface CompatibilityCalculatorProps {
   onNavigate: (page: string) => void;
@@ -15,11 +15,14 @@ export default function CompatibilityCalculator({ onNavigate, onShowUpgrade }: C
   const [person2Date, setPerson2Date] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const { planId, trialActive, calcUsed, trialCalcLimit, incrementCalcUsed } = usePlanContext();
+
+  const canCalculate = planId !== 'free' || trialActive;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!canPerformCalculation()) {
+    if (!canCalculate) {
       onShowUpgrade();
       return;
     }
@@ -52,12 +55,12 @@ export default function CompatibilityCalculator({ onNavigate, onShowUpgrade }: C
         compatibility
       });
 
-      incrementCalculationCount();
+      incrementCalcUsed();
       setLoading(false);
     }, 800);
   };
 
-  const remaining = getRemainingCalculations();
+  const remaining = planId !== 'free' ? -1 : Math.max(0, trialCalcLimit - calcUsed);
   const isFormValid = person1Name && person1Date && person2Name && person2Date;
 
   return (

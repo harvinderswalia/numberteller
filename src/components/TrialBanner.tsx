@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Zap } from 'lucide-react';
-import { getTrial, isTrialActive, getTrialCalculationsRemaining, hasActiveSubscription, FREE_TRIAL_DAYS } from '../utils/subscription';
+import { usePlanContext } from '../contexts/PlanContext';
+import { trialDaysLeft } from '../hooks/usePlan';
 
 interface TrialBannerProps {
   onUpgrade: () => void;
@@ -8,20 +9,17 @@ interface TrialBannerProps {
 
 export default function TrialBanner({ onUpgrade }: TrialBannerProps) {
   const [dismissed, setDismissed] = useState(false);
+  const { planId, trialActive, calcUsed, trialCalcLimit, trialExpiresAt, loading } = usePlanContext();
 
-  if (dismissed || hasActiveSubscription()) return null;
+  if (loading || dismissed) return null;
+  if (planId !== 'free') return null; // paid plan — no banner
 
-  const trial = getTrial();
-  if (!trial) return null;
+  const remaining = Math.max(0, trialCalcLimit - calcUsed);
+  const daysLeft = trialDaysLeft(trialExpiresAt);
 
-  const remaining = getTrialCalculationsRemaining();
-  const active = isTrialActive();
+  if (!trialActive && remaining > 0) return null; // trial not yet started
 
-  if (!active && remaining > 0) return null;
-
-  const daysLeft = Math.max(0, Math.ceil((new Date(trial.expiresAt).getTime() - Date.now()) / 86400000));
-
-  if (!active && remaining === 0) {
+  if (!trialActive) {
     return (
       <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-4 py-2.5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm font-medium">
@@ -43,7 +41,7 @@ export default function TrialBanner({ onUpgrade }: TrialBannerProps) {
     );
   }
 
-  if (remaining <= 2 && active) {
+  if (remaining <= 2) {
     return (
       <div className="bg-slate-800 border-b border-white/10 text-white px-4 py-2 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm text-gray-300">

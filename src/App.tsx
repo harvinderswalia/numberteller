@@ -26,6 +26,7 @@ import FeatureGuard from './components/FeatureGuard';
 import TrialBanner from './components/TrialBanner';
 import { exportToPDF } from './utils/pdfExport';
 import { useAuth } from './contexts/AuthContext';
+import { usePlanContext } from './contexts/PlanContext';
 import { calculateLoShuGrid, LoShuGridData } from './utils/loShuGrid';
 
 export type Page =
@@ -63,6 +64,7 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signup');
   const { loading, user } = useAuth();
+  const { planId } = usePlanContext();
 
   // Seed initial history entry so popstate works from first page
   useEffect(() => {
@@ -121,12 +123,16 @@ function App() {
   };
 
   const handleExportPDF = () => {
-    if (calculationResults) exportToPDF(calculationResults);
+    if (calculationResults) exportToPDF(calculationResults, planId);
   };
 
   const handleLoadChart = (chartData: any) => {
-    setCalculationResults(chartData);
-    if (chartData) setSharedNumerology(extractNumerology(chartData));
+    // birthDate is serialised as a string in JSON — restore it to a Date object
+    const restored = chartData
+      ? { ...chartData, birthDate: chartData.birthDate ? new Date(chartData.birthDate) : chartData.birthDate }
+      : chartData;
+    setCalculationResults(restored);
+    if (restored) setSharedNumerology(extractNumerology(restored));
     window.history.pushState({ page: 'results' }, '', window.location.pathname);
     setCurrentPage('results');
   };

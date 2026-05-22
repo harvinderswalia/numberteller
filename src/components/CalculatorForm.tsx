@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Calendar, User, ArrowLeft, CircleUser as UserCircle } from 'lucide-react';
 import * as numerology from '../utils/numerology';
 import { calculateEssenceForAge } from '../utils/transitCalculations';
-import { canPerformCalculation, incrementCalculationCount, getRemainingCalculations } from '../utils/subscription';
+import { usePlanContext } from '../contexts/PlanContext';
 
 interface CalculatorFormProps {
   onNavigate: (page: string) => void;
@@ -18,11 +18,14 @@ export default function CalculatorForm({ onNavigate, onCalculate, onShowUpgrade 
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear().toString());
   const [loading, setLoading] = useState(false);
+  const { planId, trialActive, calcUsed, trialCalcLimit, incrementCalcUsed } = usePlanContext();
+
+  const canCalculate = planId !== 'free' || trialActive;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!canPerformCalculation()) {
+    if (!canCalculate) {
       onShowUpgrade();
       return;
     }
@@ -101,13 +104,13 @@ export default function CalculatorForm({ onNavigate, onCalculate, onShowUpgrade 
         loshuGrid
       };
 
-      incrementCalculationCount();
+      incrementCalcUsed();
       setLoading(false);
       onCalculate(results);
     }, 800);
   };
 
-  const remaining = getRemainingCalculations();
+  const remaining = planId !== 'free' ? -1 : Math.max(0, trialCalcLimit - calcUsed);
   const isFormValid = firstName && lastName && birthDate;
 
   return (

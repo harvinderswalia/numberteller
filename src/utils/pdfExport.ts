@@ -1,215 +1,722 @@
+import { jsPDF } from 'jspdf';
 import { MISSING_NUMBER_REMEDIES, ELEMENT_REMEDIES } from '../data/loShuInterpretations';
+import { NUMBER_INTERPRETATIONS } from '../data/interpretations';
 
-export function exportToPDF(results: any) {
-  const content = `
-NUMEROLOGY READING
-==================
+// ─── Colour palette ───────────────────────────────────────────────────────────
+const NAVY   = '#0f172a';
+const NAVY2  = '#1e293b';
+const TEAL   = '#0ea5e9';
+const GOLD   = '#f59e0b';
+const WHITE  = '#ffffff';
+const GRAY   = '#94a3b8';
+const LGRAY  = '#cbd5e1';
+const DGRAY  = '#475569';
+const EMERALD = '#10b981';
+const ROSE    = '#f43f5e';
 
-Full Name: ${results.fullName}
-Birth Date: ${results.birthDate.toLocaleDateString()}
-Current Year: ${results.currentYear}
+// ─── Helper class ─────────────────────────────────────────────────────────────
+class PDF {
+  doc: jsPDF;
+  y: number;
+  page: number;
+  W: number;
+  H: number;
+  MARGIN: number;
+  CONTENT_W: number;
+  planId: string;
 
-CORE NUMBERS
-------------
-Life Path Number: ${results.coreNumbers.lifePath}
-Expression Number: ${results.coreNumbers.expression}
-Soul Urge Number: ${results.coreNumbers.soulUrge}
-Personality Number: ${results.coreNumbers.personality}
-Birthday Number: ${results.coreNumbers.birthday}
-Maturity Number: ${results.coreNumbers.maturity}
-Attitude Number: ${results.coreNumbers.attitude}
-Rational Thought Number: ${results.coreNumbers.rationalThought}
+  constructor(planId: string) {
+    this.doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    this.y = 0;
+    this.page = 0;
+    this.W = 210;
+    this.H = 297;
+    this.MARGIN = 18;
+    this.CONTENT_W = 210 - 36;
+    this.planId = planId;
+  }
 
-CYCLES
-------
-Personal Year: ${results.cycles.personalYear}
-Universal Year: ${results.cycles.universalYear}
-Essence Number: ${results.cycles.essence}
+  hex(color: string) {
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    return [r, g, b] as [number, number, number];
+  }
 
-Period Cycles:
-  First Period: ${results.cycles.periodCycles.first.value} (Age ${results.cycles.periodCycles.first.ageRange})
-  Second Period: ${results.cycles.periodCycles.second.value} (Age ${results.cycles.periodCycles.second.ageRange})
-  Third Period: ${results.cycles.periodCycles.third.value} (Age ${results.cycles.periodCycles.third.ageRange})
+  fill(color: string) {
+    this.doc.setFillColor(...this.hex(color));
+  }
 
-Pinnacles:
-  First: ${results.cycles.pinnacles.first.value} (Age ${results.cycles.pinnacles.first.ageRange})
-  Second: ${results.cycles.pinnacles.second.value} (Age ${results.cycles.pinnacles.second.ageRange})
-  Third: ${results.cycles.pinnacles.third.value} (Age ${results.cycles.pinnacles.third.ageRange})
-  Fourth: ${results.cycles.pinnacles.fourth.value} (Age ${results.cycles.pinnacles.fourth.ageRange})
+  stroke(color: string) {
+    this.doc.setDrawColor(...this.hex(color));
+  }
 
-Challenges:
-  First: ${results.cycles.challenges.first.value} (Age ${results.cycles.challenges.first.ageRange})
-  Second: ${results.cycles.challenges.second.value} (Age ${results.cycles.challenges.second.ageRange})
-  Third: ${results.cycles.challenges.third.value} (Age ${results.cycles.challenges.third.ageRange})
-  Fourth: ${results.cycles.challenges.fourth.value} (Age ${results.cycles.challenges.fourth.ageRange})
+  text(color: string) {
+    this.doc.setTextColor(...this.hex(color));
+  }
 
-KARMIC INSIGHTS
----------------
-Karmic Lessons: ${results.karmic.lessons.map((l: any) => `${l.number}${l.modified ? ' (Modified)' : ''}`).join(', ') || 'None'}
-Prime Intensifier: ${results.karmic.primeIntensifier}
+  need(h: number) {
+    if (this.y + h > this.H - 20) this.newPage();
+  }
 
-ADDITIONAL DETAILS
-------------------
-Ruling Planet: ${results.details.rulingPlanet}
-Harmony Numbers: ${results.details.harmonyNumbers.join(', ')}
-Favourable Colours: ${results.details.favourableColours.join(', ')}
-Zodiac Sign: ${results.details.zodiac.sign} (${results.details.zodiac.element})
-First Letter: ${results.details.firstLetter.letter} = ${results.details.firstLetter.value}
-First Vowel: ${results.details.firstVowel.letter} = ${results.details.firstVowel.value}
+  newPage() {
+    this.doc.addPage();
+    this.page++;
+    this.pageHeader();
+    this.y = 38;
+  }
 
-LOSHU GRID
-----------
-${results.loshuGrid.grid.map((row: any[]) => row.map(cell => cell || '0').join(' | ')).join('\n')}
+  pageHeader() {
+    this.fill(NAVY);
+    this.doc.rect(0, 0, this.W, 14, 'F');
+    // Logo mark
+    this.fill(TEAL);
+    this.doc.roundedRect(this.MARGIN, 3, 8, 8, 1, 1, 'F');
+    this.text(WHITE);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(7);
+    this.doc.text('#', this.MARGIN + 2.8, 8.5);
+    // Brand name
+    this.text(WHITE);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(8);
+    this.doc.text('NumberTeller', this.MARGIN + 10, 8.5);
+    // Page number
+    this.text(GRAY);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.setFontSize(7);
+    this.doc.text(`Page ${this.page + 1}`, this.W - this.MARGIN, 8.5, { align: 'right' });
+  }
 
-Missing Numbers: ${results.loshuGrid.missingNumbers.join(', ') || 'None'}
-Active Arrows: ${results.loshuGrid.arrows.join(', ') || 'None'}
+  pageFooter() {
+    const y = this.H - 10;
+    this.stroke(DGRAY);
+    this.doc.setLineWidth(0.3);
+    this.doc.line(this.MARGIN, y - 2, this.W - this.MARGIN, y - 2);
+    this.text(DGRAY);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.setFontSize(7);
+    this.doc.text('Generated by NumberTeller · www.numberteller.com · ' + new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }), this.W / 2, y, { align: 'center' });
+  }
 
----
-Generated by NumberTeller - www.numberteller.com
-  `.trim();
+  coverPage(name: string, birthDate: string, numbers: { label: string; value: string | number }[]) {
+    this.page = 0;
 
-  const blob = new Blob([content], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `numerology-reading-${results.fullName.replace(/\s+/g, '-').toLowerCase()}.txt`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+    // Background
+    this.fill(NAVY);
+    this.doc.rect(0, 0, this.W, this.H, 'F');
+
+    // Top accent line
+    this.fill(TEAL);
+    this.doc.rect(0, 0, this.W, 1.5, 'F');
+
+    // Logo block
+    const lx = this.MARGIN;
+    const ly = 20;
+    this.fill(TEAL);
+    this.doc.roundedRect(lx, ly, 14, 14, 2, 2, 'F');
+    this.text(WHITE);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(11);
+    this.doc.text('#', lx + 4.8, ly + 9.5);
+
+    this.text(WHITE);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(18);
+    this.doc.text('NumberTeller', lx + 17, ly + 9.5);
+
+    this.text(TEAL);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.setFontSize(8);
+    this.doc.text('www.numberteller.com', lx + 17, ly + 14.5);
+
+    // Divider
+    this.fill(NAVY2);
+    this.doc.rect(this.MARGIN, 48, this.CONTENT_W, 0.5, 'F');
+
+    // Report type
+    this.text(TEAL);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(9);
+    this.doc.text('NUMEROLOGY READING REPORT', this.MARGIN, 62);
+
+    // Subject name
+    this.text(WHITE);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(28);
+    this.doc.text(name, this.MARGIN, 76);
+
+    // Birth date
+    this.text(GRAY);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.setFontSize(11);
+    this.doc.text(`Date of Birth: ${birthDate}`, this.MARGIN, 86);
+
+    // Plan badge
+    const planLabel = this.planId === 'expert' ? 'Expert Plan' : this.planId === 'calculator' ? 'Calculator Plan' : 'Free Trial';
+    const planColor = this.planId === 'expert' ? GOLD : this.planId === 'calculator' ? TEAL : EMERALD;
+    this.fill(planColor);
+    this.doc.setFillColor(...this.hex(planColor), 0.15);
+    this.stroke(planColor);
+    this.doc.setLineWidth(0.4);
+    this.doc.roundedRect(this.MARGIN, 92, 40, 7, 1.5, 1.5, 'S');
+    this.fill(planColor);
+    this.doc.roundedRect(this.MARGIN, 92, 40, 7, 1.5, 1.5, 'F');
+    this.text(this.planId === 'expert' ? NAVY : WHITE);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(7.5);
+    this.doc.text(planLabel.toUpperCase(), this.MARGIN + 20, 96.8, { align: 'center' });
+
+    // Core numbers strip
+    const stripY = 112;
+    const cellW = this.CONTENT_W / numbers.length;
+    numbers.forEach((n, i) => {
+      const cx = this.MARGIN + i * cellW;
+      this.fill(NAVY2);
+      this.doc.rect(cx, stripY, cellW - 2, 22, 'F');
+
+      this.text(TEAL);
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.setFontSize(16);
+      this.doc.text(String(n.value), cx + (cellW - 2) / 2, stripY + 11, { align: 'center' });
+
+      this.text(GRAY);
+      this.doc.setFont('helvetica', 'normal');
+      this.doc.setFontSize(6.5);
+      const lines = this.doc.splitTextToSize(n.label, cellW - 4);
+      this.doc.text(lines[0], cx + (cellW - 2) / 2, stripY + 17, { align: 'center' });
+    });
+
+    // Bottom watermark
+    this.text(NAVY2);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.setFontSize(60);
+    this.doc.text('#', this.W - 20, this.H - 20, { align: 'right' });
+
+    // Footer
+    this.text(DGRAY);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.setFontSize(7.5);
+    this.doc.text('Generated by NumberTeller · www.numberteller.com · ' + new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }), this.W / 2, this.H - 8, { align: 'center' });
+  }
+
+  sectionHeading(title: string, accent?: string) {
+    this.need(18);
+    const col = accent || TEAL;
+    this.fill(NAVY2);
+    this.doc.rect(this.MARGIN, this.y, this.CONTENT_W, 10, 'F');
+    this.fill(col);
+    this.doc.rect(this.MARGIN, this.y, 3, 10, 'F');
+    this.text(WHITE);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(10);
+    this.doc.text(title.toUpperCase(), this.MARGIN + 7, this.y + 6.5);
+    this.y += 14;
+  }
+
+  subHeading(title: string) {
+    this.need(10);
+    this.text(TEAL);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(9);
+    this.doc.text(title, this.MARGIN, this.y);
+    this.y += 5;
+    this.stroke(TEAL);
+    this.doc.setLineWidth(0.2);
+    this.doc.line(this.MARGIN, this.y, this.MARGIN + 40, this.y);
+    this.y += 3;
+  }
+
+  kv(label: string, value: string | number, accent?: string) {
+    this.need(7);
+    const displayVal = String(value);
+    this.text(LGRAY);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.setFontSize(9);
+    this.doc.text(label + ':', this.MARGIN, this.y);
+    this.text(accent ? accent : WHITE);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.text(displayVal, this.MARGIN + 65, this.y);
+    this.y += 6;
+  }
+
+  numberBlock(label: string, value: string | number, interp?: { traits: string[]; challenges: string[]; advice: string[] }) {
+    const numStr = String(value);
+    const blockH = interp ? 42 : 16;
+    this.need(blockH);
+
+    // Card background
+    this.fill(NAVY2);
+    this.doc.roundedRect(this.MARGIN, this.y, this.CONTENT_W, blockH - 2, 2, 2, 'F');
+
+    // Number circle
+    this.fill(TEAL);
+    this.doc.circle(this.MARGIN + 10, this.y + (blockH - 2) / 2, 6, 'F');
+    this.text(WHITE);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(9);
+    this.doc.text(numStr, this.MARGIN + 10, this.y + (blockH - 2) / 2 + 1.5, { align: 'center' });
+
+    // Label
+    this.text(WHITE);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(9);
+    this.doc.text(label, this.MARGIN + 19, this.y + 6);
+
+    if (interp) {
+      // Traits
+      this.text(TEAL);
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.setFontSize(7.5);
+      this.doc.text('Traits:', this.MARGIN + 19, this.y + 13);
+      this.text(LGRAY);
+      this.doc.setFont('helvetica', 'normal');
+      const traitText = interp.traits.slice(0, 2).join(' · ');
+      const traitLines = this.doc.splitTextToSize(traitText, this.CONTENT_W - 22);
+      this.doc.text(traitLines.slice(0, 2), this.MARGIN + 19, this.y + 18);
+
+      // Advice
+      this.text(GOLD);
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.setFontSize(7.5);
+      this.doc.text('Guidance:', this.MARGIN + 19, this.y + 28);
+      this.text(LGRAY);
+      this.doc.setFont('helvetica', 'normal');
+      const adviceText = interp.advice.slice(0, 2).join(' · ');
+      const adviceLines = this.doc.splitTextToSize(adviceText, this.CONTENT_W - 22);
+      this.doc.text(adviceLines.slice(0, 1), this.MARGIN + 19, this.y + 33);
+    }
+
+    this.y += blockH + 2;
+  }
+
+  body(txt: string, color?: string) {
+    this.text(color || LGRAY);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.setFontSize(9);
+    const lines = this.doc.splitTextToSize(txt, this.CONTENT_W);
+    lines.forEach((line: string) => {
+      this.need(6);
+      this.doc.text(line, this.MARGIN, this.y);
+      this.y += 5;
+    });
+  }
+
+  bullet(txt: string, color?: string) {
+    this.need(6);
+    this.text(color || TEAL);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(9);
+    this.doc.text('•', this.MARGIN + 2, this.y);
+    this.text(LGRAY);
+    this.doc.setFont('helvetica', 'normal');
+    const lines = this.doc.splitTextToSize(txt, this.CONTENT_W - 8);
+    this.doc.text(lines[0], this.MARGIN + 7, this.y);
+    this.y += 5.5;
+    if (lines.length > 1) {
+      lines.slice(1).forEach((l: string) => {
+        this.need(6);
+        this.doc.text(l, this.MARGIN + 7, this.y);
+        this.y += 5;
+      });
+    }
+  }
+
+  spacer(h = 4) { this.y += h; }
+
+  twoCol(items: { label: string; value: string | number }[]) {
+    const colW = (this.CONTENT_W - 4) / 2;
+    for (let i = 0; i < items.length; i += 2) {
+      this.need(8);
+      const row = items.slice(i, i + 2);
+      row.forEach((item, j) => {
+        const x = this.MARGIN + j * (colW + 4);
+        this.fill(NAVY2);
+        this.doc.rect(x, this.y, colW, 7, 'F');
+        this.text(GRAY);
+        this.doc.setFont('helvetica', 'normal');
+        this.doc.setFontSize(7.5);
+        this.doc.text(item.label, x + 3, this.y + 3.5);
+        this.text(WHITE);
+        this.doc.setFont('helvetica', 'bold');
+        this.doc.setFontSize(8.5);
+        this.doc.text(String(item.value), x + colW - 3, this.y + 5.5, { align: 'right' });
+      });
+      this.y += 9;
+    }
+  }
+
+  practitionerBox() {
+    this.need(40);
+    this.spacer(6);
+    this.fill(NAVY2);
+    this.stroke(GOLD);
+    this.doc.setLineWidth(0.5);
+    this.doc.roundedRect(this.MARGIN, this.y, this.CONTENT_W, 38, 2, 2, 'FD');
+    this.fill(GOLD);
+    this.doc.rect(this.MARGIN, this.y, this.CONTENT_W, 8, 'F');
+    this.text(NAVY);
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(8.5);
+    this.doc.text('PRACTITIONER NOTES', this.MARGIN + 4, this.y + 5.5);
+    this.text(LGRAY);
+    this.doc.setFont('helvetica', 'normal');
+    this.doc.setFontSize(8);
+    this.doc.text('(For practitioner use only — add your personalised observations below)', this.W - this.MARGIN - 2, this.y + 5.5, { align: 'right' });
+    // Lines for writing
+    this.stroke(DGRAY);
+    this.doc.setLineWidth(0.25);
+    for (let i = 0; i < 4; i++) {
+      const ly = this.y + 14 + i * 6;
+      this.doc.line(this.MARGIN + 4, ly, this.W - this.MARGIN - 4, ly);
+    }
+    this.y += 44;
+  }
+
+  save(filename: string) {
+    // Add footer to all pages
+    const total = this.doc.getNumberOfPages();
+    for (let p = 2; p <= total; p++) {
+      this.doc.setPage(p);
+      this.pageFooter();
+    }
+    this.doc.save(filename);
+  }
 }
 
-export function exportLoShuGridToPDF(results: any) {
-  let content = `
-LO SHU GRID NUMEROLOGY READING
-===============================
+// ─── Resolve numeric value from master-number strings like "11/2" ────────────
+function numVal(v: string | number): number {
+  if (typeof v === 'number') return v;
+  const parts = String(v).split('/');
+  return parseInt(parts[parts.length - 1]) || parseInt(parts[0]) || 0;
+}
 
-Name: ${results.name}
-Date of Birth: ${results.dateOfBirth}
-Gender: ${results.gender}
+// ─── Main Core Chart PDF ──────────────────────────────────────────────────────
+export function exportToPDF(results: any, planId = 'free') {
+  const fullContent = planId !== 'calculator'; // free trial + expert get full interpretations
+  const pdf = new PDF(planId);
 
-LO SHU GRID
------------
-${results.grid.map((row: any[]) =>
-  row.map(cell => {
-    if (Array.isArray(cell) && cell.length > 0) {
-      return cell.join(',');
-    }
-    return '-';
-  }).join('  |  ')
-).join('\n')}
+  const coreNumbers = [
+    { label: 'Life Path', value: results.coreNumbers.lifePath },
+    { label: 'Expression', value: results.coreNumbers.expression },
+    { label: 'Soul Urge', value: results.coreNumbers.soulUrge },
+    { label: 'Personality', value: results.coreNumbers.personality },
+    { label: 'Birthday', value: results.coreNumbers.birthday },
+    { label: 'Personal Year', value: results.cycles?.personalYear ?? '' },
+  ];
 
-KEY NUMBERS
------------
-Driver Number: ${results.driverNumber}
-Conductor Number: ${results.conductorNumber}
-Kua Number: ${results.kuaNumber}
+  // Cover page
+  pdf.coverPage(
+    results.fullName,
+    results.birthDate instanceof Date ? results.birthDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : String(results.birthDate),
+    coreNumbers
+  );
 
-NUMBER ANALYSIS
----------------
-`;
+  // ── Page 2+ ──
+  pdf.doc.addPage();
+  pdf.page = 1;
+  pdf.pageHeader();
+  pdf.y = 30;
 
-  Object.entries(results.numberCounts).forEach(([num, count]) => {
-    content += `Number ${num}: Appears ${count} time(s)\n`;
+  // CORE NUMBERS
+  pdf.sectionHeading('Core Numbers', TEAL);
+
+  const coreEntries = [
+    { label: 'Life Path Number', value: results.coreNumbers.lifePath },
+    { label: 'Expression Number', value: results.coreNumbers.expression },
+    { label: 'Soul Urge Number', value: results.coreNumbers.soulUrge },
+    { label: 'Personality Number', value: results.coreNumbers.personality },
+    { label: 'Birthday Number', value: results.coreNumbers.birthday },
+    { label: 'Maturity Number', value: results.coreNumbers.maturity },
+    { label: 'Attitude Number', value: results.coreNumbers.attitude },
+    { label: 'Rational Thought', value: results.coreNumbers.rationalThought },
+  ];
+
+  coreEntries.forEach(({ label, value }) => {
+    const interp = fullContent ? NUMBER_INTERPRETATIONS[numVal(value)] : undefined;
+    pdf.numberBlock(label, value, interp);
   });
 
-  if (results.missingNumbers.length > 0) {
-    content += `\nMISSING NUMBERS & REMEDIES\n`;
-    content += `==========================\n\n`;
+  // CYCLES
+  pdf.spacer(4);
+  pdf.sectionHeading('Life Cycles & Timing', TEAL);
 
+  pdf.twoCol([
+    { label: 'Personal Year', value: results.cycles.personalYear },
+    { label: 'Universal Year', value: results.cycles.universalYear },
+    { label: 'Essence Number', value: results.cycles.essence },
+    { label: 'Current Period', value: results.cycles.periodCycles?.first?.value ?? '' },
+  ]);
+
+  pdf.spacer(4);
+  pdf.subHeading('Period Cycles');
+  const pc = results.cycles.periodCycles;
+  if (pc) {
+    pdf.kv('First Period', `${pc.first.value}  (Age ${pc.first.ageRange})`);
+    pdf.kv('Second Period', `${pc.second.value}  (Age ${pc.second.ageRange})`);
+    pdf.kv('Third Period', `${pc.third.value}  (Age ${pc.third.ageRange})`);
+  }
+
+  pdf.spacer(4);
+  pdf.subHeading('Pinnacles');
+  const pin = results.cycles.pinnacles;
+  if (pin) {
+    pdf.kv('First Pinnacle', `${pin.first.value}  (Age ${pin.first.ageRange})`);
+    pdf.kv('Second Pinnacle', `${pin.second.value}  (Age ${pin.second.ageRange})`);
+    pdf.kv('Third Pinnacle', `${pin.third.value}  (Age ${pin.third.ageRange})`);
+    pdf.kv('Fourth Pinnacle', `${pin.fourth.value}  (Age ${pin.fourth.ageRange})`);
+  }
+
+  pdf.spacer(4);
+  pdf.subHeading('Challenges');
+  const ch = results.cycles.challenges;
+  if (ch) {
+    pdf.kv('First Challenge', `${ch.first.value}  (Age ${ch.first.ageRange})`);
+    pdf.kv('Second Challenge', `${ch.second.value}  (Age ${ch.second.ageRange})`);
+    pdf.kv('Third Challenge', `${ch.third.value}  (Age ${ch.third.ageRange})`);
+    pdf.kv('Fourth Challenge', `${ch.fourth.value}  (Age ${ch.fourth.ageRange})`);
+  }
+
+  // KARMIC
+  pdf.spacer(4);
+  pdf.sectionHeading('Karmic Insights', ROSE);
+  const karmic = results.karmic;
+  if (karmic) {
+    const lessons = karmic.lessons?.length
+      ? karmic.lessons.map((l: any) => `${l.number}${l.modified ? ' (Modified)' : ''}`).join(', ')
+      : 'None';
+    pdf.kv('Karmic Lessons', lessons);
+    pdf.kv('Prime Intensifier', karmic.primeIntensifier ?? 'None');
+  }
+
+  // ADDITIONAL DETAILS
+  pdf.spacer(4);
+  pdf.sectionHeading('Additional Details', GOLD);
+  const det = results.details;
+  if (det) {
+    pdf.kv('Ruling Planet', det.rulingPlanet);
+    pdf.kv('Harmony Numbers', det.harmonyNumbers?.join(', ') ?? '');
+    pdf.kv('Favourable Colours', det.favourableColours?.join(', ') ?? '');
+    pdf.kv('Zodiac Sign', `${det.zodiac?.sign} (${det.zodiac?.element})`);
+    pdf.kv('First Letter', `${det.firstLetter?.letter} = ${det.firstLetter?.value}`);
+    pdf.kv('First Vowel', `${det.firstVowel?.letter} = ${det.firstVowel?.value}`);
+  }
+
+  // LO SHU GRID summary
+  if (results.loshuGrid) {
+    pdf.spacer(4);
+    pdf.sectionHeading('Lo Shu Grid Summary');
+    pdf.kv('Missing Numbers', results.loshuGrid.missingNumbers?.join(', ') || 'None');
+    pdf.kv('Active Arrows', results.loshuGrid.arrows?.join(', ') || 'None');
+  }
+
+  // Full interpretations — free trial & expert only
+  if (fullContent) {
+    pdf.newPage();
+    pdf.sectionHeading('Number Interpretations & Guidance', TEAL);
+    pdf.body('The following interpretations apply to your core numbers. Use these as a foundation for self-understanding and life guidance.', GRAY);
+    pdf.spacer(4);
+
+    const interpEntries = [
+      { label: 'Life Path', value: results.coreNumbers.lifePath },
+      { label: 'Expression', value: results.coreNumbers.expression },
+      { label: 'Soul Urge', value: results.coreNumbers.soulUrge },
+    ];
+
+    interpEntries.forEach(({ label, value }) => {
+      const interp = NUMBER_INTERPRETATIONS[numVal(value)];
+      if (!interp) return;
+      pdf.need(50);
+      pdf.subHeading(`${label} Number: ${value}`);
+      pdf.body('Key Traits:', GOLD);
+      interp.traits.slice(0, 3).forEach(t => pdf.bullet(t));
+      pdf.spacer(2);
+      pdf.body('Challenges:', ROSE);
+      interp.challenges.slice(0, 2).forEach(c => pdf.bullet(c, ROSE));
+      pdf.spacer(2);
+      pdf.body('Guidance:', TEAL);
+      interp.advice.slice(0, 2).forEach(a => pdf.bullet(a, EMERALD));
+      pdf.spacer(6);
+    });
+
+    // Practitioner notes box
+    pdf.practitionerBox();
+  }
+
+  const filename = `NumberTeller-${results.fullName.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+  pdf.save(filename);
+}
+
+// ─── Lo Shu Grid PDF ─────────────────────────────────────────────────────────
+export function exportLoShuGridToPDF(results: any, planId = 'free') {
+  const fullContent = planId !== 'calculator';
+  const pdf = new PDF(planId);
+
+  // Cover
+  pdf.coverPage(
+    results.name,
+    results.dateOfBirth,
+    [
+      { label: 'Driver', value: results.driverNumber },
+      { label: 'Conductor', value: results.conductorNumber },
+      { label: 'Kua', value: results.kuaNumber },
+      { label: 'Missing', value: results.missingNumbers?.length || 0 },
+      { label: 'Arrows', value: results.arrows?.length || 0 },
+    ]
+  );
+
+  pdf.doc.addPage();
+  pdf.page = 1;
+  pdf.pageHeader();
+  pdf.y = 30;
+
+  // Subject info
+  pdf.sectionHeading('Reading Details');
+  pdf.kv('Name', results.name);
+  pdf.kv('Date of Birth', results.dateOfBirth);
+  pdf.kv('Gender', results.gender);
+  pdf.spacer(4);
+
+  // Key Numbers
+  pdf.sectionHeading('Key Numbers', TEAL);
+  pdf.twoCol([
+    { label: 'Driver Number', value: results.driverNumber },
+    { label: 'Conductor Number', value: results.conductorNumber },
+    { label: 'Kua Number', value: results.kuaNumber },
+    { label: 'Missing Numbers', value: results.missingNumbers?.length || 0 },
+  ]);
+  pdf.spacer(4);
+
+  // Lo Shu Grid visual
+  pdf.sectionHeading('Lo Shu Grid', TEAL);
+  const gridCellSize = 18;
+  const gridX = this_center(pdf, 3 * gridCellSize + 4);
+  const gridY = pdf.y;
+  const gridNums = [[4, 9, 2], [3, 5, 7], [8, 1, 6]];
+
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      const cx = gridX + col * (gridCellSize + 2);
+      const cy = gridY + row * (gridCellSize + 2);
+      const cellNum = gridNums[row][col];
+      const cellData = results.grid?.[row]?.[col];
+      const digits: number[] = Array.isArray(cellData) ? cellData : [];
+      const isEmpty = digits.length === 0;
+
+      pdf.fill(isEmpty ? '#1e293b' : NAVY2);
+      pdf.stroke(isEmpty ? DGRAY : TEAL);
+      pdf.doc.setLineWidth(0.4);
+      pdf.doc.roundedRect(cx, cy, gridCellSize, gridCellSize, 1.5, 1.5, 'FD');
+
+      // Cell number (position label, small)
+      pdf.text(DGRAY);
+      pdf.doc.setFont('helvetica', 'normal');
+      pdf.doc.setFontSize(6);
+      pdf.doc.text(String(cellNum), cx + 2, cy + 4);
+
+      // Digits present
+      if (!isEmpty) {
+        pdf.text(WHITE);
+        pdf.doc.setFont('helvetica', 'bold');
+        pdf.doc.setFontSize(digits.length > 2 ? 7.5 : 9);
+        const digStr = digits.join(' ');
+        pdf.doc.text(digStr, cx + gridCellSize / 2, cy + gridCellSize / 2 + 2, { align: 'center' });
+      } else {
+        pdf.text(DGRAY);
+        pdf.doc.setFont('helvetica', 'normal');
+        pdf.doc.setFontSize(14);
+        pdf.doc.text('—', cx + gridCellSize / 2, cy + gridCellSize / 2 + 2, { align: 'center' });
+      }
+    }
+  }
+  pdf.y = gridY + 3 * (gridCellSize + 2) + 6;
+
+  // Number counts
+  pdf.spacer(4);
+  pdf.sectionHeading('Number Frequency Analysis');
+  const countItems: { label: string; value: string | number }[] = [];
+  Object.entries(results.numberCounts as Record<string, number>).forEach(([num, count]) => {
+    countItems.push({ label: `Number ${num}`, value: `${count}x` });
+  });
+  pdf.twoCol(countItems);
+
+  // Missing numbers
+  if (results.missingNumbers?.length > 0) {
+    pdf.spacer(4);
+    pdf.sectionHeading('Missing Numbers & Remedies', ROSE);
     results.missingNumbers.forEach((num: number) => {
       const remedy = MISSING_NUMBER_REMEDIES[num as keyof typeof MISSING_NUMBER_REMEDIES];
-      if (remedy) {
-        content += `Missing Number ${num} - ${remedy.element}\n`;
-        content += `${'='.repeat(40)}\n\n`;
-        content += `Potential Weaknesses:\n`;
-        remedy.weaknesses.forEach((weakness: string) => {
-          content += `  • ${weakness}\n`;
-        });
-        content += `\nRemedies:\n`;
-        remedy.remedies.forEach((r: string) => {
-          content += `  • ${r}\n`;
-        });
-        content += `\n`;
+      if (!remedy) return;
+      pdf.need(30);
+      pdf.subHeading(`Missing Number ${num} — ${remedy.element}`);
+      if (fullContent) {
+        pdf.body('Potential Weaknesses:', ROSE);
+        remedy.weaknesses.slice(0, 3).forEach((w: string) => pdf.bullet(w, ROSE));
+        pdf.spacer(2);
+        pdf.body('Remedies:', TEAL);
+        remedy.remedies.slice(0, 3).forEach((r: string) => pdf.bullet(r));
+      } else {
+        pdf.body('Potential Weaknesses:', ROSE);
+        remedy.weaknesses.slice(0, 2).forEach((w: string) => pdf.bullet(w, ROSE));
       }
+      pdf.spacer(4);
     });
   }
 
-  if (results.repeatingNumbers.length > 0) {
-    content += `\nREPEATING NUMBERS\n`;
-    content += `=================\n\n`;
-    results.repeatingNumbers.forEach((item: any) => {
-      content += `Number ${item.number}: Repeats ${item.count} times\n`;
+  // Repeating numbers
+  if (results.repeatingNumbers?.length > 0) {
+    pdf.spacer(2);
+    pdf.sectionHeading('Repeating Numbers', GOLD);
+    results.repeatingNumbers.forEach((item: { number: number; count: number }) => {
+      pdf.kv(`Number ${item.number}`, `Repeats ${item.count} times`, GOLD);
     });
-    content += `\n`;
   }
 
-  content += `\nPLANES OF EXPRESSION\n`;
-  content += `====================\n\n`;
-
-  if (results.planes.mental) {
-    content += `Mental Plane: ${results.planes.mental.strength}\n`;
-  }
-  if (results.planes.emotional) {
-    content += `Emotional Plane: ${results.planes.emotional.strength}\n`;
-  }
-  if (results.planes.practical) {
-    content += `Practical Plane: ${results.planes.practical.strength}\n`;
-  }
-  if (results.planes.intuitive) {
-    content += `Intuitive Plane: ${results.planes.intuitive.strength}\n`;
+  // Planes of expression
+  pdf.spacer(4);
+  pdf.sectionHeading('Planes of Expression');
+  const planes = results.planes;
+  if (planes) {
+    if (planes.mental) pdf.kv('Mental Plane', planes.mental.strength);
+    if (planes.emotional) pdf.kv('Emotional Plane', planes.emotional.strength);
+    if (planes.practical) pdf.kv('Practical Plane', planes.practical.strength);
+    if (planes.intuitive) pdf.kv('Intuitive Plane', planes.intuitive.strength);
   }
 
-  if (results.arrows && results.arrows.length > 0) {
-    content += `\nARROWS (SPECIAL PATTERNS)\n`;
-    content += `=========================\n\n`;
-    results.arrows.forEach((arrow: string) => {
-      content += `• ${arrow}\n`;
+  // Arrows
+  if (results.arrows?.length > 0) {
+    pdf.spacer(4);
+    pdf.sectionHeading('Arrows (Special Patterns)', TEAL);
+    results.arrows.forEach((arrow: string) => pdf.bullet(arrow));
+  }
+
+  // Five Elements — full content only
+  if (fullContent) {
+    pdf.newPage();
+    pdf.sectionHeading('Five Elements Cycle & Remedies', TEAL);
+    pdf.body('The Five Elements — Water, Wood, Fire, Earth, Metal — interact through productive, exhaustive, and destructive cycles. Balance these to harmonise your environment and life force.', GRAY);
+    pdf.spacer(4);
+
+    Object.entries(ELEMENT_REMEDIES).forEach(([, element]) => {
+      pdf.need(35);
+      pdf.subHeading(`${element.element} Element`);
+      pdf.kv('Enhance with', element.enhanceWith.join(', '));
+      pdf.kv('Weakened by', element.weakenedBy.join(', '));
+      pdf.spacer(2);
+      pdf.body('Remedies:', TEAL);
+      element.remedies.slice(0, 4).forEach((r: string) => pdf.bullet(r));
+      pdf.spacer(6);
     });
-    content += `\n`;
+
+    // Practitioner notes
+    pdf.practitionerBox();
   }
 
-  content += `\nFIVE ELEMENTS CYCLE & REMEDIES\n`;
-  content += `==============================\n\n`;
-  content += `The Five Elements (Water, Wood, Fire, Earth, Metal) interact in three cycles:\n\n`;
-  content += `1. PRODUCTIVE CYCLE (Creates/Nourishes):\n`;
-  content += `   Water → Wood → Fire → Earth → Metal → Water\n\n`;
-  content += `2. EXHAUSTIVE CYCLE (Weakens):\n`;
-  content += `   The reverse of productive cycle\n\n`;
-  content += `3. DESTRUCTIVE CYCLE (Controls):\n`;
-  content += `   Water → Fire, Fire → Metal, Metal → Wood, Wood → Earth, Earth → Water\n\n`;
+  const filename = `NumberTeller-LoShu-${results.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+  pdf.save(filename);
+}
 
-  Object.entries(ELEMENT_REMEDIES).forEach(([key, element]) => {
-    content += `${element.element.toUpperCase()} ELEMENT\n`;
-    content += `${'='.repeat(40)}\n`;
-    content += `Enhance with: ${element.enhanceWith.join(', ')}\n`;
-    content += `Weakened by: ${element.weakenedBy.join(', ')}\n\n`;
-    content += `Remedies:\n`;
-    element.remedies.forEach((remedy: string) => {
-      content += `  • ${remedy}\n`;
-    });
-    content += `\n`;
-  });
-
-  content += `\nGENERAL RECOMMENDATIONS\n`;
-  content += `=======================\n\n`;
-  content += `1. Balance is Key: No element should be too strong or too weak\n`;
-  content += `2. Use the Productive Cycle to strengthen weak elements\n`;
-  content += `3. Use the Exhaustive Cycle to reduce overly strong elements\n`;
-  content += `4. Avoid Destructive Cycle interactions in your environment\n`;
-  content += `5. Regularly assess and adjust your space based on life changes\n\n`;
-
-  content += `\n---\n`;
-  content += `Generated by NumberTeller - Your Personal Numerology Guide\n`;
-  content += `Date: ${new Date().toLocaleDateString()}\n`;
-
-  const blob = new Blob([content], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `loshu-grid-${results.name.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.txt`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+// Helper: center a block of given width
+function this_center(pdf: PDF, blockW: number): number {
+  return pdf.MARGIN + (pdf.CONTENT_W - blockW) / 2;
 }

@@ -9,25 +9,13 @@ const PlanContext = createContext<PlanContextValue | undefined>(undefined);
 
 function computeTrialActive(plan: PlanStatus): boolean {
   if (plan.loading) return true; // optimistic: don't flash lock screen while loading
-  if (plan.planId !== 'free') return false; // has a paid plan, not in trial mode
+  if (plan.planId !== 'free') return false; // paid plan — always has access
 
-  // Check DB trial expiry first (set by SA portal)
-  if (plan.trialExpiresAt) {
-    const expired = plan.trialExpiresAt <= new Date();
-    const limitReached = plan.calcUsed >= plan.trialCalcLimit;
-    return !expired && !limitReached;
-  }
+  if (!plan.trialExpiresAt) return false; // no DB row yet
 
-  // Fall back to localStorage trial (set on signup)
-  try {
-    const t = JSON.parse(localStorage.getItem('nt_trial') || 'null');
-    if (!t) return false;
-    const expired = new Date(t.expiresAt) <= new Date();
-    const limitReached = (t.calcCount ?? 0) >= plan.trialCalcLimit;
-    return !expired && !limitReached;
-  } catch {
-    return false;
-  }
+  const expired = plan.trialExpiresAt <= new Date();
+  const limitReached = plan.calcUsed >= plan.trialCalcLimit;
+  return !expired && !limitReached;
 }
 
 export function PlanProvider({ children }: { children: React.ReactNode }) {
