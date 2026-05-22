@@ -1,18 +1,22 @@
 import { createContext, useContext } from 'react';
 import { usePlan, PlanStatus } from '../hooks/usePlan';
+import { BETA_MODE } from '../utils/subscription';
 
 export interface PlanContextValue extends PlanStatus {
   trialActive: boolean;
+  isBeta: boolean;
 }
 
 const PlanContext = createContext<PlanContextValue | undefined>(undefined);
 
 function computeTrialActive(plan: PlanStatus): boolean {
-  if (plan.loading) return true; // optimistic: don't flash lock screen while loading
-  if (plan.planId !== 'free') return false; // paid plan — always has access
+  if (plan.loading) return true; // optimistic while loading
+  if (plan.planId !== 'free') return false; // paid plan — trialActive not relevant
 
-  if (!plan.trialExpiresAt) return false; // no DB row yet
+  // Beta mode: all free users have unrestricted access
+  if (BETA_MODE) return true;
 
+  if (!plan.trialExpiresAt) return false;
   const expired = plan.trialExpiresAt <= new Date();
   const limitReached = plan.calcUsed >= plan.trialCalcLimit;
   return !expired && !limitReached;
@@ -21,7 +25,8 @@ function computeTrialActive(plan: PlanStatus): boolean {
 export function PlanProvider({ children }: { children: React.ReactNode }) {
   const plan = usePlan();
   const trialActive = computeTrialActive(plan);
-  return <PlanContext.Provider value={{ ...plan, trialActive }}>{children}</PlanContext.Provider>;
+  const isBeta = BETA_MODE && plan.planId === 'free';
+  return <PlanContext.Provider value={{ ...plan, trialActive, isBeta }}>{children}</PlanContext.Provider>;
 }
 
 export function usePlanContext(): PlanContextValue {

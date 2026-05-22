@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { PlanId, FREE_TRIAL_CALC_LIMIT, FREE_TRIAL_DAYS } from '../utils/subscription';
+import { PlanId, FREE_TRIAL_CALC_LIMIT, FREE_TRIAL_DAYS, BETA_MODE } from '../utils/subscription';
 
 export interface PlanStatus {
   planId: PlanId;
@@ -83,15 +83,16 @@ export function usePlan(): PlanStatus {
       return;
     }
 
-    // No row exists — user signed up before the DB migration. Create their trial row now.
+    // No row exists — create it now.
+    // In beta mode: no expiry, effectively unlimited calc limit (99999).
     const { data: inserted } = await supabase
       .from('user_plan_overrides')
       .upsert({
         user_auth_id: user.id,
         email: user.email ?? '',
         plan_id: 'free',
-        trial_expires_at: trialExpiry(),
-        trial_calc_limit: FREE_TRIAL_CALC_LIMIT,
+        trial_expires_at: BETA_MODE ? null : trialExpiry(),
+        trial_calc_limit: BETA_MODE ? 99999 : FREE_TRIAL_CALC_LIMIT,
         calc_used: 0,
       }, { onConflict: 'user_auth_id' })
       .select('id, plan_id, trial_expires_at, trial_calc_limit, subscription_expires_at, calc_used')

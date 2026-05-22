@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Zap } from 'lucide-react';
+import { X, Zap, FlaskConical } from 'lucide-react';
 import { usePlanContext } from '../contexts/PlanContext';
 import { trialDaysLeft } from '../hooks/usePlan';
 
@@ -9,15 +9,30 @@ interface TrialBannerProps {
 
 export default function TrialBanner({ onUpgrade }: TrialBannerProps) {
   const [dismissed, setDismissed] = useState(false);
-  const { planId, trialActive, calcUsed, trialCalcLimit, trialExpiresAt, loading } = usePlanContext();
+  const { planId, trialActive, calcUsed, trialCalcLimit, trialExpiresAt, loading, isBeta } = usePlanContext();
 
   if (loading || dismissed) return null;
-  if (planId !== 'free') return null; // paid plan — no banner
+  if (planId !== 'free') return null;
 
+  // Beta mode — show a subtle beta badge, no limits messaging
+  if (isBeta) {
+    return (
+      <div className="bg-gradient-to-r from-slate-800 to-slate-800/80 border-b border-teal-500/20 text-white px-4 py-2 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-sm text-gray-300">
+          <FlaskConical className="w-4 h-4 text-teal-400 flex-shrink-0" />
+          <span className="font-semibold text-teal-400">Beta Access</span>
+          <span className="text-gray-500 hidden sm:inline">· Full platform access, no restrictions during beta.</span>
+        </div>
+        <button onClick={() => setDismissed(true)} className="text-gray-600 hover:text-gray-400 transition-colors flex-shrink-0">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
+
+  // Standard trial mode (used after BETA_MODE is turned off)
   const remaining = Math.max(0, trialCalcLimit - calcUsed);
   const daysLeft = trialDaysLeft(trialExpiresAt);
-
-  if (!trialActive && remaining > 0) return null; // trial not yet started
 
   if (!trialActive) {
     return (
@@ -47,7 +62,7 @@ export default function TrialBanner({ onUpgrade }: TrialBannerProps) {
         <div className="flex items-center gap-2 text-sm text-gray-300">
           <Zap className="w-4 h-4 text-blue-400 flex-shrink-0" />
           Free trial: <span className="font-semibold text-white">{remaining} calculation{remaining !== 1 ? 's' : ''}</span> remaining
-          {daysLeft > 0 && <span className="text-gray-500">· {daysLeft} day{daysLeft !== 1 ? 's' : ''} left</span>}
+          {daysLeft !== null && daysLeft > 0 && <span className="text-gray-500">· {daysLeft} day{daysLeft !== 1 ? 's' : ''} left</span>}
         </div>
         <button
           onClick={onUpgrade}

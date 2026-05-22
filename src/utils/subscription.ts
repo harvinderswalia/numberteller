@@ -57,3 +57,8 @@ export const PLANS: Record<Exclude<PlanId, 'free'>, Plan> = {
 
 export const FREE_TRIAL_CALC_LIMIT = 5;
 export const FREE_TRIAL_DAYS = 7;
+
+// ─── Beta mode ────────────────────────────────────────────────────────────────
+// While true: all signed-in free-plan users get unrestricted full access.
+// No expiry, no calc limits, no feature gates. Flip to false at commercial launch.
+export const BETA_MODE = true;
