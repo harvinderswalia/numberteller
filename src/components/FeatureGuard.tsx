@@ -84,23 +84,12 @@ export default function FeatureGuard({
 }: FeatureGuardProps) {
   const [showModal, setShowModal] = useState(false);
   const { user } = useAuth();
-  const plan = usePlanContext();
+  const { planId, trialActive, loading } = usePlanContext();
 
-  // Free trial users (plan_id = 'free' but trial active) get full access during trial
-  // Only block when: no active paid plan AND trial is either expired or calc limit hit
-  const trialActive = (() => {
-    if (plan.loading) return true; // optimistic while loading
-    if (plan.planId !== 'free') return false; // has a real plan
-    const localTrial = (() => {
-      try { return JSON.parse(localStorage.getItem('nt_trial') || 'null'); } catch { return null; }
-    })();
-    if (!localTrial) return false;
-    const expired = new Date(localTrial.expiresAt) <= new Date();
-    const limitReached = localTrial.calcCount >= (plan.trialCalcLimit ?? 5);
-    return !expired && !limitReached;
-  })();
+  const hasPaidAccess = canAccessAppFeature(feature as AppFeature, planId);
 
-  const hasPaidAccess = canAccessAppFeature(feature as AppFeature, plan.planId);
+  // While plan is loading, show nothing to avoid flashing the lock screen
+  if (loading) return null;
 
   if (hasPaidAccess || trialActive) {
     return <>{children}</>;
@@ -108,6 +97,7 @@ export default function FeatureGuard({
 
   const expert = PLANS.expert;
   const highlights = FEATURE_HIGHLIGHTS[feature] ?? [];
+  const isLoggedIn = !!user;
 
   const allExpertFeatures = [
     'Written interpretations on every number',

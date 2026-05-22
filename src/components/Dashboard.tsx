@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { getPlanLabel, getPlanColor, trialDaysLeft } from '../hooks/usePlan';
 import { usePlanContext } from '../contexts/PlanContext';
 import { getSavedCharts, deleteChart, SavedChart } from '../utils/savedCharts';
-import { FREE_TRIAL_CALC_LIMIT } from '../utils/subscription';
 
 interface DashboardProps {
   onNavigate: (page: string) => void;
@@ -94,15 +93,6 @@ const TOOLS: Tool[] = [
 
 const PLAN_RANK: Record<string, number> = { free: 0, calculator: 1, expert: 2 };
 
-function isTrialCurrentlyActive(calcLimit: number, calcUsed: number): boolean {
-  const localTrial = (() => {
-    try { return JSON.parse(localStorage.getItem('nt_trial') || 'null'); } catch { return null; }
-  })();
-  if (!localTrial) return false;
-  const expired = new Date(localTrial.expiresAt) <= new Date();
-  const limitReached = localTrial.calcCount >= calcLimit;
-  return !expired && !limitReached;
-}
 
 function canAccess(toolPlan: string, userPlan: string, trialActive: boolean): boolean {
   if (trialActive) return true; // trial users can access everything
@@ -143,7 +133,8 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
   const daysLeft = trialDaysLeft(plan.trialExpiresAt);
   const calcsLeft = Math.max(0, plan.trialCalcLimit - plan.calcUsed);
   const isFreeTrial = plan.planId === 'free';
-  const trialActive = isFreeTrial && !plan.loading && isTrialCurrentlyActive(plan.trialCalcLimit, plan.calcUsed);
+  // Use computed trialActive from PlanContext (checks both DB and localStorage)
+  const trialActive = plan.trialActive;
 
   const planLabel = getPlanLabel(plan.planId);
   const planColor = getPlanColor(plan.planId);
@@ -382,19 +373,65 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
               )}
             </div>
 
-            {/* Quick links */}
-            <div className="mt-4 space-y-2">
-              <button
-                onClick={() => onNavigate('pricing')}
-                className="w-full flex items-center justify-between text-sm text-gray-400 hover:text-white bg-slate-900 border border-white/8 hover:border-white/15 rounded-xl px-4 py-3 transition-all"
-              >
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4" />
-                  View plans & pricing
+            {/* Inline plan comparison */}
+            {isFreeTrial && (
+              <div className="mt-4 bg-slate-900 border border-white/8 rounded-2xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/6">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Plans</p>
                 </div>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+                <div className="divide-y divide-white/5">
+                  {/* Calculator plan */}
+                  <div className="px-4 py-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="text-sm font-bold text-white">Calculator</p>
+                        <p className="text-xs text-gray-500">₹999 / month</p>
+                      </div>
+                      <button
+                        onClick={onShowUpgrade}
+                        className="text-xs font-semibold text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-400/50 px-3 py-1 rounded-lg transition-all"
+                      >
+                        Upgrade
+                      </button>
+                    </div>
+                    <ul className="space-y-1">
+                      {['All calculators', 'Lo Shu Grid', 'Save 5 charts', 'PDF export'].map(f => (
+                        <li key={f} className="flex items-center gap-1.5 text-xs text-gray-400">
+                          <div className="w-1 h-1 rounded-full bg-blue-500 flex-shrink-0" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  {/* Expert plan */}
+                  <div className="px-4 py-4 bg-amber-950/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold text-white">Expert</p>
+                          <span className="text-[9px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-500/30">POPULAR</span>
+                        </div>
+                        <p className="text-xs text-gray-500">₹1,499 / month</p>
+                      </div>
+                      <button
+                        onClick={onShowUpgrade}
+                        className="text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white px-3 py-1 rounded-lg transition-all"
+                      >
+                        Upgrade
+                      </button>
+                    </div>
+                    <ul className="space-y-1">
+                      {['Everything in Calculator', 'AI Name Correction', 'AI Tarot Reading', 'Business Numerology', 'Written interpretations', 'Save 10 charts'].map(f => (
+                        <li key={f} className="flex items-center gap-1.5 text-xs text-gray-400">
+                          <div className="w-1 h-1 rounded-full bg-amber-500 flex-shrink-0" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

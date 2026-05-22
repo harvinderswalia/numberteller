@@ -47,7 +47,15 @@ export interface SharedNumerologyContext {
 
 function App() {
   const isAdminPath = typeof window !== 'undefined' && window.location.pathname === '/sa/port';
-  const [currentPage, setCurrentPage] = useState<Page>(isAdminPath ? 'admin' : 'home');
+
+  // Initialise page from history state so refresh/direct links work
+  const getInitialPage = (): Page => {
+    if (isAdminPath) return 'admin';
+    const state = window.history.state?.page as Page | undefined;
+    return state ?? 'home';
+  };
+
+  const [currentPage, setCurrentPage] = useState<Page>(getInitialPage);
   const [calculationResults, setCalculationResults] = useState<any>(null);
   const [loShuResults, setLoShuResults] = useState<LoShuGridData | null>(null);
   const [sharedNumerology, setSharedNumerology] = useState<SharedNumerologyContext | null>(null);
@@ -56,10 +64,29 @@ function App() {
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signup');
   const { loading, user } = useAuth();
 
+  // Seed initial history entry so popstate works from first page
+  useEffect(() => {
+    if (!window.history.state?.page) {
+      window.history.replaceState({ page: currentPage }, '', window.location.pathname);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Listen for browser back/forward
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      const page = (e.state?.page as Page) ?? 'home';
+      setCurrentPage(page);
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
   // Route logged-in users to dashboard when they land on 'home' (and not admin path)
   useEffect(() => {
     if (!loading && user && currentPage === 'home' && !isAdminPath) {
       setCurrentPage('dashboard');
+      window.history.replaceState({ page: 'dashboard' }, '', window.location.pathname);
     }
   }, [loading, user, currentPage, isAdminPath]);
 
@@ -72,6 +99,7 @@ function App() {
   }
 
   const handleNavigate = (page: string) => {
+    window.history.pushState({ page }, '', window.location.pathname);
     setCurrentPage(page as Page);
     window.scrollTo(0, 0);
   };
@@ -88,6 +116,7 @@ function App() {
   const handleCalculate = (results: any) => {
     setCalculationResults(results);
     if (results) setSharedNumerology(extractNumerology(results));
+    window.history.pushState({ page: 'results' }, '', window.location.pathname);
     setCurrentPage('results');
   };
 
@@ -98,12 +127,14 @@ function App() {
   const handleLoadChart = (chartData: any) => {
     setCalculationResults(chartData);
     if (chartData) setSharedNumerology(extractNumerology(chartData));
+    window.history.pushState({ page: 'results' }, '', window.location.pathname);
     setCurrentPage('results');
   };
 
   const handleLoShuCalculate = (data: { name: string; dateOfBirth: string; gender: string }) => {
     const results = calculateLoShuGrid(data.name, data.dateOfBirth, data.gender);
     setLoShuResults(results);
+    window.history.pushState({ page: 'loshu-results' }, '', window.location.pathname);
     setCurrentPage('loshu-results');
   };
 
