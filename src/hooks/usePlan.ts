@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { PlanId, FREE_TRIAL_CALC_LIMIT } from '../utils/subscription';
+import { PlanId, FREE_TRIAL_CALC_LIMIT, FREE_TRIAL_DAYS } from '../utils/subscription';
 
 export interface PlanStatus {
   planId: PlanId;
@@ -20,6 +20,12 @@ interface RawOverride {
   trial_calc_limit: number | null;
   subscription_expires_at: string | null;
   calc_used: number;
+}
+
+function trialExpiry(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + FREE_TRIAL_DAYS);
+  return d.toISOString();
 }
 
 function resolveStatus(data: RawOverride | null): Omit<PlanStatus, 'loading' | 'incrementCalcUsed'> {
@@ -64,12 +70,34 @@ export function usePlan(): PlanStatus {
       setLoading(false);
       return;
     }
+
     const { data } = await supabase
       .from('user_plan_overrides')
       .select('id, plan_id, trial_expires_at, trial_calc_limit, subscription_expires_at, calc_used')
       .eq('user_auth_id', user.id)
       .maybeSingle();
-    setOverride(data ?? null);
+
+    if (data) {
+      setOverride(data);
+      setLoading(false);
+      return;
+    }
+
+    // No row exists — user signed up before the DB migration. Create their trial row now.
+    const { data: inserted } = await supabase
+      .from('user_plan_overrides')
+      .upsert({
+        user_auth_id: user.id,
+        email: user.email ?? '',
+        plan_id: 'free',
+        trial_expires_at: trialExpiry(),
+        trial_calc_limit: FREE_TRIAL_CALC_LIMIT,
+        calc_used: 0,
+      }, { onConflict: 'user_auth_id' })
+      .select('id, plan_id, trial_expires_at, trial_calc_limit, subscription_expires_at, calc_used')
+      .maybeSingle();
+
+    setOverride(inserted ?? null);
     setLoading(false);
   }, [user]);
 
@@ -106,7 +134,7 @@ export function usePlan(): PlanStatus {
   }, [user]);
 
   const incrementCalcUsed = useCallback(async () => {
-    if (!user) return; // unauthenticated users cannot use the app (trial requires account)
+    if (!user) return;
 
     const newCount = (override?.calc_used ?? 0) + 1;
 
@@ -116,17 +144,17 @@ export function usePlan(): PlanStatus {
         .update({ calc_used: newCount })
         .eq('id', override.id);
     } else {
-      // Row doesn't exist yet — shouldn't happen (signup creates it), but handle gracefully
       await supabase.from('user_plan_overrides').upsert({
         user_auth_id: user.id,
         email: user.email ?? '',
         plan_id: 'free',
         calc_used: newCount,
         trial_calc_limit: FREE_TRIAL_CALC_LIMIT,
+        trial_expires_at: trialExpiry(),
       }, { onConflict: 'user_auth_id' });
     }
 
-    // Optimistic local update so UI responds immediately without waiting for realtime
+    // Optimistic update so UI responds immediately without waiting for realtime
     setOverride(prev => prev
       ? { ...prev, calc_used: newCount }
       : {
