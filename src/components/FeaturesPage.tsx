@@ -5,6 +5,7 @@ import SiteFooter from './SiteFooter';
 interface FeaturesPageProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  onShowSignIn?: () => void;
 }
 
 const features = [
@@ -260,10 +261,10 @@ const features = [
   },
 ];
 
-export default function FeaturesPage({ onNavigate, onShowAuth }: FeaturesPageProps) {
+export default function FeaturesPage({ onNavigate, onShowAuth, onShowSignIn }: FeaturesPageProps) {
   return (
     <div className="min-h-screen bg-slate-900">
-      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} currentPage="features" />
+      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} onShowSignIn={onShowSignIn} currentPage="features" />
 
       {/* Hero */}
       <section className="pt-32 pb-20 px-4 sm:px-6 relative overflow-hidden">

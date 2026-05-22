@@ -24,6 +24,7 @@ interface SharedNumerologyContext {
 interface TarotPageProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  onShowSignIn?: () => void;
   sharedNumerology?: SharedNumerologyContext | null;
 }
 
@@ -600,7 +601,7 @@ function CardBack({ size = 'md', onClick, empty }: { size?: 'sm' | 'md' | 'lg'; 
   );
 }
 
-export default function TarotPage({ onNavigate, onShowAuth, sharedNumerology }: TarotPageProps) {
+export default function TarotPage({ onNavigate, onShowAuth, onShowSignIn, sharedNumerology }: TarotPageProps) {
   const [step, setStep] = useState<Step>('intention');
   const [selectedSpread, setSelectedSpread] = useState<SpreadTemplate | null>(null);
   const [drawnCards, setDrawnCards] = useState<Array<{ cardId: number; reversed: boolean } | null>>([]);
@@ -730,7 +731,7 @@ export default function TarotPage({ onNavigate, onShowAuth, sharedNumerology }: 
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} currentPage="tarot" />
+      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} onShowSignIn={onShowSignIn} currentPage="tarot" />
 
       {/* ─── HERO ─── */}
       <section className="pt-24 pb-12 px-4 sm:px-6 relative overflow-hidden">

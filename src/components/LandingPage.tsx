@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 interface LandingPageProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  onShowSignIn?: () => void;
 }
 
 const testimonials = [
@@ -74,7 +75,7 @@ const allTools = [
   { icon: Building2, title: 'Business Numerology', desc: 'Company name analysis, ideal business number matching, brand name suggestions, and partner compatibility', page: 'business', color: 'from-amber-600 to-orange-500', badge: 'NEW' },
 ];
 
-export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps) {
+export default function LandingPage({ onNavigate, onShowAuth, onShowSignIn }: LandingPageProps) {
   const [testimonialIndex, setTestimonialIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const { user } = useAuth();
@@ -97,7 +98,7 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} currentPage="home" />
+      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} onShowSignIn={onShowSignIn} currentPage="home" />
 
       {/* ─── HERO ─── */}
       <section className="relative min-h-screen flex items-center pt-16 overflow-hidden">

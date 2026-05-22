@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { Menu, X, ChevronDown, Hash } from 'lucide-react';
+import { Menu, X, ChevronDown, Hash, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Page } from '../App';
 
 interface SiteNavigationProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  onShowSignIn?: () => void;
   currentPage?: Page;
 }
 
-export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: SiteNavigationProps) {
+export default function SiteNavigation({ onNavigate, onShowAuth, onShowSignIn, currentPage }: SiteNavigationProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
   const { user, signOut } = useAuth();
@@ -22,7 +23,6 @@ export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: 
     { label: 'House / Car / Mobile Number', page: 'house' },
     { label: 'AI Tarot Reading', page: 'tarot', badge: 'NEW' },
     { label: 'Business Numerology', page: 'business', badge: 'NEW' },
-    { label: 'Saved Charts', page: 'saved' },
   ];
 
   const navLinks = [
@@ -33,18 +33,20 @@ export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: 
     { label: 'Contact', page: 'contact' },
   ];
 
-  const toolPages = new Set(tools.map(t => t.page));
-
   const nav = (page: string) => {
-    if (!user && toolPages.has(page)) {
-      onShowAuth();
-      setMobileOpen(false);
-      setToolsOpen(false);
-      return;
-    }
     onNavigate(page);
     setMobileOpen(false);
     setToolsOpen(false);
+  };
+
+  const handleSignIn = () => {
+    (onShowSignIn ?? onShowAuth)();
+    setMobileOpen(false);
+  };
+
+  const handleSignUp = () => {
+    onShowAuth();
+    setMobileOpen(false);
   };
 
   return (
@@ -53,7 +55,10 @@ export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: 
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <button onClick={() => nav('home')} className="flex items-center gap-2 group">
+          <button
+            onClick={() => nav(user ? 'dashboard' : 'home')}
+            className="flex items-center gap-2 group"
+          >
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
               <Hash className="w-5 h-5 text-white" />
             </div>
@@ -86,8 +91,8 @@ export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: 
                       className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 flex items-center justify-between"
                     >
                       {t.label}
-                      {(t as any).badge && (
-                        <span className="text-[9px] font-bold bg-blue-500 text-white px-1.5 py-0.5 rounded-full">{(t as any).badge}</span>
+                      {t.badge && (
+                        <span className="text-[9px] font-bold bg-blue-500 text-white px-1.5 py-0.5 rounded-full">{t.badge}</span>
                       )}
                     </button>
                   ))}
@@ -110,18 +115,19 @@ export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: 
             ))}
           </nav>
 
-          {/* Desktop Auth */}
+          {/* Desktop Auth / User actions */}
           <div className="hidden lg:flex items-center gap-3">
             {user ? (
               <>
                 <button
-                  onClick={() => nav('saved')}
-                  className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                  onClick={() => nav('dashboard')}
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-lg transition-all shadow-md shadow-blue-500/20"
                 >
-                  My Charts
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
                 </button>
                 <button
-                  onClick={signOut}
+                  onClick={() => { signOut(); nav('home'); }}
                   className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white border border-white/20 rounded-lg hover:border-white/40 transition-colors"
                 >
                   Sign Out
@@ -130,13 +136,13 @@ export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: 
             ) : (
               <>
                 <button
-                  onClick={onShowAuth}
+                  onClick={handleSignIn}
                   className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors"
                 >
                   Sign In
                 </button>
                 <button
-                  onClick={onShowAuth}
+                  onClick={handleSignUp}
                   className="px-5 py-2 text-sm font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-500 hover:to-cyan-500 transition-all shadow-lg shadow-blue-500/20"
                 >
                   Sign Up Free
@@ -158,15 +164,27 @@ export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: 
       {/* Mobile Menu */}
       {mobileOpen && (
         <div className="lg:hidden bg-slate-900 border-t border-white/10 px-4 py-4 space-y-1">
+          {user && (
+            <button
+              onClick={() => nav('dashboard')}
+              className="w-full flex items-center gap-2 px-3 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/30 rounded-xl mb-3"
+            >
+              <LayoutDashboard className="w-4 h-4 text-blue-400" />
+              Dashboard
+            </button>
+          )}
           <div className="pb-2 mb-2 border-b border-white/10">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-2">Tools</p>
             {tools.map(t => (
               <button
                 key={t.page}
                 onClick={() => nav(t.page)}
-                className="w-full text-left px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                className="w-full text-left px-3 py-2.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-between"
               >
                 {t.label}
+                {t.badge && (
+                  <span className="text-[9px] font-bold bg-blue-500 text-white px-1.5 py-0.5 rounded-full">{t.badge}</span>
+                )}
               </button>
             ))}
           </div>
@@ -182,7 +200,7 @@ export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: 
           <div className="pt-3 mt-2 border-t border-white/10 flex flex-col gap-2">
             {user ? (
               <button
-                onClick={signOut}
+                onClick={() => { signOut(); nav('home'); }}
                 className="w-full py-2.5 text-sm font-medium text-gray-300 border border-white/20 rounded-lg"
               >
                 Sign Out
@@ -190,13 +208,13 @@ export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: 
             ) : (
               <>
                 <button
-                  onClick={() => { onShowAuth(); setMobileOpen(false); }}
+                  onClick={handleSignIn}
                   className="w-full py-2.5 text-sm font-medium text-gray-300 border border-white/20 rounded-lg"
                 >
                   Sign In
                 </button>
                 <button
-                  onClick={() => { onShowAuth(); setMobileOpen(false); }}
+                  onClick={handleSignUp}
                   className="w-full py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg"
                 >
                   Sign Up Free

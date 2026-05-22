@@ -5,6 +5,7 @@ import SiteFooter from './SiteFooter';
 interface AboutPageProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  onShowSignIn?: () => void;
 }
 
 const team = [
@@ -39,10 +40,10 @@ const values = [
   },
 ];
 
-export default function AboutPage({ onNavigate, onShowAuth }: AboutPageProps) {
+export default function AboutPage({ onNavigate, onShowAuth, onShowSignIn }: AboutPageProps) {
   return (
     <div className="min-h-screen bg-slate-900">
-      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} currentPage="about" />
+      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} onShowSignIn={onShowSignIn} currentPage="about" />
 
       {/* Hero */}
       <section className="pt-32 pb-20 px-4 sm:px-6 relative overflow-hidden">

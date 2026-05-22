@@ -7,6 +7,7 @@ import { PLANS } from '../utils/subscription';
 interface PricingPageProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  onShowSignIn?: () => void;
 }
 
 const calculatorFeatures = [
@@ -87,7 +88,7 @@ function CheckCell({ value }: { value: boolean | string }) {
   return <span className="text-sm text-blue-300 font-medium">{value}</span>;
 }
 
-export default function PricingPage({ onNavigate, onShowAuth }: PricingPageProps) {
+export default function PricingPage({ onNavigate, onShowAuth, onShowSignIn }: PricingPageProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const calc = PLANS.calculator;
@@ -95,7 +96,7 @@ export default function PricingPage({ onNavigate, onShowAuth }: PricingPageProps
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} currentPage="pricing" />
+      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} onShowSignIn={onShowSignIn} currentPage="pricing" />
 
       {/* Hero */}
       <section className="pt-32 pb-16 px-4 sm:px-6 text-center relative overflow-hidden">

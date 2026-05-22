@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SuperAdminPortal from './components/SuperAdminPortal';
+import Dashboard from './components/Dashboard';
 import LandingPage from './components/LandingPage';
 import TarotPage from './components/TarotPage';
 import FeaturesPage from './components/FeaturesPage';
@@ -28,7 +29,7 @@ import { useAuth } from './contexts/AuthContext';
 import { calculateLoShuGrid, LoShuGridData } from './utils/loShuGrid';
 
 export type Page =
-  | 'home' | 'features' | 'pricing' | 'about' | 'contact' | 'resources'
+  | 'home' | 'dashboard' | 'features' | 'pricing' | 'about' | 'contact' | 'resources'
   | 'terms' | 'privacy' | 'billing'
   | 'calculator' | 'results' | 'compatibility' | 'house'
   | 'saved' | 'loshu' | 'loshu-results' | 'name-correction' | 'tarot' | 'business'
@@ -52,7 +53,15 @@ function App() {
   const [sharedNumerology, setSharedNumerology] = useState<SharedNumerologyContext | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const { loading } = useAuth();
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signup');
+  const { loading, user } = useAuth();
+
+  // Route logged-in users to dashboard when they land on 'home' (and not admin path)
+  useEffect(() => {
+    if (!loading && user && currentPage === 'home' && !isAdminPath) {
+      setCurrentPage('dashboard');
+    }
+  }, [loading, user, currentPage, isAdminPath]);
 
   if (loading) {
     return (
@@ -66,8 +75,6 @@ function App() {
     setCurrentPage(page as Page);
     window.scrollTo(0, 0);
   };
-
-  const handleShowAuth = () => setShowAuthModal(true);
 
   const extractNumerology = (results: any): SharedNumerologyContext => ({
     name: results?.fullName || '',
@@ -100,6 +107,8 @@ function App() {
     setCurrentPage('loshu-results');
   };
 
+  const handleShowAuth = () => { setAuthModalMode('signup'); setShowAuthModal(true); };
+  const handleShowSignIn = () => { setAuthModalMode('signin'); setShowAuthModal(true); };
   const sharedProps = { onNavigate: handleNavigate, onShowAuth: handleShowAuth };
   const numerologyTools = { ...sharedProps, sharedNumerology };
 
@@ -107,24 +116,32 @@ function App() {
     switch (currentPage) {
       case 'admin':
         return <SuperAdminPortal />;
+      case 'dashboard':
+        return (
+          <Dashboard
+            onNavigate={handleNavigate}
+            onShowUpgrade={() => setShowUpgradeModal(true)}
+            onLoadChart={handleLoadChart}
+          />
+        );
       case 'home':
-        return <LandingPage {...sharedProps} />;
+        return <LandingPage {...sharedProps} onShowSignIn={handleShowSignIn} />;
       case 'features':
-        return <FeaturesPage {...sharedProps} />;
+        return <FeaturesPage {...sharedProps} onShowSignIn={handleShowSignIn} />;
       case 'pricing':
-        return <PricingPage {...sharedProps} />;
+        return <PricingPage {...sharedProps} onShowSignIn={handleShowSignIn} />;
       case 'about':
-        return <AboutPage {...sharedProps} />;
+        return <AboutPage {...sharedProps} onShowSignIn={handleShowSignIn} />;
       case 'contact':
-        return <ContactPage {...sharedProps} />;
+        return <ContactPage {...sharedProps} onShowSignIn={handleShowSignIn} />;
       case 'resources':
-        return <ResourcesPage {...sharedProps} />;
+        return <ResourcesPage {...sharedProps} onShowSignIn={handleShowSignIn} />;
       case 'terms':
-        return <TermsPage {...sharedProps} />;
+        return <TermsPage {...sharedProps} onShowSignIn={handleShowSignIn} />;
       case 'privacy':
-        return <PrivacyPage {...sharedProps} />;
+        return <PrivacyPage {...sharedProps} onShowSignIn={handleShowSignIn} />;
       case 'billing':
-        return <BillingPage {...sharedProps} />;
+        return <BillingPage {...sharedProps} onShowSignIn={handleShowSignIn} />;
       case 'tarot':
         return (
           <FeatureGuard
@@ -134,7 +151,7 @@ function App() {
             onNavigate={handleNavigate}
             onShowAuth={handleShowAuth}
           >
-            <TarotPage {...numerologyTools} />
+            <TarotPage {...numerologyTools} onShowSignIn={handleShowSignIn} />
           </FeatureGuard>
         );
       case 'calculator':
@@ -154,7 +171,7 @@ function App() {
             onNavigateToTarot={() => { handleNavigate('tarot'); }}
           />
         ) : (
-          <LandingPage {...sharedProps} />
+          user ? <Dashboard onNavigate={handleNavigate} onShowUpgrade={() => setShowUpgradeModal(true)} onLoadChart={handleLoadChart} /> : <LandingPage {...sharedProps} />
         );
       case 'compatibility':
         return (
@@ -184,7 +201,7 @@ function App() {
             onNavigate={handleNavigate}
             onShowAuth={handleShowAuth}
           >
-            <NameCorrectionTool onBack={() => setCurrentPage('home')} />
+            <NameCorrectionTool onBack={() => setCurrentPage(user ? 'dashboard' : 'home')} />
           </FeatureGuard>
         );
       case 'business':
@@ -196,7 +213,7 @@ function App() {
             onNavigate={handleNavigate}
             onShowAuth={handleShowAuth}
           >
-            <BusinessNumerologyPage {...sharedProps} />
+            <BusinessNumerologyPage {...sharedProps} onShowSignIn={handleShowSignIn} />
           </FeatureGuard>
         );
       default:
@@ -218,6 +235,7 @@ function App() {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onNavigate={handleNavigate}
+        initialMode={authModalMode}
       />
     </>
   );

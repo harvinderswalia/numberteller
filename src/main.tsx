@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { AuthProvider } from './contexts/AuthContext';
+import { PlanProvider } from './contexts/PlanContext';
 
 try {
   const rootElement = document.getElementById('root');
@@ -13,7 +14,9 @@ try {
   createRoot(rootElement).render(
     <StrictMode>
       <AuthProvider>
-        <App />
+        <PlanProvider>
+          <App />
+        </PlanProvider>
       </AuthProvider>
     </StrictMode>
   );

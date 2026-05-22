@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Lock, ChevronRight, Star, Gift, Brain, FileText, TrendingUp, Building2, Layers, CheckCircle, Sparkles } from 'lucide-react';
-import { canAccessFeature, GatedFeature, PLANS } from '../utils/subscription';
+import { Lock, ChevronRight, Star, Gift, Brain, FileText, TrendingUp, Building2, Layers, CheckCircle, Sparkles, ArrowLeft } from 'lucide-react';
+import { GatedFeature, PLANS } from '../utils/subscription';
+import { usePlanContext, canAccessAppFeature, AppFeature } from '../contexts/PlanContext';
+import { useAuth } from '../contexts/AuthContext';
 import SiteNavigation from './SiteNavigation';
 import SiteFooter from './SiteFooter';
 import SubscriptionModal from './SubscriptionModal';
@@ -26,7 +28,7 @@ const FEATURE_HIGHLIGHTS: Record<GatedFeature, FeatureHighlight[]> = {
     { icon: Layers, title: '8 Professional Spreads', desc: 'Single card to Celtic Cross — every spread type a practitioner needs', color: 'text-blue-400' },
     { icon: Brain, title: 'AI Narrative Generation', desc: 'Cards interpreted in context of Life Path, Expression, Soul Urge & Personal Year', color: 'text-cyan-400' },
     { icon: Sparkles, title: '5 Tone Modes', desc: 'Empowering, Spiritual, Practical, Direct, or Vedic-flavoured readings', color: 'text-teal-400' },
-    { icon: FileText, title: 'Numerology Bridge', desc: 'Every card connected to client\'s actual core numbers for deeper insight', color: 'text-blue-300' },
+    { icon: FileText, title: 'Numerology Bridge', desc: "Every card connected to client's actual core numbers for deeper insight", color: 'text-blue-300' },
   ],
   'name-correction-full': [
     { icon: Brain, title: 'AI Harmony Scoring', desc: 'Analyses BD, LP, EX & SU compatibility of every name variant in real time', color: 'text-cyan-400' },
@@ -36,12 +38,12 @@ const FEATURE_HIGHLIGHTS: Record<GatedFeature, FeatureHighlight[]> = {
   ],
   'business-full': [
     { icon: Building2, title: 'Company Name Analysis', desc: 'Pythagorean energy profile, strengths, ideal industries for any company name', color: 'text-amber-400' },
-    { icon: Brain, title: 'Owner Life Path Match', desc: 'Discover the ideal business number aligned to the owner\'s core numbers', color: 'text-orange-400' },
+    { icon: Brain, title: 'Owner Life Path Match', desc: "Discover the ideal business number aligned to the owner's core numbers", color: 'text-orange-400' },
     { icon: CheckCircle, title: 'Partner Compatibility', desc: 'Score 2–5 business partners with pairwise harmony matrix and dynamics', color: 'text-emerald-400' },
     { icon: Sparkles, title: 'Brand Name Suggester', desc: 'Generate brand name ideas matching a target number and industry keywords', color: 'text-blue-400' },
   ],
   interpretations: [
-    { icon: FileText, title: 'Full Written Interpretations', desc: 'Every core number explained in detail — what it means for your client\'s life', color: 'text-blue-400' },
+    { icon: FileText, title: 'Full Written Interpretations', desc: "Every core number explained in detail — what it means for your client's life", color: 'text-blue-400' },
     { icon: TrendingUp, title: 'Over-Energy Warnings', desc: 'Detailed analysis when numbers repeat across positions — with remedies', color: 'text-amber-400' },
     { icon: Brain, title: 'Personal Year Forecast', desc: 'Narrative year-by-year forecast for client journey planning', color: 'text-cyan-400' },
     { icon: CheckCircle, title: 'Client-Ready Language', desc: 'Interpretations written to be shared directly with clients', color: 'text-emerald-400' },
@@ -55,7 +57,7 @@ const FEATURE_HIGHLIGHTS: Record<GatedFeature, FeatureHighlight[]> = {
   'save-charts-extended': [
     { icon: CheckCircle, title: 'Save Up to 10 Charts', desc: 'Store 10 complete client charts accessible from any device', color: 'text-emerald-400' },
     { icon: Star, title: 'Full Chart Access', desc: 'Every saved chart includes all interpretations and analysis', color: 'text-amber-400' },
-    { icon: Brain, title: 'Instant Recall', desc: 'Open any client\'s complete chart in one click', color: 'text-cyan-400' },
+    { icon: Brain, title: 'Instant Recall', desc: "Open any client's complete chart in one click", color: 'text-cyan-400' },
     { icon: FileText, title: 'Chart History', desc: 'Track client changes over time with named chart storage', color: 'text-blue-400' },
   ],
   'over-energy-detail': [
@@ -65,8 +67,8 @@ const FEATURE_HIGHLIGHTS: Record<GatedFeature, FeatureHighlight[]> = {
     { icon: Sparkles, title: 'Name Correction Guidance', desc: 'Integrates with name correction to resolve over-energy through name change', color: 'text-blue-400' },
   ],
   'personal-year-forecast': [
-    { icon: TrendingUp, title: 'Full Narrative Forecast', desc: 'Year-by-year story of your client\'s personal cycle — not just numbers', color: 'text-blue-400' },
-    { icon: Brain, title: 'Pinnacle Integration', desc: 'Forecast reads in context of client\'s current pinnacle cycle', color: 'text-cyan-400' },
+    { icon: TrendingUp, title: 'Full Narrative Forecast', desc: "Year-by-year story of your client's personal cycle — not just numbers", color: 'text-blue-400' },
+    { icon: Brain, title: 'Pinnacle Integration', desc: "Forecast reads in context of client's current pinnacle cycle", color: 'text-cyan-400' },
     { icon: CheckCircle, title: 'Month-by-Month View', desc: 'Personal months within each personal year for granular planning', color: 'text-emerald-400' },
     { icon: Star, title: 'Client-Ready Language', desc: 'Narratives written to hand directly to clients as part of their reading', color: 'text-amber-400' },
   ],
@@ -81,8 +83,26 @@ export default function FeatureGuard({
   children,
 }: FeatureGuardProps) {
   const [showModal, setShowModal] = useState(false);
+  const { user } = useAuth();
+  const plan = usePlanContext();
 
-  if (canAccessFeature(feature)) {
+  // Free trial users (plan_id = 'free' but trial active) get full access during trial
+  // Only block when: no active paid plan AND trial is either expired or calc limit hit
+  const trialActive = (() => {
+    if (plan.loading) return true; // optimistic while loading
+    if (plan.planId !== 'free') return false; // has a real plan
+    const localTrial = (() => {
+      try { return JSON.parse(localStorage.getItem('nt_trial') || 'null'); } catch { return null; }
+    })();
+    if (!localTrial) return false;
+    const expired = new Date(localTrial.expiresAt) <= new Date();
+    const limitReached = localTrial.calcCount >= (plan.trialCalcLimit ?? 5);
+    return !expired && !limitReached;
+  })();
+
+  const hasPaidAccess = canAccessAppFeature(feature as AppFeature, plan.planId);
+
+  if (hasPaidAccess || trialActive) {
     return <>{children}</>;
   }
 
@@ -107,6 +127,17 @@ export default function FeatureGuard({
       <section className="pt-24 pb-20 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
 
+          {/* Back button for logged-in users */}
+          {user && (
+            <button
+              onClick={() => onNavigate('dashboard')}
+              className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mb-8"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Dashboard
+            </button>
+          )}
+
           {/* Hero lock */}
           <div className="text-center mb-12">
             <div className="relative inline-flex mb-6">
@@ -121,20 +152,37 @@ export default function FeatureGuard({
             <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">{featureLabel}</h1>
             <p className="text-gray-400 text-lg leading-relaxed max-w-xl mx-auto mb-8">{featureDescription}</p>
 
-            {/* Free trial CTA */}
-            <div className="inline-flex flex-col items-center bg-emerald-500/10 border border-emerald-500/25 rounded-2xl px-8 py-6 mb-8">
-              <div className="flex items-center gap-2 mb-2">
-                <Gift className="w-5 h-5 text-emerald-400" />
-                <span className="text-emerald-300 font-bold text-lg">Start with a 7-Day Free Trial</span>
+            {user ? (
+              /* Logged-in user whose trial has expired — show upgrade CTA */
+              <div className="inline-flex flex-col items-center bg-blue-500/10 border border-blue-500/25 rounded-2xl px-8 py-6 mb-8">
+                <div className="flex items-center gap-2 mb-2">
+                  <Star className="w-5 h-5 text-blue-400" />
+                  <span className="text-blue-300 font-bold text-lg">Upgrade to Expert to unlock this tool</span>
+                </div>
+                <p className="text-gray-400 text-sm mb-4">Your free trial has ended. Subscribe to continue.</p>
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="px-7 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl transition-all"
+                >
+                  View Expert Plan
+                </button>
               </div>
-              <p className="text-gray-400 text-sm mb-4">5 calculations · All calculators · No credit card required</p>
-              <button
-                onClick={onShowAuth}
-                className="px-7 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-colors"
-              >
-                Start Free Trial — No Card Needed
-              </button>
-            </div>
+            ) : (
+              /* Not logged in — show free trial CTA */
+              <div className="inline-flex flex-col items-center bg-emerald-500/10 border border-emerald-500/25 rounded-2xl px-8 py-6 mb-8">
+                <div className="flex items-center gap-2 mb-2">
+                  <Gift className="w-5 h-5 text-emerald-400" />
+                  <span className="text-emerald-300 font-bold text-lg">Start with a 7-Day Free Trial</span>
+                </div>
+                <p className="text-gray-400 text-sm mb-4">5 calculations · All calculators · No credit card required</p>
+                <button
+                  onClick={onShowAuth}
+                  className="px-7 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-colors"
+                >
+                  Start Free Trial — No Card Needed
+                </button>
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
@@ -152,12 +200,14 @@ export default function FeatureGuard({
               </button>
             </div>
 
-            <p className="text-gray-600 text-sm mt-5">
-              Already subscribed?{' '}
-              <button onClick={onShowAuth} className="text-blue-400 hover:text-blue-300 transition-colors">
-                Sign in
-              </button>
-            </p>
+            {!user && (
+              <p className="text-gray-600 text-sm mt-5">
+                Already subscribed?{' '}
+                <button onClick={onShowAuth} className="text-blue-400 hover:text-blue-300 transition-colors">
+                  Sign in
+                </button>
+              </p>
+            )}
           </div>
 
           {/* Feature-specific highlights */}

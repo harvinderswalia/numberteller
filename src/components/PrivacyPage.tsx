@@ -4,14 +4,15 @@ import SiteFooter from './SiteFooter';
 interface PrivacyPageProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  onShowSignIn?: () => void;
 }
 
-export default function PrivacyPage({ onNavigate, onShowAuth }: PrivacyPageProps) {
+export default function PrivacyPage({ onNavigate, onShowAuth, onShowSignIn }: PrivacyPageProps) {
   const lastUpdated = 'May 2026';
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} />
+      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} onShowSignIn={onShowSignIn} />
 
       <section className="pt-32 pb-24 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">

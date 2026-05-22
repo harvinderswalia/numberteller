@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Mail, Lock, Hash, AlertCircle, Eye, EyeOff, CheckCircle, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { startTrial } from '../utils/subscription';
@@ -7,6 +7,7 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onNavigate?: (page: string) => void;
+  initialMode?: 'signin' | 'signup';
 }
 
 interface PasswordStrength {
@@ -34,9 +35,13 @@ function isPasswordAcceptable(pw: string): boolean {
   return pw.length >= 8 && /[A-Z]/.test(pw) && /[0-9]/.test(pw);
 }
 
-export default function AuthModal({ isOpen, onClose, onNavigate }: AuthModalProps) {
-  const [mode, setMode] = useState<'signin' | 'signup'>('signup');
+export default function AuthModal({ isOpen, onClose, onNavigate, initialMode = 'signup' }: AuthModalProps) {
+  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    if (isOpen) setMode(initialMode);
+  }, [isOpen, initialMode]);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -83,7 +88,8 @@ export default function AuthModal({ isOpen, onClose, onNavigate }: AuthModalProp
           setTimeout(() => {
             onClose();
             reset();
-          }, 2000);
+            if (onNavigate) onNavigate('dashboard');
+          }, 1500);
         }
       } else {
         const { error } = await signIn(email, password);
@@ -92,6 +98,7 @@ export default function AuthModal({ isOpen, onClose, onNavigate }: AuthModalProp
         } else {
           onClose();
           reset();
+          if (onNavigate) onNavigate('dashboard');
         }
       }
     } catch {

@@ -6,9 +6,10 @@ import SiteFooter from './SiteFooter';
 interface ContactPageProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  onShowSignIn?: () => void;
 }
 
-export default function ContactPage({ onNavigate, onShowAuth }: ContactPageProps) {
+export default function ContactPage({ onNavigate, onShowAuth, onShowSignIn }: ContactPageProps) {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
 
@@ -19,7 +20,7 @@ export default function ContactPage({ onNavigate, onShowAuth }: ContactPageProps
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} currentPage="contact" />
+      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} onShowSignIn={onShowSignIn} currentPage="contact" />
 
       {/* Hero */}
       <section className="pt-32 pb-16 px-4 sm:px-6 text-center relative overflow-hidden">

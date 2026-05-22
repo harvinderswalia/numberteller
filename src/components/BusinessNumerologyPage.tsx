@@ -7,6 +7,7 @@ import { reduceToSingleDigit, getLetterValue, cleanName, calculateLifePath } fro
 interface BusinessNumerologyPageProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  onShowSignIn?: () => void;
 }
 
 // ─── PYTHAGOREAN LETTER VALUES ─────────────────────────────────────────────
@@ -314,7 +315,7 @@ const colourMap: Record<string, string> = {
 
 type Tab = 'company' | 'owner' | 'partner';
 
-export default function BusinessNumerologyPage({ onNavigate, onShowAuth }: BusinessNumerologyPageProps) {
+export default function BusinessNumerologyPage({ onNavigate, onShowAuth, onShowSignIn }: BusinessNumerologyPageProps) {
   const [activeTab, setActiveTab] = useState<Tab>('company');
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode; desc: string }[] = [
@@ -325,7 +326,7 @@ export default function BusinessNumerologyPage({ onNavigate, onShowAuth }: Busin
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} />
+      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} onShowSignIn={onShowSignIn} />
 
       <div className="pt-24 pb-16 px-4 max-w-4xl mx-auto">
         {/* Header */}

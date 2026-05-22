@@ -6,6 +6,7 @@ import SiteFooter from './SiteFooter';
 interface ResourcesPageProps {
   onNavigate: (page: string) => void;
   onShowAuth: () => void;
+  onShowSignIn?: () => void;
 }
 
 const articles = [
@@ -109,7 +110,7 @@ const articles = [
 
 const categories = ['All', 'Beginner Guide', 'Advanced Technique', 'Lo Shu Grid', 'Name Correction', 'Master Numbers', 'Business Numerology', 'Compatibility', 'House Numbers', 'Practice Tips', 'Transit Charts', 'Fundamentals', 'Mobile & Car Numbers'];
 
-export default function ResourcesPage({ onNavigate, onShowAuth }: ResourcesPageProps) {
+export default function ResourcesPage({ onNavigate, onShowAuth, onShowSignIn }: ResourcesPageProps) {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -124,7 +125,7 @@ export default function ResourcesPage({ onNavigate, onShowAuth }: ResourcesPageP
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} currentPage="resources" />
+      <SiteNavigation onNavigate={onNavigate} onShowAuth={onShowAuth} onShowSignIn={onShowSignIn} currentPage="resources" />
 
       {/* Hero */}
       <section className="pt-32 pb-16 px-4 sm:px-6 relative overflow-hidden">
