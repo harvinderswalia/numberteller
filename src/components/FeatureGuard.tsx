@@ -208,7 +208,7 @@ export default function FeatureGuard({
         </div>
       </section>
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
 
       <SubscriptionModal
         isOpen={showModal}

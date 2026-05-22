@@ -731,7 +731,7 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
         </div>
       </section>
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }

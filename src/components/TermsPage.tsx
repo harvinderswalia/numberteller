@@ -236,7 +236,7 @@ export default function TermsPage({ onNavigate, onShowAuth }: TermsPageProps) {
         </div>
       </section>
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }

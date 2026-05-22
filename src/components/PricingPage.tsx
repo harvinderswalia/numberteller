@@ -335,7 +335,7 @@ export default function PricingPage({ onNavigate, onShowAuth }: PricingPageProps
         </div>
       </section>
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }

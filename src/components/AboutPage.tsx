@@ -186,7 +186,7 @@ export default function AboutPage({ onNavigate, onShowAuth }: AboutPageProps) {
         </div>
       </section>
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }

@@ -1,11 +1,23 @@
 import { Hash, Phone, Mail, MapPin } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface SiteFooterProps {
   onNavigate: (page: string) => void;
+  onShowAuth?: () => void;
 }
 
-export default function SiteFooter({ onNavigate }: SiteFooterProps) {
-  const nav = (page: string) => onNavigate(page);
+const TOOL_PAGES = new Set(['calculator', 'loshu', 'name-correction', 'compatibility', 'house', 'tarot', 'business', 'saved']);
+
+export default function SiteFooter({ onNavigate, onShowAuth }: SiteFooterProps) {
+  const { user } = useAuth();
+
+  const nav = (page: string) => {
+    if (!user && TOOL_PAGES.has(page)) {
+      onShowAuth?.();
+      return;
+    }
+    onNavigate(page);
+  };
 
   const tools = [
     { label: 'Core Chart Reading', page: 'calculator' },

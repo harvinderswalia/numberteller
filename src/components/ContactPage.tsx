@@ -190,7 +190,7 @@ export default function ContactPage({ onNavigate, onShowAuth }: ContactPageProps
         </div>
       </section>
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }

@@ -1342,7 +1342,7 @@ export default function TarotPage({ onNavigate, onShowAuth, sharedNumerology }: 
         </section>
       )}
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }

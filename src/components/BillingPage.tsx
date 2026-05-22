@@ -164,7 +164,7 @@ export default function BillingPage({ onNavigate, onShowAuth }: BillingPageProps
         </div>
       </section>
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }

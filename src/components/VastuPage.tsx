@@ -1576,7 +1576,7 @@ export default function VastuPage({ onNavigate, onShowAuth, sharedNumerology }: 
         </section>
       )}
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }

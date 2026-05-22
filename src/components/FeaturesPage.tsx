@@ -355,7 +355,7 @@ export default function FeaturesPage({ onNavigate, onShowAuth }: FeaturesPagePro
         </div>
       </section>
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }

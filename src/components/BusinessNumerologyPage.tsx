@@ -372,7 +372,7 @@ export default function BusinessNumerologyPage({ onNavigate, onShowAuth }: Busin
         {activeTab === 'partner' && <PartnerCompatibilityTool />}
       </div>
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }

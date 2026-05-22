@@ -266,7 +266,7 @@ export default function ResourcesPage({ onNavigate, onShowAuth }: ResourcesPageP
         </div>
       </section>
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }

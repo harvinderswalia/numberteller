@@ -140,7 +140,7 @@ export default function PrivacyPage({ onNavigate, onShowAuth }: PrivacyPageProps
         </div>
       </section>
 
-      <SiteFooter onNavigate={onNavigate} />
+      <SiteFooter onNavigate={onNavigate} onShowAuth={onShowAuth} />
     </div>
   );
 }
