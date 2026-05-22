@@ -43,7 +43,7 @@ function getTransitLetters(fullName: string, age: number): string {
   return transitLetters.join(' ');
 }
 
-function calculateEssenceForAge(fullName: string, age: number): number | string {
+export function calculateEssenceForAge(fullName: string, age: number): number | string {
   const names = fullName.trim().split(/\s+/);
   let totalValue = 0;
 

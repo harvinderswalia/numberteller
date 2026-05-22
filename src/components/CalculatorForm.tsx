@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Calendar, User, ArrowLeft, CircleUser as UserCircle } from 'lucide-react';
 import * as numerology from '../utils/numerology';
+import { calculateEssenceForAge } from '../utils/transitCalculations';
 import { canPerformCalculation, incrementCalculationCount, getRemainingCalculations } from '../utils/subscription';
 
 interface CalculatorFormProps {
@@ -51,7 +52,8 @@ export default function CalculatorForm({ onNavigate, onCalculate, onShowUpgrade 
       const periodCycles = numerology.calculatePeriodCycles(birth, lifePath);
       const pinnacles = numerology.calculatePinnacles(birth, lifePath);
       const challenges = numerology.calculateChallenges(birth, lifePath);
-      const essence = numerology.calculateEssence(personalYear, lifePath);
+      const currentAge = year - birth.getFullYear();
+      const essence = calculateEssenceForAge(fullName, currentAge);
       const primeIntensifier = numerology.calculatePrimeIntensifier(fullName);
       const rulingPlanet = numerology.getRulingPlanet(lifePath);
       const harmonyNumbers = numerology.getHarmonyNumbers(lifePath);
