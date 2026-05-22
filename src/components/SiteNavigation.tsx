@@ -21,7 +21,7 @@ export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: 
     { label: 'Compatibility', page: 'compatibility' },
     { label: 'House / Car / Mobile Number', page: 'house' },
     { label: 'AI Tarot Reading', page: 'tarot', badge: 'NEW' },
-    { label: 'Vedic Vastu Analysis', page: 'vastu', badge: 'NEW' },
+    { label: 'Business Numerology', page: 'business', badge: 'NEW' },
     { label: 'Saved Charts', page: 'saved' },
   ];
 

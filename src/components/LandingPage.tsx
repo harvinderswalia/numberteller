@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Star, Users, Award, Hash, BarChart3, FileText, Download, Save, Brain, Grid3x3 as Grid3X3, Heart, Home, Smartphone, Car, Calculator, TrendingUp, Shield, Clock, CheckCircle, ArrowRight, Sparkles, BookOpen, Layers, Compass } from 'lucide-react';
+import { ChevronRight, Star, Users, Award, Hash, BarChart3, FileText, Download, Save, Brain, Grid3x3 as Grid3X3, Heart, Home, Smartphone, Car, Calculator, TrendingUp, Shield, Clock, CheckCircle, ArrowRight, Sparkles, BookOpen, Layers, Building2 } from 'lucide-react';
 import SiteNavigation from './SiteNavigation';
 import SiteFooter from './SiteFooter';
 
@@ -70,7 +70,7 @@ const allTools = [
   { icon: Download, title: 'PDF Export', desc: 'Generate and download professional branded PDF reports to share with clients', page: 'calculator', color: 'from-emerald-700 to-emerald-600' },
   { icon: Save, title: 'Save Charts', desc: 'Securely store up to 10 client charts per account — access anytime, anywhere', page: 'saved', color: 'from-cyan-700 to-cyan-600' },
   { icon: Layers, title: 'AI Tarot Reading', desc: 'Numerology-integrated tarot spreads with AI-generated contextual narratives and actionable guidance', page: 'tarot', color: 'from-blue-600 to-blue-400', badge: 'NEW' },
-  { icon: Compass, title: 'Vedic Vastu Analysis', desc: 'Direction-precise dosha detection, 45 Devta mapping, zone harmony scoring, and layered Manasara-system remedies', page: 'vastu', color: 'from-amber-600 to-orange-500', badge: 'NEW' },
+  { icon: Building2, title: 'Business Numerology', desc: 'Company name analysis, ideal business number matching, brand name suggestions, and partner compatibility', page: 'business', color: 'from-amber-600 to-orange-500', badge: 'NEW' },
 ];
 
 export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps) {
@@ -125,7 +125,7 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
               The complete calculation suite for professional numerologists. Deliver expert consultations faster, with greater accuracy and polished client reports.
             </p>
             <p className="text-base text-gray-400 mb-10 max-w-2xl mx-auto">
-              Core Charts · Lo Shu Grid · AI Name Correction · Transit Charts · Compatibility · House, Car & Mobile Numbers · Karmic Lessons · PDF Export
+              Core Charts · Lo Shu Grid · AI Name Correction · Transit Charts · Compatibility · Business Numerology · House, Car & Mobile Numbers · Karmic Lessons · PDF Export
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
@@ -409,34 +409,34 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
         </div>
       </section>
 
-      {/* ─── VASTU FEATURE SPOTLIGHT ─── */}
+      {/* ─── BUSINESS NUMEROLOGY SPOTLIGHT ─── */}
       <section className="py-24 bg-gradient-to-b from-slate-900 to-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Text — left */}
             <div>
               <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/25 text-amber-300 px-4 py-2 rounded-full mb-6 text-sm font-medium">
-                <Compass className="w-4 h-4" />
-                New Feature — Vedic Vastu Shastra
+                <Building2 className="w-4 h-4" />
+                New Feature — Business Numerology
               </div>
               <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight">
-                Vastu Purusha Mandala
+                Build Businesses on
                 <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-400">
-                  Analysis Engine
+                  the Right Vibration
                 </span>
               </h2>
               <p className="text-xl text-gray-300 mb-6 leading-relaxed">
-                The most comprehensive Vedic Vastu tool built for professional practitioners. Direction-precise dosha detection, 45 Devta mapping, 16-zone analysis, and a dual-layer remedy engine — all integrated with your client's numerology core.
+                The only numerology platform with a dedicated business module. Analyse company names, match owners to their ideal business number, suggest compatible brand names, and evaluate partner compatibility — all in Pythagorean numerology.
               </p>
               <ul className="space-y-4 mb-8">
                 {[
-                  '16-zone direction system with degree-precise Devta mapping (Manasara system)',
-                  'Auto-detect doshas from room placements — NE toilet, SW entrance, Brahmasthan violations and more',
-                  'Zone Harmony Scoring (0–100) with Vastu Purusha energy analysis',
-                  'Dual-layer remedies: non-structural (yantra, crystal, color, plant) + structural guidance',
-                  'Personal Vastu Harmony — LP, PY and Numerology cross-mapped to property zones',
-                  'Personal Year Vastu Overlay — align remedies with client\'s current cycle',
+                  'Analyse any company name — get its Pythagorean number, energy profile, strengths and ideal industries',
+                  'Business Name Suggester — enter keywords and target number, get matching name combinations instantly',
+                  'Owner Profile — discover your ideal business number, compatible industries and natural business temperament based on Life Path',
+                  'Partner Compatibility — input 2–5 partners, score pairwise compatibility with dynamics, strengths and watch-outs',
+                  'Pick-list of industry types: restaurant, dental clinic, jewellery store, production house, sales company and more',
+                  'Compatible brand name suggestions generated to match your Life Path-aligned business numbers',
                 ].map((f, i) => (
                   <li key={i} className="flex items-start gap-3 text-gray-300">
                     <CheckCircle className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
@@ -445,11 +445,11 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
                 ))}
               </ul>
               <button
-                onClick={() => onNavigate('vastu')}
+                onClick={() => onNavigate('business')}
                 className="group flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold rounded-xl hover:from-amber-500 hover:to-orange-500 transition-all shadow-lg shadow-amber-500/20"
               >
-                <Compass className="w-5 h-5" />
-                Try Vastu Analysis
+                <Building2 className="w-5 h-5" />
+                Try Business Numerology
                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -462,51 +462,53 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-amber-600 to-orange-600 rounded-xl flex items-center justify-center">
-                      <Compass className="w-5 h-5 text-white" />
+                      <Building2 className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-white font-semibold text-sm">Vastu Analysis</p>
-                      <p className="text-gray-500 text-xs">3-BHK Apartment · NE Entrance</p>
+                      <p className="text-white font-semibold text-sm">Business Numerology</p>
+                      <p className="text-gray-500 text-xs">Company Analysis · Partner Match</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-3xl font-bold text-amber-400">72</p>
-                    <p className="text-xs text-gray-500">/ 100 Harmony</p>
+                    <p className="text-3xl font-bold text-amber-400">8</p>
+                    <p className="text-xs text-gray-500">Company Number</p>
                   </div>
                 </div>
 
-                {/* Zone bars */}
-                <div className="space-y-2 mb-5">
+                {/* Company analysis */}
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 mb-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-amber-300 text-xs font-semibold">Power & Abundance</span>
+                    <span className="text-amber-400 font-bold text-sm">8</span>
+                  </div>
+                  <p className="text-gray-400 text-xs">Material mastery, authority, and large-scale achievement. Built to generate wealth and significant market impact.</p>
+                </div>
+
+                {/* Partner compatibility */}
+                <div className="space-y-2 mb-4">
                   {[
-                    { zone: 'NE (Ishan)', score: 95, color: 'bg-emerald-500', label: 'Excellent' },
-                    { zone: 'N (Kubera)', score: 80, color: 'bg-blue-500', label: 'Good' },
-                    { zone: 'SW (Nairitya)', score: 35, color: 'bg-red-500', label: 'Dosha' },
-                    { zone: 'SE (Agneya)', score: 70, color: 'bg-amber-500', label: 'Caution' },
-                  ].map((z, i) => (
+                    { name: 'Rahul (LP 4)', compat: 95, label: 'Ideal' },
+                    { name: 'Priya (LP 8)', compat: 85, label: 'Strong' },
+                    { name: 'Anil (LP 5)', compat: 62, label: 'Caution' },
+                  ].map((p, i) => (
                     <div key={i} className="flex items-center gap-3">
-                      <span className="text-xs text-gray-400 w-24 flex-shrink-0">{z.zone}</span>
+                      <span className="text-xs text-gray-400 w-28 flex-shrink-0">{p.name}</span>
                       <div className="flex-1 bg-slate-700 rounded-full h-2">
-                        <div className={`h-2 rounded-full ${z.color}`} style={{ width: `${z.score}%` }} />
+                        <div
+                          className={`h-2 rounded-full ${p.compat >= 85 ? 'bg-green-500' : p.compat >= 70 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                          style={{ width: `${p.compat}%` }}
+                        />
                       </div>
-                      <span className="text-xs text-gray-500 w-16 text-right">{z.label}</span>
+                      <span className="text-xs text-gray-500 w-12 text-right">{p.label}</span>
                     </div>
                   ))}
                 </div>
 
-                {/* Top dosha */}
-                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 mb-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="w-2 h-2 rounded-full bg-red-400" />
-                    <span className="text-red-300 text-xs font-semibold">Severe Dosha Detected</span>
-                  </div>
-                  <p className="text-gray-300 text-xs">Main Entrance in SW — Nairita disturbed. Financial instability, relationship friction, and legal risks possible.</p>
-                </div>
-
-                {/* Numerology bridge */}
-                <div className="bg-amber-500/8 border border-amber-500/15 rounded-xl p-3 flex items-start gap-2">
+                {/* Name suggestion */}
+                <div className="bg-slate-700/50 border border-white/10 rounded-xl p-3 flex items-start gap-2">
                   <Hash className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
-                  <p className="text-amber-300 text-xs leading-relaxed">
-                    <span className="font-semibold">LP 8 + Weak SW:</span> Critical combination — LP 8 requires a strong SW for material mastery. This dosha is directly amplifying the client's career and authority challenges.
+                  <p className="text-gray-300 text-xs leading-relaxed">
+                    <span className="font-semibold text-white">Suggested Names matching 8:</span> Apex Solutions, Prime Group, Nexus Works — all verified by Pythagorean calculation.
                   </p>
                 </div>
               </div>

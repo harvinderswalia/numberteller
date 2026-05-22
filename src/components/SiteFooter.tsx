@@ -14,7 +14,7 @@ export default function SiteFooter({ onNavigate }: SiteFooterProps) {
     { label: 'Compatibility Calculator', page: 'compatibility' },
     { label: 'House / Car / Mobile Number', page: 'house' },
     { label: 'AI Tarot Reading', page: 'tarot' },
-    { label: 'Vedic Vastu Analysis', page: 'vastu' },
+    { label: 'Business Numerology', page: 'business' },
     { label: 'Saved Charts', page: 'saved' },
   ];
 

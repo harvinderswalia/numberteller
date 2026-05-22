@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ChevronDown, ChevronUp, Download, Info, Save, Layers, Compass } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, Download, Info, Save, Layers } from 'lucide-react';
 import { NUMBER_INTERPRETATIONS, KARMIC_LESSON_INTERPRETATIONS, PERSONAL_YEAR_INTERPRETATIONS, HOUSE_NUMBER_INTERPRETATIONS } from '../data/interpretations';
 import TransitChart from './TransitChart';
 import { calculateKuaNumber } from '../utils/numerology';
@@ -11,10 +11,9 @@ interface ResultsDisplayProps {
   onNavigate: (page: string) => void;
   onExportPDF: () => void;
   onNavigateToTarot?: () => void;
-  onNavigateToVastu?: () => void;
 }
 
-export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNavigateToTarot, onNavigateToVastu }: ResultsDisplayProps) {
+export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNavigateToTarot }: ResultsDisplayProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['core']));
   const [saving, setSaving] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -198,30 +197,20 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
           </div>
         </div>
 
-        {/* Bridge CTA — send this chart to Tarot or Vastu */}
-        {(onNavigateToTarot || onNavigateToVastu) && (
+        {/* Bridge CTA — send this chart to Tarot */}
+        {onNavigateToTarot && (
           <div className="bg-slate-800/60 border border-white/10 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="flex-1">
               <p className="text-white font-semibold text-sm mb-0.5">Use this chart in other tools</p>
               <p className="text-gray-500 text-xs">Core numbers are pre-loaded — no re-entry needed.</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {onNavigateToTarot && (
-                <button
-                  onClick={onNavigateToTarot}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-colors"
-                >
-                  <Layers className="w-4 h-4" /> AI Tarot Reading
-                </button>
-              )}
-              {onNavigateToVastu && (
-                <button
-                  onClick={onNavigateToVastu}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold rounded-xl transition-colors"
-                >
-                  <Compass className="w-4 h-4" /> Vastu Analysis
-                </button>
-              )}
+              <button
+                onClick={onNavigateToTarot}
+                className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-colors"
+              >
+                <Layers className="w-4 h-4" /> AI Tarot Reading
+              </button>
             </div>
           </div>
         )}

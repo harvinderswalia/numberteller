@@ -1,4 +1,4 @@
-import { BarChart3, Brain, Grid3x3 as Grid3X3, Heart, TrendingUp, FileText, Home, Car, Smartphone, Calculator, Download, Save, ChevronRight, CheckCircle, Sparkles, Hash, Compass, Layers } from 'lucide-react';
+import { BarChart3, Brain, Grid3x3 as Grid3X3, Heart, TrendingUp, FileText, Home, Car, Smartphone, Calculator, Download, Save, ChevronRight, CheckCircle, Sparkles, Hash, Building2, Layers } from 'lucide-react';
 import SiteNavigation from './SiteNavigation';
 import SiteFooter from './SiteFooter';
 
@@ -221,22 +221,22 @@ const features = [
     ]
   },
   {
-    icon: Compass,
-    title: 'Vedic Vastu Analysis',
-    subtitle: 'Manasara & Mayamatam System',
+    icon: Building2,
+    title: 'Business Numerology',
+    subtitle: 'Pythagorean Business Analysis',
     color: 'from-amber-600 to-orange-500',
     bg: 'from-amber-950/60 to-slate-900/60',
     border: 'border-amber-500/20',
-    page: 'vastu',
+    page: 'business',
     points: [
-      '16-zone direction system (8 primary + 8 sub-directions) with degree-precise analysis',
-      'Auto-detect doshas from room placements — NE toilet, SW entrance, Brahmasthan violations',
-      'Zone Harmony Scoring (0–100) for all 8 primary directions',
-      '45 Devta mapping — identifies which deity is disturbed and its specific remedy',
-      'Dual-layer remedies: non-structural (yantra, crystal, color, plant, mantra) + structural guidance',
-      'Personal Vastu Harmony — LP, EX, SU, PY cross-mapped to property zones',
-      'Personal Year Vastu Overlay — align remedies with current and next PY cycles',
-      'Room Placement Guide — Vedic ideal zones for master bedroom, kitchen, prayer room, and more',
+      'Analyse any company or brand name — calculate its Pythagorean number instantly',
+      'Full business number profile: energy, strengths, challenges, and ideal industries',
+      'Business Name Suggester — enter keywords and a target number to generate matching name combinations',
+      'Industry type pick-list: restaurant, dental clinic, jewellery, sales company, production house, and more',
+      'Owner Profile — discover your ideal business number and compatible industries based on Life Path',
+      'Natural business temperament: strength, blind spot, and ideal role in the organisation',
+      'Partner Compatibility — evaluate 2–5 business partners with pairwise scores, dynamics, and watch-outs',
+      'Compatible brand name generator — names aligned to your Life Path-matched business numbers',
     ]
   },
   {
@@ -273,7 +273,7 @@ export default function FeaturesPage({ onNavigate, onShowAuth }: FeaturesPagePro
         <div className="relative max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-300 px-5 py-2 rounded-full mb-6 text-sm font-medium">
             <Sparkles className="w-4 h-4" />
-            12 Professional Tools
+            13 Professional Tools
           </div>
           <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6 leading-tight">
             Every Feature Your

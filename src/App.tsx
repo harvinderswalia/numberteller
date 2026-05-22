@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import LandingPage from './components/LandingPage';
 import TarotPage from './components/TarotPage';
-import VastuPage from './components/VastuPage';
 import FeaturesPage from './components/FeaturesPage';
 import PricingPage from './components/PricingPage';
 import AboutPage from './components/AboutPage';
@@ -20,6 +19,7 @@ import AuthModal from './components/AuthModal';
 import LoShuGridCalculator from './components/LoShuGridCalculator';
 import LoShuGridResults from './components/LoShuGridResults';
 import NameCorrectionTool from './components/NameCorrectionTool';
+import BusinessNumerologyPage from './components/BusinessNumerologyPage';
 import { exportToPDF } from './utils/pdfExport';
 import { useAuth } from './contexts/AuthContext';
 import { calculateLoShuGrid, LoShuGridData } from './utils/loShuGrid';
@@ -28,9 +28,9 @@ export type Page =
   | 'home' | 'features' | 'pricing' | 'about' | 'contact' | 'resources'
   | 'terms' | 'privacy' | 'billing'
   | 'calculator' | 'results' | 'compatibility' | 'house'
-  | 'saved' | 'loshu' | 'loshu-results' | 'name-correction' | 'tarot' | 'vastu';
+  | 'saved' | 'loshu' | 'loshu-results' | 'name-correction' | 'tarot' | 'business';
 
-// Shared numerology context that flows between the calculator and Tarot/Vastu tools
+// Shared numerology context that flows between the calculator and Tarot tool
 export interface SharedNumerologyContext {
   name?: string;
   lifePath?: string;
@@ -120,8 +120,6 @@ function App() {
         return <BillingPage {...sharedProps} />;
       case 'tarot':
         return <TarotPage {...numerologyTools} />;
-      case 'vastu':
-        return <VastuPage {...numerologyTools} />;
       case 'calculator':
         return (
           <CalculatorForm
@@ -137,7 +135,6 @@ function App() {
             onNavigate={handleNavigate}
             onExportPDF={handleExportPDF}
             onNavigateToTarot={() => { handleNavigate('tarot'); }}
-            onNavigateToVastu={() => { handleNavigate('vastu'); }}
           />
         ) : (
           <LandingPage {...sharedProps} />
@@ -163,6 +160,8 @@ function App() {
         );
       case 'name-correction':
         return <NameCorrectionTool onBack={() => setCurrentPage('home')} />;
+      case 'business':
+        return <BusinessNumerologyPage {...sharedProps} />;
       default:
         return <LandingPage {...sharedProps} />;
     }
