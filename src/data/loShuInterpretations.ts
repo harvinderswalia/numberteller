@@ -64,6 +64,248 @@ export const LO_SHU_NUMBER_MEANINGS = {
   },
 };
 
+// ── FIVE ELEMENT SYSTEM ──────────────────────────────────────────────────────
+// Each Lo Shu number maps to a Five Element (Wood / Fire / Earth / Metal / Water)
+// Productive cycle: Wood→Fire→Earth→Metal→Water→Wood
+// Exhaustive cycle: each element exhausts the one before it in the productive cycle
+
+export type FiveElement = 'Wood' | 'Fire' | 'Earth' | 'Metal' | 'Water';
+
+export interface ElementProfile {
+  element: FiveElement;
+  producedBy: FiveElement;   // what strengthens this element (productive cycle parent)
+  produces: FiveElement;     // what this element feeds into (productive cycle child)
+  exhaustedBy: FiveElement;  // what draws energy from this element (exhaustive cycle)
+  exhausts: FiveElement;     // what this element draws energy from
+  color: string;
+  direction: string;
+  season: string;
+  planetSymbol: string;
+}
+
+export const ELEMENT_PROFILES: Record<FiveElement, ElementProfile> = {
+  Wood: {
+    element: 'Wood',
+    producedBy: 'Water',
+    produces: 'Fire',
+    exhaustedBy: 'Fire',   // Fire exhausts Wood
+    exhausts: 'Water',     // Wood exhausts Water
+    color: 'Green, Teal',
+    direction: 'East, Southeast',
+    season: 'Spring',
+    planetSymbol: 'Jupiter / Venus',
+  },
+  Fire: {
+    element: 'Fire',
+    producedBy: 'Wood',
+    produces: 'Earth',
+    exhaustedBy: 'Earth',  // Earth exhausts Fire
+    exhausts: 'Wood',      // Fire exhausts Wood
+    color: 'Red, Orange, Purple, Pink',
+    direction: 'South',
+    season: 'Summer',
+    planetSymbol: 'Sun / Mars',
+  },
+  Earth: {
+    element: 'Earth',
+    producedBy: 'Fire',
+    produces: 'Metal',
+    exhaustedBy: 'Metal',  // Metal exhausts Earth
+    exhausts: 'Fire',      // Earth exhausts Fire
+    color: 'Yellow, Beige, Brown',
+    direction: 'Centre, Southwest, Northeast',
+    season: 'Late Summer (transitions)',
+    planetSymbol: 'Saturn / Mercury',
+  },
+  Metal: {
+    element: 'Metal',
+    producedBy: 'Earth',
+    produces: 'Water',
+    exhaustedBy: 'Water',  // Water exhausts Metal
+    exhausts: 'Earth',     // Metal exhausts Earth
+    color: 'White, Gold, Silver',
+    direction: 'West, Northwest',
+    season: 'Autumn',
+    planetSymbol: 'Venus / Rahu',
+  },
+  Water: {
+    element: 'Water',
+    producedBy: 'Metal',
+    produces: 'Wood',
+    exhaustedBy: 'Wood',   // Wood exhausts Water
+    exhausts: 'Metal',     // Water exhausts Metal
+    color: 'Black, Navy, Dark Blue',
+    direction: 'North',
+    season: 'Winter',
+    planetSymbol: 'Moon / Ketu',
+  },
+};
+
+// Map each Lo Shu grid number to its primary element
+export const NUMBER_ELEMENT_MAP: Record<number, FiveElement> = {
+  1: 'Water',   // Moon / Water energy
+  2: 'Earth',   // Moon (Lo Shu 2 is SW Earth)
+  3: 'Wood',    // Jupiter / East Wood
+  4: 'Wood',    // Rahu / SE Wood
+  5: 'Earth',   // Centre Earth
+  6: 'Metal',   // Venus / NW Metal
+  7: 'Metal',   // Ketu / West Metal
+  8: 'Earth',   // Saturn / NE Earth
+  9: 'Fire',    // Mars / South Fire
+};
+
+// ── PRODUCTIVE CYCLE REMEDIES ────────────────────────────────────────────────
+// For MISSING or WEAK energy of a number: use the productive parent element to feed it
+// For EXCESSIVE energy: use the exhaustive element to drain excess
+
+export interface ElementRemedySet {
+  productiveCycle: {
+    explanation: string;
+    remedies: string[];
+  };
+  exhaustiveCycle: {
+    explanation: string;
+    remedies: string[];
+  };
+}
+
+export const ELEMENT_CYCLE_REMEDIES: Record<FiveElement, ElementRemedySet> = {
+  Water: {
+    productiveCycle: {
+      explanation: 'Metal produces Water — introduce Metal to strengthen Water energy',
+      remedies: [
+        'Place metal objects (bowls, wind chimes, coins) in the North area',
+        'Use white, gold, or silver decor and clothing',
+        'Add round or oval metallic shapes to your space',
+        'Wear white or silver-toned gemstones (white sapphire, moonstone)',
+        'Display metal wind chimes near the entry',
+      ],
+    },
+    exhaustiveCycle: {
+      explanation: 'Wood exhausts Water — reduce Wood to stop draining Water energy',
+      remedies: [
+        'Reduce heavy plant life and wooden furniture in the North zone',
+        'Avoid green and brown colors in Water-direction spaces',
+        'Remove tall columnar wooden objects from the North',
+        'Replace live plants with metal or water-themed objects',
+      ],
+    },
+  },
+  Wood: {
+    productiveCycle: {
+      explanation: 'Water produces Wood — introduce Water to strengthen Wood energy',
+      remedies: [
+        'Place a small water feature or aquarium in the East or Southeast',
+        'Use dark blue or black accents in East-facing areas',
+        'Display wavy or flowing artwork in wooden spaces',
+        'Wear dark blue, black, or deep teal gemstones (sapphire, lapis lazuli)',
+        'Keep the East zone well-watered and alive',
+      ],
+    },
+    exhaustiveCycle: {
+      explanation: 'Fire exhausts Wood — reduce Fire to stop draining Wood energy',
+      remedies: [
+        'Reduce candles and bright lighting in the East or Southeast',
+        'Avoid red, orange, and pink in Wood-direction zones',
+        'Limit triangular, pointed shapes in Wood areas',
+        'Replace fire-themed decor with water elements',
+      ],
+    },
+  },
+  Fire: {
+    productiveCycle: {
+      explanation: 'Wood produces Fire — introduce Wood to strengthen Fire energy',
+      remedies: [
+        'Place live plants or wooden objects in the South area',
+        'Use green and brown colors in the South zone',
+        'Add vertical or columnar wood pieces to support Fire',
+        'Wear green gemstones (emerald, jade) to strengthen Fire',
+        'Display healthy, upright plants facing South',
+      ],
+    },
+    exhaustiveCycle: {
+      explanation: 'Earth exhausts Fire — reduce Earth to stop draining Fire energy',
+      remedies: [
+        'Remove ceramic, stone, or earthen objects from the South',
+        'Avoid yellow and beige colors in Fire-direction zones',
+        'Reduce square shapes and heavy pottery in the South',
+        'Replace crystals and stones with wooden pieces',
+      ],
+    },
+  },
+  Earth: {
+    productiveCycle: {
+      explanation: 'Fire produces Earth — introduce Fire to strengthen Earth energy',
+      remedies: [
+        'Place candles, lamps, or fire symbols in the Centre, Southwest, or Northeast',
+        'Use red, orange, or purple accents in Earth-direction spaces',
+        'Add triangular or pointed shapes in Earth zones',
+        'Wear red, orange, or fire-energy gemstones (ruby, carnelian)',
+        'Increase lighting and brightness in Earth-direction areas',
+      ],
+    },
+    exhaustiveCycle: {
+      explanation: 'Metal exhausts Earth — reduce Metal to stop draining Earth energy',
+      remedies: [
+        'Remove excessive metal objects from Centre, Southwest, Northeast zones',
+        'Avoid white, silver, and metallic colors in Earth areas',
+        'Reduce round or oval metal shapes in Earth zones',
+        'Replace metal decor with fire or earth-themed pieces',
+      ],
+    },
+  },
+  Metal: {
+    productiveCycle: {
+      explanation: 'Earth produces Metal — introduce Earth to strengthen Metal energy',
+      remedies: [
+        'Place crystals, stones, or ceramics in the West or Northwest',
+        'Use yellow, beige, and earthy tones in Metal-direction zones',
+        'Add square shapes and flat earthenware surfaces',
+        'Wear yellow, earthy, or stone-energy gemstones (citrine, tiger eye)',
+        'Display ceramic or clay objects near the West',
+      ],
+    },
+    exhaustiveCycle: {
+      explanation: 'Water exhausts Metal — reduce Water to stop draining Metal energy',
+      remedies: [
+        'Remove water features and aquariums from the West or Northwest',
+        'Avoid dark blue, black, or navy in Metal-direction zones',
+        'Reduce wavy or flowing shapes in Metal areas',
+        'Replace water-themed decor with Earth-supporting pieces',
+      ],
+    },
+  },
+};
+
+// Number-specific elemental remedies combining the five-element system
+export function getElementRemediesForNumber(num: number, isExcessive: boolean) {
+  const element = NUMBER_ELEMENT_MAP[num];
+  const profile = ELEMENT_PROFILES[element];
+  const cycles = ELEMENT_CYCLE_REMEDIES[element];
+
+  if (isExcessive) {
+    // Use exhaustive cycle — introduce the element that drains excess
+    const drainingElement = profile.exhaustedBy;
+    return {
+      title: `Balance Excess ${element} Energy (Number ${num})`,
+      cycleType: 'Exhaustive Cycle' as const,
+      explanation: `Number ${num} carries ${element} energy. ${cycles.exhaustiveCycle.explanation}.`,
+      drainingElement,
+      remedies: cycles.exhaustiveCycle.remedies,
+    };
+  } else {
+    // Use productive cycle — introduce the parent element to strengthen
+    const feedingElement = profile.producedBy;
+    return {
+      title: `Strengthen ${element} Energy (Number ${num})`,
+      cycleType: 'Productive Cycle' as const,
+      explanation: `Number ${num} carries ${element} energy. ${cycles.productiveCycle.explanation}.`,
+      feedingElement,
+      remedies: cycles.productiveCycle.remedies,
+    };
+  }
+}
+
 export const PLANE_INTERPRETATIONS = {
   mental: {
     title: 'Mental Plane (4-9-2)',
@@ -191,11 +433,11 @@ export const REMEDIES = {
       'Use pink or white colors',
     ],
     7: [
-      'Use cat\'s eye gemstone',
+      "Use cat's eye gemstone",
       'Practice spiritual activities',
       'Engage in introspection',
       'Study metaphysics',
-      'Use violet or purple colors',
+      'Use violet colors',
     ],
     8: [
       'Wear blue sapphire (with caution)',
@@ -268,7 +510,7 @@ export const DIRECTION_RECOMMENDATIONS = {
   },
   7: {
     favorable: ['South', 'Southwest'],
-    colors: ['Violet', 'Purple', 'White'],
+    colors: ['Violet', 'White'],
     elements: ['Fire', 'Earth'],
   },
   8: {
@@ -293,8 +535,8 @@ export const ELEMENT_REMEDIES = {
       'Use black, dark blue, or navy colors in decor',
       'Keep metal objects to strengthen Water element',
       'Add flowing, wavy patterns in artwork',
-      'Keep the area clean and clutter-free'
-    ]
+      'Keep the area clean and clutter-free',
+    ],
   },
   wood: {
     element: 'Wood',
@@ -305,8 +547,8 @@ export const ELEMENT_REMEDIES = {
       'Use green, brown, and natural wood tones',
       'Add water elements to strengthen Wood',
       'Use vertical lines and columnar shapes',
-      'Keep live plants healthy and thriving'
-    ]
+      'Keep live plants healthy and thriving',
+    ],
   },
   fire: {
     element: 'Fire',
@@ -317,20 +559,20 @@ export const ELEMENT_REMEDIES = {
       'Use red, orange, purple, and pink colors',
       'Add candles, lamps, or fire-related imagery',
       'Use triangular and pointed shapes',
-      'Display certificates, awards, and recognition'
-    ]
+      'Display certificates, awards, and recognition',
+    ],
   },
   earth: {
     element: 'Earth',
     enhanceWith: ['Fire (Productive)', 'Earth (Supportive)'],
     weakenedBy: ['Wood (Destructive)', 'Metal (Exhaustive)'],
     remedies: [
-      'Use crystals, stones, and earthenware in the Center, Southwest, or Northeast',
+      'Use crystals, stones, and earthenware in the Centre, Southwest, or Northeast',
       'Apply yellow, beige, brown, and earthy tones',
       'Add ceramic or clay objects',
       'Use square shapes and flat surfaces',
-      'Keep the area stable and grounded'
-    ]
+      'Keep the area stable and grounded',
+    ],
   },
   metal: {
     element: 'Metal',
@@ -341,9 +583,9 @@ export const ELEMENT_REMEDIES = {
       'Use white, gold, silver, and metallic colors',
       'Add round and oval shapes',
       'Display metal frames and fixtures',
-      'Keep the area organized and precise'
-    ]
-  }
+      'Keep the area organized and precise',
+    ],
+  },
 };
 
 export const MISSING_NUMBER_REMEDIES = {
@@ -355,8 +597,8 @@ export const MISSING_NUMBER_REMEDIES = {
       'Wear ruby or red gemstones',
       'Use the number 1 in important decisions',
       'Practice leadership roles in small groups',
-      'Strengthen Fire element in your environment'
-    ]
+      'Strengthen Fire element in your environment',
+    ],
   },
   2: {
     element: 'Water/Moon',
@@ -366,8 +608,8 @@ export const MISSING_NUMBER_REMEDIES = {
       'Wear pearl or moonstone',
       'Use the number 2 in phone numbers or addresses',
       'Practice patience and emotional balance',
-      'Strengthen Water element in your space'
-    ]
+      'Strengthen Water element in your space',
+    ],
   },
   3: {
     element: 'Ether/Jupiter',
@@ -377,8 +619,8 @@ export const MISSING_NUMBER_REMEDIES = {
       'Wear yellow sapphire or citrine',
       'Express yourself through writing or speaking',
       'Study spiritual texts',
-      'Strengthen Wood element to support growth'
-    ]
+      'Strengthen Wood element to support growth',
+    ],
   },
   4: {
     element: 'Earth/Rahu',
@@ -388,8 +630,8 @@ export const MISSING_NUMBER_REMEDIES = {
       'Wear hessonite garnet',
       'Practice grounding exercises',
       'Maintain stable routines',
-      'Strengthen Earth element for stability'
-    ]
+      'Strengthen Earth element for stability',
+    ],
   },
   5: {
     element: 'Earth/Mercury',
@@ -399,8 +641,8 @@ export const MISSING_NUMBER_REMEDIES = {
       'Wear emerald or green gemstones',
       'Engage in intellectual activities',
       'Practice clear communication',
-      'Balance Earth element in your surroundings'
-    ]
+      'Balance Earth element in your surroundings',
+    ],
   },
   6: {
     element: 'Water/Venus',
@@ -410,19 +652,19 @@ export const MISSING_NUMBER_REMEDIES = {
       'Wear diamond or white sapphire',
       'Cultivate beauty in your environment',
       'Practice gratitude and love',
-      'Enhance Water and Metal elements'
-    ]
+      'Enhance Water and Metal elements',
+    ],
   },
   7: {
     element: 'Fire/Ketu',
     weaknesses: ['Spiritual confusion', 'Isolation', 'Lack of intuition'],
     remedies: [
       'Meditate during Ketu kaal',
-      'Wear cat\'s eye gemstone',
+      "Wear cat's eye gemstone",
       'Practice spiritual disciplines',
       'Spend time in introspection',
-      'Balance Fire element with Earth'
-    ]
+      'Balance Fire element with Earth',
+    ],
   },
   8: {
     element: 'Earth/Saturn',
@@ -432,8 +674,8 @@ export const MISSING_NUMBER_REMEDIES = {
       'Wear blue sapphire (with caution) or amethyst',
       'Practice patience and perseverance',
       'Help those less fortunate',
-      'Strengthen Earth element with Fire support'
-    ]
+      'Strengthen Earth element with Fire support',
+    ],
   },
   9: {
     element: 'Fire/Mars',
@@ -443,7 +685,7 @@ export const MISSING_NUMBER_REMEDIES = {
       'Wear red coral or carnelian',
       'Practice physical exercise',
       'Channel energy constructively',
-      'Balance Fire element with Water'
-    ]
-  }
+      'Balance Fire element with Water',
+    ],
+  },
 };

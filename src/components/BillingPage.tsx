@@ -43,25 +43,25 @@ export default function BillingPage({ onNavigate, onShowAuth }: BillingPageProps
                   </thead>
                   <tbody>
                     <tr className="border-b border-white/5">
-                      <td className="px-5 py-3 text-gray-300">Free</td>
+                      <td className="px-5 py-3 text-gray-300">Free Trial</td>
                       <td className="px-5 py-3 text-gray-300">₹0</td>
-                      <td className="px-5 py-3 text-gray-400">N/A</td>
+                      <td className="px-5 py-3 text-gray-400">7 days · 5 calculations · No card</td>
                     </tr>
                     <tr className="border-b border-white/5">
-                      <td className="px-5 py-3 text-gray-300">Premium Monthly</td>
-                      <td className="px-5 py-3 text-gray-300">₹1,000/month</td>
+                      <td className="px-5 py-3 text-gray-300">Calculator</td>
+                      <td className="px-5 py-3 text-gray-300">₹999/month</td>
                       <td className="px-5 py-3 text-gray-400">Monthly, recurring</td>
                     </tr>
                     <tr>
-                      <td className="px-5 py-3 text-gray-300">Premium Annual</td>
-                      <td className="px-5 py-3 text-gray-300">₹10,000/year</td>
-                      <td className="px-5 py-3 text-gray-400">Annually, recurring</td>
+                      <td className="px-5 py-3 text-gray-300">Expert</td>
+                      <td className="px-5 py-3 text-gray-300">₹1,499/month</td>
+                      <td className="px-5 py-3 text-gray-400">Monthly, recurring</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
               <p>
-                Prices are listed in Indian Rupees (INR) and are inclusive of any applicable taxes. For corporate or multi-seat pricing, please contact us directly.
+                Prices are listed in Indian Rupees (INR) and are exclusive of applicable GST. Taxes will be shown before payment confirmation. All subscriptions are monthly — there are no annual plans. Payments are processed via Stripe.
               </p>
             </section>
 
@@ -77,15 +77,14 @@ export default function BillingPage({ onNavigate, onShowAuth }: BillingPageProps
 
             <section>
               <h2 className="text-xl font-bold text-white mb-3">4. Payment Methods</h2>
-              <p>We accept the following payment methods:</p>
+              <p>We accept the following payment methods via Stripe:</p>
               <ul className="list-disc pl-6 space-y-1.5 text-gray-400">
                 <li>Major credit and debit cards (Visa, Mastercard, American Express)</li>
-                <li>UPI (Unified Payments Interface)</li>
-                <li>Net banking (selected Indian banks)</li>
+                <li>Stripe-supported local payment methods (available at checkout)</li>
                 <li>Bank transfer (for annual and corporate plans — contact us)</li>
               </ul>
               <p>
-                All payment data is processed by our PCI-DSS compliant payment gateway. Docully does not store credit card numbers on its servers.
+                All payment data is processed securely by Stripe, a PCI-DSS Level 1 certified payment processor. Docully does not store card numbers on its servers.
               </p>
             </section>
 

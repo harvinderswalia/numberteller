@@ -31,7 +31,7 @@ export default function ContactPage({ onNavigate, onShowAuth }: ContactPageProps
             Get in Touch
           </h1>
           <p className="text-xl text-gray-400">
-            Questions about NumberTeller? Want to discuss a team plan? We're here to help.
+            Questions about NumberTeller? We're here to help.
           </p>
         </div>
       </section>
@@ -160,7 +160,6 @@ export default function ContactPage({ onNavigate, onShowAuth }: ContactPageProps
                       <option value="">Select a subject</option>
                       <option value="general">General Enquiry</option>
                       <option value="pricing">Pricing & Plans</option>
-                      <option value="team">Team / Agency Plan</option>
                       <option value="support">Technical Support</option>
                       <option value="billing">Billing Issue</option>
                       <option value="feedback">Feature Feedback</option>

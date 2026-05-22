@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import SuperAdminPortal from './components/SuperAdminPortal';
 import LandingPage from './components/LandingPage';
 import TarotPage from './components/TarotPage';
 import FeaturesPage from './components/FeaturesPage';
@@ -20,6 +21,8 @@ import LoShuGridCalculator from './components/LoShuGridCalculator';
 import LoShuGridResults from './components/LoShuGridResults';
 import NameCorrectionTool from './components/NameCorrectionTool';
 import BusinessNumerologyPage from './components/BusinessNumerologyPage';
+import FeatureGuard from './components/FeatureGuard';
+import TrialBanner from './components/TrialBanner';
 import { exportToPDF } from './utils/pdfExport';
 import { useAuth } from './contexts/AuthContext';
 import { calculateLoShuGrid, LoShuGridData } from './utils/loShuGrid';
@@ -28,7 +31,8 @@ export type Page =
   | 'home' | 'features' | 'pricing' | 'about' | 'contact' | 'resources'
   | 'terms' | 'privacy' | 'billing'
   | 'calculator' | 'results' | 'compatibility' | 'house'
-  | 'saved' | 'loshu' | 'loshu-results' | 'name-correction' | 'tarot' | 'business';
+  | 'saved' | 'loshu' | 'loshu-results' | 'name-correction' | 'tarot' | 'business'
+  | 'admin';
 
 // Shared numerology context that flows between the calculator and Tarot tool
 export interface SharedNumerologyContext {
@@ -41,7 +45,8 @@ export interface SharedNumerologyContext {
 }
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
+  const isAdminPath = typeof window !== 'undefined' && window.location.pathname === '/sa/port';
+  const [currentPage, setCurrentPage] = useState<Page>(isAdminPath ? 'admin' : 'home');
   const [calculationResults, setCalculationResults] = useState<any>(null);
   const [loShuResults, setLoShuResults] = useState<LoShuGridData | null>(null);
   const [sharedNumerology, setSharedNumerology] = useState<SharedNumerologyContext | null>(null);
@@ -100,6 +105,8 @@ function App() {
 
   const renderPage = () => {
     switch (currentPage) {
+      case 'admin':
+        return <SuperAdminPortal />;
       case 'home':
         return <LandingPage {...sharedProps} />;
       case 'features':
@@ -119,7 +126,17 @@ function App() {
       case 'billing':
         return <BillingPage {...sharedProps} />;
       case 'tarot':
-        return <TarotPage {...numerologyTools} />;
+        return (
+          <FeatureGuard
+            feature="tarot"
+            featureLabel="AI Tarot Reading"
+            featureDescription="Numerology-integrated tarot spreads with AI-generated narratives. Requires an Expert plan subscription."
+            onNavigate={handleNavigate}
+            onShowAuth={handleShowAuth}
+          >
+            <TarotPage {...numerologyTools} />
+          </FeatureGuard>
+        );
       case 'calculator':
         return (
           <CalculatorForm
@@ -147,21 +164,41 @@ function App() {
           />
         );
       case 'house':
-        return <HouseNumberCalculator onNavigate={handleNavigate} />;
+        return <HouseNumberCalculator onNavigate={handleNavigate} onShowUpgrade={() => setShowUpgradeModal(true)} />;
       case 'saved':
         return <SavedCharts onNavigate={handleNavigate} onLoadChart={handleLoadChart} />;
       case 'loshu':
-        return <LoShuGridCalculator onNavigate={handleNavigate} onCalculate={handleLoShuCalculate} />;
+        return <LoShuGridCalculator onNavigate={handleNavigate} onCalculate={handleLoShuCalculate} onShowUpgrade={() => setShowUpgradeModal(true)} />;
       case 'loshu-results':
         return loShuResults ? (
           <LoShuGridResults results={loShuResults} onNavigate={handleNavigate} />
         ) : (
-          <LoShuGridCalculator onNavigate={handleNavigate} onCalculate={handleLoShuCalculate} />
+          <LoShuGridCalculator onNavigate={handleNavigate} onCalculate={handleLoShuCalculate} onShowUpgrade={() => setShowUpgradeModal(true)} />
         );
       case 'name-correction':
-        return <NameCorrectionTool onBack={() => setCurrentPage('home')} />;
+        return (
+          <FeatureGuard
+            feature="name-correction-full"
+            featureLabel="AI Name Correction"
+            featureDescription="Intelligent name variants aligned to your client's desired outcomes using BD, LP, EX & SU harmony scoring. Requires an Expert plan subscription."
+            onNavigate={handleNavigate}
+            onShowAuth={handleShowAuth}
+          >
+            <NameCorrectionTool onBack={() => setCurrentPage('home')} />
+          </FeatureGuard>
+        );
       case 'business':
-        return <BusinessNumerologyPage {...sharedProps} />;
+        return (
+          <FeatureGuard
+            feature="business-full"
+            featureLabel="Business Numerology"
+            featureDescription="Full company profile analysis, ideal business number matching, partner compatibility, and brand name suggestions. Requires an Expert plan subscription."
+            onNavigate={handleNavigate}
+            onShowAuth={handleShowAuth}
+          >
+            <BusinessNumerologyPage {...sharedProps} />
+          </FeatureGuard>
+        );
       default:
         return <LandingPage {...sharedProps} />;
     }
@@ -169,14 +206,18 @@ function App() {
 
   return (
     <>
+      <TrialBanner onUpgrade={() => setShowUpgradeModal(true)} />
       {renderPage()}
       <SubscriptionModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
+        onNavigate={handleNavigate}
+        onShowAuth={handleShowAuth}
       />
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        onNavigate={handleNavigate}
       />
     </>
   );

@@ -33,7 +33,15 @@ export default function SiteNavigation({ onNavigate, onShowAuth, currentPage }: 
     { label: 'Contact', page: 'contact' },
   ];
 
+  const toolPages = new Set(tools.map(t => t.page));
+
   const nav = (page: string) => {
+    if (!user && toolPages.has(page)) {
+      onShowAuth();
+      setMobileOpen(false);
+      setToolsOpen(false);
+      return;
+    }
     onNavigate(page);
     setMobileOpen(false);
     setToolsOpen(false);

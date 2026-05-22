@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Star, Users, Award, Hash, BarChart3, FileText, Download, Save, Brain, Grid3x3 as Grid3X3, Heart, Home, Smartphone, Car, Calculator, TrendingUp, Shield, Clock, CheckCircle, ArrowRight, Sparkles, BookOpen, Layers, Building2 } from 'lucide-react';
+import { ChevronRight, Star, Users, Award, Hash, BarChart3, FileText, Download, Save, Brain, Grid3x3 as Grid3X3, Heart, Home, Smartphone, Car, Calculator, TrendingUp, Shield, Clock, CheckCircle, ArrowRight, Sparkles, BookOpen, Layers, Building2, Gift } from 'lucide-react';
 import SiteNavigation from './SiteNavigation';
 import SiteFooter from './SiteFooter';
+import { useAuth } from '../contexts/AuthContext';
 
 interface LandingPageProps {
   onNavigate: (page: string) => void;
@@ -76,6 +77,15 @@ const allTools = [
 export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps) {
   const [testimonialIndex, setTestimonialIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const { user } = useAuth();
+
+  const goToTool = (page: string) => {
+    if (!user) {
+      onShowAuth();
+    } else {
+      onNavigate(page);
+    }
+  };
 
   useEffect(() => {
     setIsVisible(true);
@@ -128,23 +138,24 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
               Core Charts · Lo Shu Grid · AI Name Correction · Transit Charts · Compatibility · Business Numerology · House, Car & Mobile Numbers · Karmic Lessons · PDF Export
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-4">
               <button
                 onClick={onShowAuth}
-                className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold text-lg rounded-xl shadow-2xl shadow-blue-500/25 hover:from-blue-500 hover:to-cyan-500 transition-all hover:scale-105"
+                className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold text-lg rounded-xl shadow-2xl shadow-blue-500/25 hover:from-blue-500 hover:to-cyan-500 transition-all hover:scale-105"
               >
-                <Sparkles className="w-5 h-5" />
-                Sign Up for Free
+                <Gift className="w-5 h-5" />
+                Start Free Trial — No Card Needed
                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
               <button
-                onClick={() => onNavigate('calculator')}
+                onClick={() => onNavigate('pricing')}
                 className="flex items-center gap-2 px-8 py-4 bg-white/5 border border-white/15 text-white font-semibold text-lg rounded-xl hover:bg-white/10 hover:border-white/25 transition-all backdrop-blur-sm"
               >
-                Try for Free
+                View Pricing
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
+            <p className="text-gray-500 text-sm mb-12">7 days free · 5 calculations · No credit card</p>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
@@ -192,7 +203,7 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
             {allTools.map((tool, i) => (
               <button
                 key={i}
-                onClick={() => onNavigate(tool.page)}
+                onClick={() => goToTool(tool.page)}
                 className="group text-left bg-slate-800/60 hover:bg-slate-800 border border-white/10 hover:border-white/20 rounded-2xl p-6 transition-all hover:shadow-xl hover:-translate-y-0.5"
               >
                 <div className="flex items-center justify-between mb-4">
@@ -249,7 +260,7 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
                 ))}
               </ul>
               <button
-                onClick={() => onNavigate('name-correction')}
+                onClick={() => goToTool('name-correction')}
                 className="group flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-cyan-600 to-teal-600 text-white font-semibold rounded-xl hover:from-cyan-500 hover:to-teal-500 transition-all shadow-lg shadow-cyan-500/20"
               >
                 Try Name Correction Tool
@@ -397,7 +408,7 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
                 ))}
               </ul>
               <button
-                onClick={() => onNavigate('tarot')}
+                onClick={() => goToTool('tarot')}
                 className="group flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-xl hover:from-blue-500 hover:to-cyan-500 transition-all shadow-lg shadow-blue-500/20"
               >
                 <Layers className="w-5 h-5" />
@@ -445,7 +456,7 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
                 ))}
               </ul>
               <button
-                onClick={() => onNavigate('business')}
+                onClick={() => goToTool('business')}
                 className="group flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold rounded-xl hover:from-amber-500 hover:to-orange-500 transition-all shadow-lg shadow-amber-500/20"
               >
                 <Building2 className="w-5 h-5" />
@@ -629,41 +640,59 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
       {/* ─── PRICING TEASER ─── */}
       <section className="py-24 bg-slate-900">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 px-5 py-2 rounded-full mb-6 text-sm font-medium">
+            <Gift className="w-4 h-4" />
+            7-Day Free Trial — No Credit Card Required
+          </div>
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-xl text-gray-400 mb-12">
-            Start free. Upgrade when your practice needs it.
+          <p className="text-xl text-gray-400 mb-3">
+            Try everything free. Subscribe to the plan that fits your practice.
+          </p>
+          <p className="text-sm text-blue-400/80 font-medium mb-12">
+            Intentional pricing: ₹999 reduces to 9 · ₹1,499 reduces to 5
           </p>
           <div className="grid sm:grid-cols-2 gap-6 mb-10">
             <div className="bg-slate-800 border border-white/10 rounded-2xl p-8 text-left">
-              <p className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-2">Free</p>
-              <div className="text-4xl font-bold text-white mb-1">₹0</div>
-              <p className="text-gray-400 text-sm mb-6">Get started, no credit card needed</p>
+              <p className="text-blue-300 text-sm font-semibold uppercase tracking-wider mb-2">Calculator</p>
+              <div className="text-4xl font-bold text-white mb-1">₹999<span className="text-xl font-normal text-gray-400">/mo</span></div>
+              <p className="text-gray-500 text-sm mb-6">Cancel anytime · No lock-in</p>
               <ul className="space-y-3 text-sm text-gray-300">
-                {['Access to all calculators', 'Core Chart generation', 'Lo Shu Grid analysis', 'Compatibility calculator'].map(f => (
+                {['All calculators', 'Lo Shu Grid display', 'Transit chart numbers', 'Compatibility score & matrix'].map(f => (
                   <li key={f} className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />{f}</li>
                 ))}
               </ul>
             </div>
             <div className="bg-gradient-to-br from-blue-900/60 to-cyan-900/40 border-2 border-blue-500/50 rounded-2xl p-8 text-left relative overflow-hidden">
-              <div className="absolute top-4 right-4 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">BEST VALUE</div>
-              <p className="text-blue-300 text-sm font-medium uppercase tracking-wider mb-2">Premium Yearly</p>
-              <div className="text-4xl font-bold text-white mb-1">₹10,000<span className="text-xl font-normal text-gray-400">/yr</span></div>
-              <p className="text-emerald-400 text-sm mb-6">Save ₹2,000 vs monthly</p>
+              <div className="absolute top-4 right-4 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">MOST POPULAR</div>
+              <p className="text-blue-300 text-sm font-semibold uppercase tracking-wider mb-2">Expert</p>
+              <div className="text-4xl font-bold text-white mb-1">₹1,499<span className="text-xl font-normal text-gray-400">/mo</span></div>
+              <p className="text-gray-500 text-sm mb-6">Cancel anytime · No lock-in</p>
               <ul className="space-y-3 text-sm text-gray-300">
-                {['Everything in Free', 'Unlimited saved charts', 'PDF export for all readings', 'AI Name Correction tool', 'Transit chart &amp; forecasting', 'Priority support'].map(f => (
-                  <li key={f} className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" /><span dangerouslySetInnerHTML={{ __html: f }} /></li>
+                {['Everything in Calculator', 'Full written interpretations', 'AI Name Correction', 'Client-ready PDF reports', 'AI Tarot & Business tools'].map(f => (
+                  <li key={f} className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />{f}</li>
                 ))}
               </ul>
             </div>
           </div>
-          <button
-            onClick={() => onNavigate('pricing')}
-            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium transition-colors"
-          >
-            View full pricing details <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <button
+              onClick={onShowAuth}
+              className="group inline-flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all"
+            >
+              <Gift className="w-4 h-4" />
+              Start Free Trial
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button
+              onClick={() => onNavigate('pricing')}
+              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium transition-colors"
+            >
+              View full pricing <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="text-gray-600 text-sm mt-4">No credit card · 7 days · 5 calculations</p>
         </div>
       </section>
 
@@ -673,26 +702,30 @@ export default function LandingPage({ onNavigate, onShowAuth }: LandingPageProps
           backgroundImage: `radial-gradient(ellipse at 30% 50%, rgba(59,130,246,0.2) 0%, transparent 60%), radial-gradient(ellipse at 70% 50%, rgba(6,182,212,0.15) 0%, transparent 60%)`
         }} />
         <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <Hash className="w-12 h-12 text-blue-400 mx-auto mb-6" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 backdrop-blur mb-6">
+            <Gift className="w-7 h-7 text-white" />
+          </div>
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-5">
-            Start Your Free Account Today
+            Start Your Free Trial Today
           </h2>
-          <p className="text-xl text-blue-100/80 mb-10">
-            Join 500+ numerology practitioners who use NumberTeller to deliver faster, more accurate, and more professional consultations.
+          <p className="text-xl text-blue-100/80 mb-3">
+            Join 500+ numerology practitioners who use NumberTeller for faster, more accurate, and more professional consultations.
           </p>
+          <p className="text-blue-300/70 text-base mb-10">7 days free · 5 calculations · No credit card required · Cancel anytime</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={onShowAuth}
               className="group flex items-center justify-center gap-2 px-8 py-4 bg-white text-blue-700 font-bold text-lg rounded-xl hover:bg-blue-50 transition-all shadow-2xl"
             >
-              Sign Up for a Free Account
+              <Gift className="w-5 h-5" />
+              Start Free Trial — No Card Needed
               <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
             <button
-              onClick={() => onNavigate('calculator')}
+              onClick={() => onNavigate('pricing')}
               className="flex items-center justify-center gap-2 px-8 py-4 bg-blue-600/30 border border-blue-400/30 text-white font-semibold text-lg rounded-xl hover:bg-blue-600/40 transition-all backdrop-blur-sm"
             >
-              Try for Free — No Sign Up
+              See Pricing Plans
             </button>
           </div>
         </div>

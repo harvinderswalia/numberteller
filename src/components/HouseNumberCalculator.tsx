@@ -2,17 +2,23 @@ import { useState } from 'react';
 import { ArrowLeft, Home } from 'lucide-react';
 import * as numerology from '../utils/numerology';
 import { HOUSE_NUMBER_INTERPRETATIONS } from '../data/interpretations';
+import { canPerformCalculation } from '../utils/subscription';
 
 interface HouseNumberCalculatorProps {
   onNavigate: (page: string) => void;
+  onShowUpgrade: () => void;
 }
 
-export default function HouseNumberCalculator({ onNavigate }: HouseNumberCalculatorProps) {
+export default function HouseNumberCalculator({ onNavigate, onShowUpgrade }: HouseNumberCalculatorProps) {
   const [number, setNumber] = useState('');
   const [result, setResult] = useState<number | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canPerformCalculation()) {
+      onShowUpgrade();
+      return;
+    }
     const reduced = numerology.calculateHouseNumber(number);
     setResult(reduced);
   };
