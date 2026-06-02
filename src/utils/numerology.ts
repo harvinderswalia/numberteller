@@ -66,18 +66,31 @@ export function cleanName(name: string): string {
 export function calculateKuaNumber(birthDate: Date, gender: 'male' | 'female'): number {
   const year = birthDate.getFullYear();
   const lastTwoDigits = year % 100;
-  const digitSum = lastTwoDigits.toString().split('').reduce((sum, digit) => sum + parseInt(digit), 0);
-  const reducedSum = reduceToSingleDigit(digitSum, false);
 
+  // Step 1: reduce last two digits of birth year to a single digit
+  let sum = Math.floor(lastTwoDigits / 10) + (lastTwoDigits % 10);
+  while (sum > 9) {
+    sum = Math.floor(sum / 10) + (sum % 10);
+  }
+
+  // Step 2: apply gender formula — constants differ for born 2000+
+  const post2000 = year >= 2000;
   let kua: number;
   if (gender === 'male') {
-    kua = 11 - reducedSum;
-    if (kua === 5) kua = 2;
+    kua = (post2000 ? 9 : 10) - sum;
+    // 9 - 9 = 0 for years like 2009, 2018, 2027 … treat as 9
+    if (kua === 0) kua = 9;
   } else {
-    kua = reducedSum + 4;
-    if (kua > 9) kua = kua - 9;
-    if (kua === 5) kua = 8;
+    kua = sum + (post2000 ? 6 : 5);
   }
+
+  // Reduce to single digit if needed
+  while (kua > 9) {
+    kua = Math.floor(kua / 10) + (kua % 10);
+  }
+
+  // Kua 5 has no trigram — males use 2, females use 8
+  if (kua === 5) kua = gender === 'male' ? 2 : 8;
 
   return kua;
 }

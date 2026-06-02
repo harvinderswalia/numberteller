@@ -1,12 +1,13 @@
 import React from 'react';
-import { TrendingUp, Heart, User, Calendar } from 'lucide-react';
+import { calculateLoShuGrid } from '../utils/loShuGrid';
 
 interface CoreChartProps {
   lifePath: number | string;
   expression: number | string;
   soulUrge: number | string;
   personalYear: number;
-  birthDate?: string;
+  birthDate?: string; // DD/MM/YYYY
+  gender?: 'male' | 'female';
   harmony: {
     lpExpr: number;
     lpSoul: number;
@@ -17,7 +18,14 @@ interface CoreChartProps {
   };
 }
 
-export default function CoreChart({ lifePath, expression, soulUrge, personalYear, birthDate, harmony }: CoreChartProps) {
+// Grid layout: Lo Shu magic square positions
+const GRID_POSITIONS: Record<string, number> = {
+  '0-0': 4, '0-1': 9, '0-2': 2,
+  '1-0': 3, '1-1': 5, '1-2': 7,
+  '2-0': 8, '2-1': 1, '2-2': 6,
+};
+
+export default function CoreChart({ lifePath, expression, soulUrge, personalYear, birthDate, gender, harmony }: CoreChartProps) {
   const getNumericValue = (value: number | string): number => {
     if (typeof value === 'string') {
       return parseInt(value.split('/').pop() || '0');
@@ -44,18 +52,30 @@ export default function CoreChart({ lifePath, expression, soulUrge, personalYear
   const exNum = getNumericValue(expression);
   const suNum = getNumericValue(soulUrge);
 
-  // Calculate Birth Date number (day of birth reduced to single digit)
-  let bdNum = 0;
-  if (birthDate) {
-    const parts = birthDate.split('/');
-    if (parts.length === 3) {
-      const day = parseInt(parts[0], 10);
-      bdNum = day > 9 ? (Math.floor(day / 10) + (day % 10)) : day;
-      // Further reduce if needed (e.g., 28 -> 10 -> 1)
-      while (bdNum > 9) {
-        bdNum = Math.floor(bdNum / 10) + (bdNum % 10);
-      }
+  // Convert DD/MM/YYYY → YYYY-MM-DD for calculateLoShuGrid
+  const toISODate = (ddmmyyyy: string): string | null => {
+    const parts = ddmmyyyy.split('/');
+    if (parts.length === 3 && parts[2].length === 4) {
+      return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
     }
+    return null;
+  };
+
+  const isoDate = birthDate ? toISODate(birthDate) : null;
+  const loShu = isoDate && gender
+    ? calculateLoShuGrid('', isoDate, gender)
+    : null;
+
+  // Build extra source map for badge annotations
+  const extraSourceMap: Record<number, string[]> = {};
+  if (loShu) {
+    const { bd, lp, kua } = loShu.extraNumbers;
+    ([[ bd, 'BD'], [lp, 'LP'], [kua, 'Kua']] as [number, string][]).forEach(([val, label]) => {
+      if (val >= 1 && val <= 9) {
+        if (!extraSourceMap[val]) extraSourceMap[val] = [];
+        if (!extraSourceMap[val].includes(label)) extraSourceMap[val].push(label);
+      }
+    });
   }
 
   const isPerfectCore = lpNum === exNum && exNum === suNum;
@@ -65,17 +85,13 @@ export default function CoreChart({ lifePath, expression, soulUrge, personalYear
   const repeatedNumbers: { number: number; positions: string[] }[] = [];
   const numberCount = new Map<number, string[]>();
 
-  // Track all core numbers and their positions
-  if (bdNum > 0) numberCount.set(bdNum, [...(numberCount.get(bdNum) || []), 'BD']);
+  if (loShu && loShu.extraNumbers.bd > 0) numberCount.set(loShu.extraNumbers.bd, [...(numberCount.get(loShu.extraNumbers.bd) || []), 'BD']);
   numberCount.set(lpNum, [...(numberCount.get(lpNum) || []), 'LP']);
   numberCount.set(exNum, [...(numberCount.get(exNum) || []), 'EX']);
   numberCount.set(suNum, [...(numberCount.get(suNum) || []), 'SU']);
 
-  // Find numbers that appear in multiple positions
   numberCount.forEach((positions, num) => {
-    if (positions.length > 1) {
-      repeatedNumbers.push({ number: num, positions });
-    }
+    if (positions.length > 1) repeatedNumbers.push({ number: num, positions });
   });
 
   const hasOverEnergy = repeatedNumbers.length > 0;
@@ -87,22 +103,16 @@ export default function CoreChart({ lifePath, expression, soulUrge, personalYear
   };
 
   const getHarmonyLabel = (score: number, pairHasOverEnergy: boolean): string => {
-    // If there's over-energy in this specific pair, always flag it
-    if (pairHasOverEnergy) {
-      return 'Over-Energy';
-    }
+    if (pairHasOverEnergy) return 'Over-Energy';
     if (score === 1.0) return 'Perfect';
     if (score >= 0.8) return 'Strong';
     if (score >= 0.5) return 'Neutral';
     return 'Challenging';
   };
 
-  // Helper to check if a specific pair has over-energy
   const pairHasOverEnergy = (pos1: string, pos2: string): boolean => {
     if (!harmony.overEnergyDetails) return false;
-    return harmony.overEnergyDetails.some(detail =>
-      detail.positions.includes(pos1) && detail.positions.includes(pos2)
-    );
+    return harmony.overEnergyDetails.some(d => d.positions.includes(pos1) && d.positions.includes(pos2));
   };
 
   return (
@@ -177,24 +187,24 @@ export default function CoreChart({ lifePath, expression, soulUrge, personalYear
             </div>
           </div>
 
-          {/* BD (Birth Date) - Left side, aligned with middle */}
-          {birthDate && bdNum > 0 && (
+          {/* BD (Birth Date) - Left side */}
+          {loShu && loShu.extraNumbers.bd > 0 && (
             <div className="absolute" style={{ top: '50%', left: '8%', transform: 'translateY(-50%)' }}>
               <div className="flex flex-col items-center">
                 <div className="text-xs font-bold text-gray-700 mb-1">BD</div>
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-gray-400 flex items-center justify-center shadow">
-                  <span className="text-xl font-bold text-gray-700">{bdNum}</span>
+                  <span className="text-xl font-bold text-gray-700">{loShu.extraNumbers.bd}</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* EX (Expression) - Right side, aligned with middle */}
+          {/* EX (Expression) - Right side */}
           <div className="absolute" style={{ top: '50%', right: '8%', transform: 'translateY(-50%)' }}>
             <div className="flex flex-col items-center">
-              <div className="text-xs font-bold text-purple-700 mb-1">EX</div>
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 border-2 border-purple-400 flex items-center justify-center shadow">
-                <span className="text-xl font-bold text-purple-900">{exNum}</span>
+              <div className="text-xs font-bold text-teal-700 mb-1">EX</div>
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-100 to-teal-200 border-2 border-teal-400 flex items-center justify-center shadow">
+                <span className="text-xl font-bold text-teal-900">{exNum}</span>
               </div>
             </div>
           </div>
@@ -211,12 +221,91 @@ export default function CoreChart({ lifePath, expression, soulUrge, personalYear
         </div>
       </div>
 
-      {/* Compatibility Grid showing the core numbers */}
+      {/* Lo Shu 3×3 Grid */}
+      {loShu && (
+        <div className="mb-8">
+          <h4 className="font-bold text-gray-900 mb-4 text-center text-lg">Lo Shu Grid</h4>
+          <div className="flex flex-col items-center gap-4">
+            <div className="grid grid-cols-3 gap-2 p-4 bg-gray-900 rounded-xl border-2 border-amber-500/50">
+              {[0, 1, 2].flatMap(row =>
+                [0, 1, 2].map(col => {
+                  const number = GRID_POSITIONS[`${row}-${col}`];
+                  const birthCount = loShu.birthDigitCounts[number] || 0;
+                  const totalCount = loShu.numberCounts[number] || 0;
+                  const extraLabels = extraSourceMap[number] || [];
+
+                  return (
+                    <div
+                      key={`${row}-${col}`}
+                      className={`w-20 h-20 flex flex-col items-center justify-center rounded-lg border-2 ${
+                        totalCount > 0
+                          ? 'bg-gradient-to-br from-amber-500/20 to-orange-600/20 border-amber-500'
+                          : 'bg-gray-800 border-gray-600'
+                      }`}
+                    >
+                      <div className="text-2xl font-bold text-white leading-none">{number}</div>
+                      {birthCount > 0 && (
+                        <div className="text-amber-400 text-xs font-bold leading-none mt-0.5">
+                          {'•'.repeat(Math.min(birthCount, 5))}
+                        </div>
+                      )}
+                      {extraLabels.length > 0 && (
+                        <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
+                          {extraLabels.map(label => (
+                            <span
+                              key={label}
+                              className="text-[8px] font-bold px-1 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 leading-none"
+                            >
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Core numbers summary below grid */}
+            <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 w-full max-w-xs">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Core Numbers in Grid</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Driver (BD Day)</span>
+                  <span className="text-amber-600 font-bold">{loShu.driverNumber}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Life Path (LP)</span>
+                  <span className="text-amber-600 font-bold">{loShu.conductorNumber}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-500">Kua Number</span>
+                  <span className="text-amber-600 font-bold">{loShu.kuaNumber}</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-400 mt-3 pt-3 border-t border-gray-200 leading-relaxed">
+                Dots (•) = birth date digits. BD, LP, Kua badges = additional grid placements.
+              </p>
+            </div>
+
+            {/* Missing numbers */}
+            {loShu.missingNumbers.length > 0 && (
+              <div className="w-full max-w-xs p-3 bg-rose-50 border border-rose-200 rounded-xl">
+                <p className="text-xs font-semibold text-rose-600 uppercase tracking-wider mb-1">Missing Numbers</p>
+                <p className="text-sm text-rose-700 font-medium">{loShu.missingNumbers.join(', ')}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Compatibility Grid */}
       <div className="mb-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200">
         <h4 className="font-bold text-gray-900 mb-4 text-center text-lg">Current Core Compatibility</h4>
         <div className="flex justify-center items-center gap-8 mb-3">
           <div className="text-center">
-            <div className="text-4xl font-bold text-purple-700">{expression}</div>
+            <div className="text-4xl font-bold text-teal-700">{expression}</div>
             <div className="text-xs text-gray-600 mt-1">EX</div>
           </div>
           <div className="text-center">
@@ -260,7 +349,7 @@ export default function CoreChart({ lifePath, expression, soulUrge, personalYear
               {getHarmonyLabel(harmony.lpSoul, pairHasOverEnergy('LP', 'SU'))}
             </span>
           </div>
-          <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
+          <div className="flex justify-between items-center p-3 bg-teal-50 rounded-lg">
             <span className="text-sm text-gray-700 font-medium">Expression ↔ Soul Urge</span>
             <span className={`font-semibold px-3 py-1 rounded-full text-sm ${
               pairHasOverEnergy('EX', 'SU') ? 'bg-orange-100 text-orange-800' :
@@ -277,7 +366,7 @@ export default function CoreChart({ lifePath, expression, soulUrge, personalYear
       {harmony.hasOverEnergy && harmony.overEnergyDetails && harmony.overEnergyDetails.length > 0 && (
         <div className="mt-6 p-4 bg-orange-50 border-2 border-orange-300 rounded-xl">
           <p className="text-sm text-orange-900 font-semibold mb-2">
-            ⚠️ Over-Energy Detected
+            Over-Energy Detected
           </p>
           {harmony.overEnergyDetails.map((detail, idx) => (
             <p key={idx} className="text-sm text-orange-800 mb-1">

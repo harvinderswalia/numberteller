@@ -34,6 +34,7 @@ export default function NameCorrectionTool({ onBack }: NameCorrectionToolProps) 
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
   const [birthDate, setBirthDate] = useState('');
+  const [gender, setGender] = useState<'male' | 'female'>('male');
   const [desireCategory, setDesireCategory] = useState('Career Growth');
   const [result, setResult] = useState<NameCorrectionResult | null>(null);
 
@@ -116,6 +117,26 @@ export default function NameCorrectionTool({ onBack }: NameCorrectionToolProps) 
             </div>
 
             <div>
+              <label className={labelClass}>Gender</label>
+              <div className="flex gap-3">
+                {(['male', 'female'] as const).map(g => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGender(g)}
+                    className={`flex-1 py-3 rounded-xl border font-semibold text-sm capitalize transition-all ${
+                      gender === g
+                        ? 'border-blue-500 bg-blue-500/10 text-blue-300 shadow-md shadow-blue-500/10'
+                        : 'border-slate-700 text-slate-400 hover:border-slate-500 hover:bg-slate-700/30'
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <label className={labelClass}>Life Goal</label>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {Object.keys(DESIRE_CATEGORIES).map(category => {
@@ -151,6 +172,7 @@ export default function NameCorrectionTool({ onBack }: NameCorrectionToolProps) 
               soulUrge={result.current.soulUrge}
               personalYear={result.current.personalYear}
               birthDate={birthDate}
+              gender={gender}
               harmony={result.current.coreHarmony}
             />
 

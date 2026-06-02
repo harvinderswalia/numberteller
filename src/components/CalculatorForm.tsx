@@ -3,6 +3,7 @@ import { Calendar, User, ArrowLeft, CircleUser as UserCircle } from 'lucide-reac
 import * as numerology from '../utils/numerology';
 import { calculateEssenceForAge } from '../utils/transitCalculations';
 import { usePlanContext } from '../contexts/PlanContext';
+import { calculateLoShuGrid } from '../utils/loShuGrid';
 
 interface CalculatorFormProps {
   onNavigate: (page: string) => void;
@@ -64,7 +65,7 @@ export default function CalculatorForm({ onNavigate, onCalculate, onShowUpgrade 
       const firstLetter = numerology.getFirstLetter(fullName);
       const firstVowel = numerology.getFirstVowel(fullName);
       const zodiac = numerology.getZodiacSign(birth);
-      const loshuGrid = numerology.generateLoshuGrid(fullName);
+      const loshuGrid = calculateLoShuGrid(fullName, birthDate, gender);
 
       const results = {
         fullName,

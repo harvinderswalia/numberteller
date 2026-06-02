@@ -1,10 +1,18 @@
 import { useState } from 'react';
-import { ArrowLeft, ChevronDown, ChevronUp, Download, Info, Save, Layers } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, Download, Info, Save, Layers, Sparkles } from 'lucide-react';
 import { NUMBER_INTERPRETATIONS, KARMIC_LESSON_INTERPRETATIONS, PERSONAL_YEAR_INTERPRETATIONS, HOUSE_NUMBER_INTERPRETATIONS } from '../data/interpretations';
+import { NUMBER_ELEMENT_MAP, FiveElement } from '../data/loShuInterpretations';
 import TransitChart from './TransitChart';
-import { calculateKuaNumber } from '../utils/numerology';
 import { saveChart } from '../utils/savedCharts';
 import { useAuth } from '../contexts/AuthContext';
+
+const ELEMENT_COLORS: Record<FiveElement, { bg: string; text: string; border: string }> = {
+  Wood:  { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30' },
+  Fire:  { bg: 'bg-rose-500/10',    text: 'text-rose-300',    border: 'border-rose-500/30'    },
+  Earth: { bg: 'bg-amber-500/10',   text: 'text-amber-300',   border: 'border-amber-500/30'   },
+  Metal: { bg: 'bg-slate-400/10',   text: 'text-slate-300',   border: 'border-slate-400/30'   },
+  Water: { bg: 'bg-blue-500/10',    text: 'text-blue-300',    border: 'border-blue-500/30'    },
+};
 
 interface ResultsDisplayProps {
   results: any;
@@ -397,58 +405,148 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
 
           {renderSection('loshu', 'Loshu Grid Chart', (
             <div className="space-y-4">
-              {results.gender && (
-                <div className="bg-slate-900/50 rounded-lg p-4 border border-orange-500/50 max-w-md mx-auto">
-                  <h4 className="text-sm font-semibold text-orange-400 mb-2">Kua Number (Feng Shui Directional Number)</h4>
-                  <div className="flex items-center gap-3">
-                    <div className="text-4xl font-bold text-orange-400">
-                      {calculateKuaNumber(results.birthDate, results.gender)}
+              {/* Grid + Legend side by side */}
+              <div className="flex flex-col lg:flex-row gap-6 items-start">
+                {/* Left: grid + core numbers */}
+                <div className="flex-shrink-0">
+                  <div className="grid grid-cols-3 gap-2 p-4 bg-slate-900 rounded-xl border-2 border-amber-500/50">
+                    {([[4,9,2],[3,5,7],[8,1,6]] as number[][]).flatMap((row, rowIndex) =>
+                      row.map((number, colIndex) => {
+                        const nc = results.loshuGrid.numberCounts || {};
+                        const bdc = results.loshuGrid.birthDigitCounts || {};
+                        const birthCount = (bdc[number] ?? bdc[String(number)]) || 0;
+                        const totalCount = (nc[number] ?? nc[String(number)]) || 0;
+                        const { bd, lp, kua } = results.loshuGrid.extraNumbers || {};
+                        const extraLabels: string[] = [];
+                        if (bd === number) extraLabels.push('BD');
+                        if (lp === number) extraLabels.push('LP');
+                        if (kua === number) extraLabels.push('Kua');
+                        const element = NUMBER_ELEMENT_MAP[number as keyof typeof NUMBER_ELEMENT_MAP] as FiveElement;
+                        const elColor = element ? ELEMENT_COLORS[element] : ELEMENT_COLORS['Earth'];
+
+                        return (
+                          <div
+                            key={`${rowIndex}-${colIndex}`}
+                            className={`w-20 h-20 flex flex-col items-center justify-center rounded-lg border-2 relative ${
+                              totalCount > 0
+                                ? 'bg-gradient-to-br from-amber-500/20 to-orange-600/20 border-amber-500'
+                                : 'bg-slate-800 border-slate-600'
+                            }`}
+                          >
+                            <div className="text-2xl font-bold text-white leading-none">{number}</div>
+                            {birthCount > 0 && (
+                              <div className="text-amber-400 text-xs font-bold leading-none mt-0.5">
+                                {'•'.repeat(Math.min(birthCount, 5))}
+                              </div>
+                            )}
+                            {extraLabels.length > 0 && (
+                              <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
+                                {extraLabels.map(label => (
+                                  <span key={label} className={`text-[8px] font-bold px-1 py-0.5 rounded ${elColor.bg} ${elColor.text} border ${elColor.border} leading-none`}>
+                                    {label}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {element && (
+                              <span className={`absolute top-1 right-1 text-[7px] font-semibold ${elColor.text} leading-none`}>
+                                {element[0]}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Core numbers summary */}
+                  <div className="mt-4 bg-slate-900 rounded-xl border border-slate-700 p-4">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Core Numbers in Grid</p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">Driver Number (BD Day)</span>
+                        <span className="text-amber-400 font-bold text-lg">{results.loshuGrid.driverNumber ?? results.loshuGrid.extraNumbers?.bd}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">Life Path (LP)</span>
+                        <span className="text-amber-400 font-bold text-lg">{results.loshuGrid.conductorNumber ?? results.loshuGrid.extraNumbers?.lp}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400">Kua Number</span>
+                        <span className="text-amber-400 font-bold text-lg">{results.loshuGrid.kuaNumber}</span>
+                      </div>
                     </div>
-                    <p className="text-sm text-slate-300">Based on birth year and gender, this number determines your auspicious directions and best placement in spaces.</p>
+                    <div className="mt-3 pt-3 border-t border-slate-700">
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        BD ({results.loshuGrid.extraNumbers?.bd}), LP ({results.loshuGrid.extraNumbers?.lp}), and Kua ({results.loshuGrid.kuaNumber}) are included in the grid and factored into all arrow and plane analysis.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              <div className="grid grid-cols-3 gap-2 max-w-md mx-auto">
-                {results.loshuGrid.grid.map((row: (number | null)[], rowIndex: number) => {
-                  const loshuNumbers = [[4, 9, 2], [3, 5, 7], [8, 1, 6]];
-                  const kuaNumber = results.gender ? calculateKuaNumber(results.birthDate, results.gender) : null;
-
-                  return row.map((cell: number | null, colIndex: number) => {
-                    const representedNumber = loshuNumbers[rowIndex][colIndex];
-                    const isKuaNumber = kuaNumber === representedNumber;
-
-                    return (
-                      <div
-                        key={`${rowIndex}-${colIndex}`}
-                        className={`aspect-square flex flex-col items-center justify-center rounded-lg border-2 ${
-                          isKuaNumber
-                            ? 'bg-orange-500/30 border-orange-400 ring-2 ring-orange-500/50'
-                            : cell
-                              ? 'bg-emerald-500/20 border-emerald-500'
-                              : 'bg-slate-900/50 border-slate-700'
-                        }`}
-                      >
-                        <div className={`text-sm font-medium ${
-                          isKuaNumber ? 'text-orange-300' : cell ? 'text-emerald-300' : 'text-slate-500'
-                        }`}>
-                          {representedNumber}
-                        </div>
-                        <div className={`text-3xl font-bold ${
-                          isKuaNumber ? 'text-orange-400' : cell ? 'text-emerald-400' : 'text-slate-600'
-                        }`}>
-                          {cell || '0'}
-                        </div>
-                        {isKuaNumber && (
-                          <div className="text-xs text-orange-400 font-semibold mt-1">KUA</div>
-                        )}
+                {/* Right: legend + element info */}
+                <div className="flex-1 space-y-4">
+                  {/* Grid Legend */}
+                  <div className="p-4 bg-slate-900 rounded-lg border border-slate-700">
+                    <h3 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
+                      <Info className="w-4 h-4 text-blue-400" />
+                      Grid Legend
+                    </h3>
+                    <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                      Each dot (•) represents one occurrence in your birth date digits. BD, LP, and Kua badges indicate additional placements from your core numbers — these are included in arrow and plane calculations.
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 text-xs mb-4">
+                      {[1,2,3,4,5,6,7,8,9].map((num) => {
+                        const bdc = results.loshuGrid.birthDigitCounts || {};
+                        const birthCount = (bdc[num] ?? bdc[String(num)]) || 0;
+                        const { bd, lp, kua } = results.loshuGrid.extraNumbers || {};
+                        const extras: string[] = [];
+                        if (bd === num) extras.push('BD');
+                        if (lp === num) extras.push('LP');
+                        if (kua === num) extras.push('Kua');
+                        return (
+                          <div key={num} className="flex items-center gap-1 flex-wrap">
+                            <span className="text-amber-400 font-bold">{num}:</span>
+                            <span className="text-slate-400">{birthCount > 0 ? `${birthCount}x` : 'Missing'}</span>
+                            {extras.length > 0 && <span className="text-blue-400 font-medium">+{extras.join(',')}</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {/* Five Element Map */}
+                    <div className="pt-3 border-t border-slate-700">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Five Element Map</p>
+                      <div className="grid grid-cols-5 gap-1 text-[10px]">
+                        {(['Wood','Fire','Earth','Metal','Water'] as FiveElement[]).map(el => {
+                          const c = ELEMENT_COLORS[el];
+                          return (
+                            <div key={el} className={`${c.bg} ${c.text} border ${c.border} rounded px-1.5 py-1 text-center`}>
+                              <div className="font-bold">{el[0]}</div>
+                              <div className="opacity-70">{el}</div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  });
-                })}
+                      <p className="text-[10px] text-slate-600 mt-1.5">Letter in top-right of each cell = element</p>
+                    </div>
+                  </div>
+
+                  {/* Five Element Cycles */}
+                  <div className="p-4 bg-slate-900 rounded-lg border border-slate-700">
+                    <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      Five Element Cycles
+                    </h3>
+                    <div className="space-y-1.5 text-xs text-slate-400">
+                      <div><span className="text-emerald-400 font-medium">Productive:</span> Wood → Fire → Earth → Metal → Water → Wood</div>
+                      <div><span className="text-orange-400 font-medium">Exhaustive:</span> Fire exhausts Wood · Earth exhausts Fire · Metal exhausts Earth · Water exhausts Metal · Wood exhausts Water</div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {results.loshuGrid.missingNumbers.length > 0 && (
+              {/* Missing Numbers */}
+              {results.loshuGrid.missingNumbers?.length > 0 && (
                 <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
                   <h4 className="text-sm font-semibold text-rose-400 mb-2">Missing Numbers</h4>
                   <p className="text-white">{results.loshuGrid.missingNumbers.join(', ')}</p>
@@ -456,11 +554,12 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
                 </div>
               )}
 
-              {results.loshuGrid.arrows.length > 0 && (
+              {/* Active Arrows */}
+              {results.loshuGrid.arrows?.present?.length > 0 && (
                 <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
                   <h4 className="text-sm font-semibold text-emerald-400 mb-2">Active Arrows</h4>
                   <ul className="space-y-1">
-                    {results.loshuGrid.arrows.map((arrow: string, i: number) => (
+                    {results.loshuGrid.arrows.present.map((arrow: string, i: number) => (
                       <li key={i} className="text-sm text-slate-300 flex items-center gap-2">
                         <span className="text-emerald-400">✓</span>
                         {arrow}

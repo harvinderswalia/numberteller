@@ -221,8 +221,8 @@ function findRepeatingNumbers(numberCounts: { [key: number]: number }): { number
 }
 
 function calculateDriverNumber(dateOfBirth: string): number {
-  const date = new Date(dateOfBirth);
-  const day = date.getDate();
+  // Parse day directly from YYYY-MM-DD string to avoid timezone issues
+  const day = parseInt(dateOfBirth.split('-')[2], 10);
   if (day <= 9) return day;
   const digits = day.toString().split('').map(Number);
   let sum = digits.reduce((a, b) => a + b, 0);
@@ -240,27 +240,35 @@ function calculateConductorNumber(dateOfBirth: string): number {
 }
 
 function calculateKuaNumber(dateOfBirth: string, gender: string): number {
-  const date = new Date(dateOfBirth);
-  const year = date.getFullYear();
+  // Parse year directly from YYYY-MM-DD string to avoid timezone issues
+  const year = parseInt(dateOfBirth.split('-')[0], 10);
   const lastTwoDigits = year % 100;
-  let sum = Math.floor(lastTwoDigits / 10) + (lastTwoDigits % 10);
 
+  // Step 1: reduce last two digits of birth year to a single digit
+  let sum = Math.floor(lastTwoDigits / 10) + (lastTwoDigits % 10);
   while (sum > 9) {
     sum = Math.floor(sum / 10) + (sum % 10);
   }
 
-  let kuaNumber: number;
-  if (gender.toLowerCase() === 'male') {
-    kuaNumber = 11 - sum;
-    if (kuaNumber > 9) kuaNumber = kuaNumber - 9;
+  // Step 2: apply gender formula — constants differ for born 2000+
+  const post2000 = year >= 2000;
+  const isMale = gender.toLowerCase() === 'male';
+  let kua: number;
+  if (isMale) {
+    kua = (post2000 ? 9 : 10) - sum;
+    // 9 - 9 = 0 for years like 2009, 2018, 2027 … treat as 9
+    if (kua === 0) kua = 9;
   } else {
-    kuaNumber = 4 + sum;
-    if (kuaNumber > 9) kuaNumber = kuaNumber - 9;
+    kua = sum + (post2000 ? 6 : 5);
   }
 
-  if (kuaNumber === 5) {
-    kuaNumber = gender.toLowerCase() === 'male' ? 2 : 8;
+  // Reduce to single digit if needed
+  while (kua > 9) {
+    kua = Math.floor(kua / 10) + (kua % 10);
   }
 
-  return kuaNumber;
+  // Kua 5 has no trigram — males use 2, females use 8
+  if (kua === 5) kua = isMale ? 2 : 8;
+
+  return kua;
 }

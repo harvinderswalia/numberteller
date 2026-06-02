@@ -131,6 +131,15 @@ function App() {
     const restored = chartData
       ? { ...chartData, birthDate: chartData.birthDate ? new Date(chartData.birthDate) : chartData.birthDate }
       : chartData;
+
+    // Re-compute loshuGrid using the correct engine (handles old saved charts with name-based grid)
+    if (restored?.birthDate && restored?.gender && restored?.fullName !== undefined) {
+      const iso = restored.birthDate instanceof Date
+        ? restored.birthDate.toISOString().split('T')[0]
+        : String(restored.birthDate).split('T')[0];
+      restored.loshuGrid = calculateLoShuGrid(restored.fullName || '', iso, restored.gender);
+    }
+
     setCalculationResults(restored);
     if (restored) setSharedNumerology(extractNumerology(restored));
     window.history.pushState({ page: 'results' }, '', window.location.pathname);
