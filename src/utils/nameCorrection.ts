@@ -208,6 +208,7 @@ export interface NameCorrectionResult {
   improvementScore: number;
   personalYears: Record<number, number>;
   essenceNumbers: Record<number, number | string>;
+  customRejectionReason?: string;
 }
 
 function calculateTargetScore(
@@ -455,12 +456,20 @@ function applyNameTweakToPart(part: string, tweak: string): string[] {
   return variations;
 }
 
+const APPEND_LETTER_TWEAKS = new Set(['add_a', 'add_e', 'add_h', 'add_i']);
+
 function applyNameTweak(name: string, tweak: string): string[] {
   const parts = name.split(' ');
   const allVariations: string[] = [];
+  const lastIndex = parts.length - 1;
 
   // Try applying the tweak to each part separately
   parts.forEach((part, index) => {
+    // Never append letters to the last name — appending a vowel to a
+    // surname (e.g. Gautam → Gautami) changes its pronunciation and
+    // gender inflection, which is not a valid "spelling variation".
+    if (index === lastIndex && APPEND_LETTER_TWEAKS.has(tweak)) return;
+
     const partVariations = applyNameTweakToPart(part, tweak);
     partVariations.forEach(variation => {
       const newParts = [...parts];
@@ -610,10 +619,81 @@ function calculateEssenceForYears(fullName: string, birthDate: Date, years: numb
   return essenceNumbers;
 }
 
+export function generateCustomTargets(
+  current: CurrentCores,
+  customExpr: number,
+  customSoul: number,
+  pys: Record<number, number>,
+  currentEssence?: number,
+  bdNum?: number
+): { targets: TargetPair[]; rejectionReason?: string } {
+  const lpNum = typeof current.lifePath === 'string' ? parseInt(current.lifePath.split('/').pop() || '0') : current.lifePath;
+  const lpFull = typeof current.lifePath === 'string' && current.lifePath.includes('/')
+    ? parseInt(current.lifePath.split('/')[0])
+    : lpNum;
+
+  const coreNumbers = new Set<number>([lpNum]);
+  if (lpFull !== lpNum) coreNumbers.add(lpFull);
+  if (bdNum && bdNum > 0) coreNumbers.add(bdNum);
+
+  if (coreNumbers.has(customExpr) || coreNumbers.has(customSoul)) {
+    return {
+      targets: [],
+      rejectionReason: `The chosen number(s) match your core foundation (BD/LP = ${[...coreNumbers].join(', ')}), which would create over-energy. Please pick numbers different from your Life Path and Birth Date.`,
+    };
+  }
+
+  if (hasProblematicCombination(customExpr, customSoul)) {
+    return {
+      targets: [],
+      rejectionReason: `Expression ${customExpr} and Soul Urge ${customSoul} form a conflicting pair that creates internal tension. Please choose a more compatible combination.`,
+    };
+  }
+
+  if (currentEssence && hasEssenceConflict(customExpr, customSoul, currentEssence)) {
+    return {
+      targets: [],
+      rejectionReason: `The chosen numbers conflict with your current Essence number (${currentEssence}). Try different numbers or wait for your Essence cycle to shift.`,
+    };
+  }
+
+  const syntheticPrefs: DesirePreferences = {
+    expression: [customExpr],
+    soulUrge: [customSoul],
+    rationale: 'Custom target chosen by you',
+  };
+
+  const currentExprNum = typeof current.expression === 'string' ? parseInt(current.expression.split('/').pop() || '0') : current.expression;
+  const currentSoulNum = typeof current.soulUrge === 'string' ? parseInt(current.soulUrge.split('/').pop() || '0') : current.soulUrge;
+
+  const { score, lpHarmony, pyHarmony, isPerfectCore, rationale } = calculateTargetScore(
+    customExpr,
+    customSoul,
+    current.lifePath,
+    pys,
+    syntheticPrefs,
+    currentExprNum,
+    currentSoulNum
+  );
+
+  return {
+    targets: [{
+      expression: formatMasterNumber(customExpr),
+      soulUrge: formatMasterNumber(customSoul),
+      score,
+      harmonyWithLP: lpHarmony,
+      pyHarmony,
+      isPerfectCore,
+      rationale: `Custom target — ${rationale}`,
+    }],
+  };
+}
+
 export function analyzeNameCorrection(
   fullName: string,
   birthDate: string,
-  desireCategory: string
+  desireCategory: string,
+  customTarget?: { expression: number; soulUrge: number }
 ): NameCorrectionResult {
   const birthDateObj = parseDateString(birthDate);
   const lifePath = calculateLifePath(birthDateObj);
@@ -700,7 +780,15 @@ export function analyzeNameCorrection(
   const currentYearEssence = essenceNumbers[currentYear];
   const currentEssenceNum = typeof currentYearEssence === 'string' ? parseInt(currentYearEssence.split('/').pop() || '0') : currentYearEssence;
 
-  const targets = generateTargets(current, desireCategory, personalYears, currentEssenceNum, bdNum);
+  let targets: TargetPair[];
+  let customRejectionReason: string | undefined;
+  if (customTarget) {
+    const customResult = generateCustomTargets(current, customTarget.expression, customTarget.soulUrge, personalYears, currentEssenceNum, bdNum);
+    targets = customResult.targets;
+    customRejectionReason = customResult.rejectionReason;
+  } else {
+    targets = generateTargets(current, desireCategory, personalYears, currentEssenceNum, bdNum);
+  }
   const suggestions = generateNameSuggestions(fullName, targets, lifePathNum);
 
   const improvementScore = targets.length > 0 ? Math.round(targets[0].score * 100) : coreScore;
@@ -721,5 +809,6 @@ export function analyzeNameCorrection(
     improvementScore,
     personalYears,
     essenceNumbers,
+    customRejectionReason,
   };
 }

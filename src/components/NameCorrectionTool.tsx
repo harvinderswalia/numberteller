@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, TrendingUp, Heart, DollarSign, Activity, Brain, Check, Calendar, ArrowLeft } from 'lucide-react';
+import { Sparkles, TrendingUp, Heart, DollarSign, Activity, Brain, Check, Calendar, ArrowLeft, Target } from 'lucide-react';
 import { analyzeNameCorrection, DESIRE_CATEGORIES, NameCorrectionResult } from '../utils/nameCorrection';
 import { calculateHarmonyScore } from '../utils/numerology';
 import { generatePersonalYearForecast } from '../utils/personalYearForecast';
@@ -36,6 +36,9 @@ export default function NameCorrectionTool({ onBack }: NameCorrectionToolProps) 
   const [birthDate, setBirthDate] = useState('');
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [desireCategory, setDesireCategory] = useState('Career Growth');
+  const [targetMode, setTargetMode] = useState<'category' | 'custom'>('category');
+  const [customExpr, setCustomExpr] = useState<number | null>(null);
+  const [customSoul, setCustomSoul] = useState<number | null>(null);
   const [result, setResult] = useState<NameCorrectionResult | null>(null);
 
   const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
@@ -58,8 +61,17 @@ export default function NameCorrectionTool({ onBack }: NameCorrectionToolProps) 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !birthDate) return;
-    const analysisResult = analyzeNameCorrection(fullName, birthDate, desireCategory);
-    setResult(analysisResult);
+    if (targetMode === 'custom') {
+      if (customExpr === null || customSoul === null) return;
+      const analysisResult = analyzeNameCorrection(fullName, birthDate, desireCategory, {
+        expression: customExpr,
+        soulUrge: customSoul,
+      });
+      setResult(analysisResult);
+    } else {
+      const analysisResult = analyzeNameCorrection(fullName, birthDate, desireCategory);
+      setResult(analysisResult);
+    }
   };
 
   const inputClass = 'w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all text-sm';
@@ -137,8 +149,71 @@ export default function NameCorrectionTool({ onBack }: NameCorrectionToolProps) 
             </div>
 
             <div>
-              <label className={labelClass}>Life Goal</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <label className={labelClass}>Target Mode</label>
+              <div className="flex gap-3 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setTargetMode('category')}
+                  className={`flex-1 py-3 rounded-xl border font-semibold text-sm transition-all ${
+                    targetMode === 'category'
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-300 shadow-md shadow-blue-500/10'
+                      : 'border-slate-700 text-slate-400 hover:border-slate-500 hover:bg-slate-700/30'
+                  }`}
+                >
+                  Choose Life Goal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTargetMode('custom')}
+                  className={`flex-1 py-3 rounded-xl border font-semibold text-sm transition-all ${
+                    targetMode === 'custom'
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-300 shadow-md shadow-blue-500/10'
+                      : 'border-slate-700 text-slate-400 hover:border-slate-500 hover:bg-slate-700/30'
+                  }`}
+                >
+                  Enter Target Numbers
+                </button>
+              </div>
+
+              {targetMode === 'custom' ? (
+                <div className="grid grid-cols-2 gap-4 p-4 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                  <div>
+                    <label className={`${labelClass} text-blue-300`}>Desired Expression</label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 11].map(n => (
+                        <button key={n} type="button" onClick={() => setCustomExpr(n)}
+                          className={`py-2.5 rounded-lg border text-sm font-bold transition-all ${
+                            customExpr === n
+                              ? 'border-blue-500 bg-blue-500/20 text-blue-300 shadow-md shadow-blue-500/10'
+                              : 'border-slate-700 text-slate-400 hover:border-slate-500 hover:bg-slate-700/30'
+                          }`}>
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={`${labelClass} text-rose-300`}>Desired Soul Urge</label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 11].map(n => (
+                        <button key={n} type="button" onClick={() => setCustomSoul(n)}
+                          className={`py-2.5 rounded-lg border text-sm font-bold transition-all ${
+                            customSoul === n
+                              ? 'border-rose-500 bg-rose-500/20 text-rose-300 shadow-md shadow-rose-500/10'
+                              : 'border-slate-700 text-slate-400 hover:border-slate-500 hover:bg-slate-700/30'
+                          }`}>
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="col-span-2 text-xs text-slate-500 flex items-center gap-1.5">
+                    <Target className="w-3.5 h-3.5" />
+                    Pick the exact Expression and Soul Urge numbers you want. The engine will still block targets that clash with your Life Path, Birth Date, or current Essence energy.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {Object.keys(DESIRE_CATEGORIES).map(category => {
                   const Icon = CATEGORY_ICONS[category as keyof typeof CATEGORY_ICONS];
                   const selected = desireCategory === category;
@@ -155,6 +230,7 @@ export default function NameCorrectionTool({ onBack }: NameCorrectionToolProps) 
                   );
                 })}
               </div>
+              )}
             </div>
 
             <button type="submit"
@@ -454,6 +530,19 @@ export default function NameCorrectionTool({ onBack }: NameCorrectionToolProps) 
               </div>
             )}
 
+            {/* Custom target rejection warning */}
+            {result.customRejectionReason && (
+              <div className="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-6">
+                <div className="flex items-start gap-3">
+                  <Target className="w-6 h-6 text-rose-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-lg font-bold text-rose-300 mb-2">Target Not Available</h3>
+                    <p className="text-sm text-slate-300 leading-relaxed">{result.customRejectionReason}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Name variations */}
             {result.suggestions.length > 0 ? (
               <div className="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 backdrop-blur-sm rounded-2xl border border-blue-500/30 shadow-2xl p-6 md:p-8">
@@ -520,7 +609,7 @@ export default function NameCorrectionTool({ onBack }: NameCorrectionToolProps) 
                 <div className="text-center text-slate-400 mb-6">
                   <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-40" />
                   <h3 className="text-xl font-bold text-white mb-2">No Simple Spelling Variations Found</h3>
-                  <p className="text-sm">While there are target numbers that could improve your alignment for {desireCategory.toLowerCase()}, we couldn't find minor spelling variations that achieve them while maintaining pronunciation.</p>
+                  <p className="text-sm">While there are target numbers that could improve your alignment{targetMode === 'custom' ? ' for your chosen numbers' : ` for ${desireCategory.toLowerCase()}`}, we couldn't find minor spelling variations that achieve them while maintaining pronunciation.</p>
                 </div>
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5">
                   <h4 className="font-semibold text-blue-300 mb-3">What You Can Do:</h4>
@@ -538,12 +627,12 @@ export default function NameCorrectionTool({ onBack }: NameCorrectionToolProps) 
                   </ul>
                 </div>
               </div>
-            ) : (
+            ) : !result.customRejectionReason ? (
               <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 shadow-2xl p-6 md:p-8 text-center">
                 <Sparkles className="w-12 h-12 mx-auto mb-3 text-slate-600" />
                 <p className="text-lg text-slate-300">Your current name is already well-aligned with your goals. No improvements needed at this time.</p>
               </div>
-            )}
+            ) : null}
 
             {/* Understanding section */}
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6">
