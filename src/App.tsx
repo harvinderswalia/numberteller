@@ -92,6 +92,15 @@ function App() {
     }
   }, [loading, user, currentPage, isAdminPath]);
 
+  // Route logged-out users away from auth-protected pages
+  useEffect(() => {
+    const protectedPages: Page[] = ['dashboard', 'saved', 'billing'];
+    if (!loading && !user && protectedPages.includes(currentPage)) {
+      setCurrentPage('home');
+      window.history.replaceState({ page: 'home' }, '', window.location.pathname);
+    }
+  }, [loading, user, currentPage]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
