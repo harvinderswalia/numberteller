@@ -238,21 +238,38 @@ export default function CompatibilityCalculator({ onNavigate, onShowUpgrade }: C
                 </div>
               </div>
 
-              {result.compatibility.matches.length > 0 && (
-                <div className="bg-emerald-500/20 rounded-lg p-6 border border-emerald-500/30">
-                  <h4 className="text-lg font-semibold text-emerald-400 mb-3">Matching Numbers</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {result.compatibility.matches.map((match: string, i: number) => (
-                      <span key={i} className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-sm">
-                        {match}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-slate-300 mt-3 text-sm">
-                    These shared numbers indicate areas of natural harmony and understanding.
-                  </p>
-                </div>
-              )}
+              <div className="space-y-3">
+                {(['lifePath', 'expression', 'soulUrge'] as const).map((key, i) => {
+                  const pair = result.compatibility[key];
+                  const label = key === 'lifePath' ? 'Life Path' : key === 'expression' ? 'Expression' : 'Soul Urge';
+                  const weightPct = Math.round((key === 'lifePath' ? 0.4 : 0.3) * 100);
+                  const labelColor =
+                    pair.label === 'Perfect' ? 'text-emerald-400' :
+                    pair.label === 'Friendly' ? 'text-sky-400' : 'text-slate-400';
+                  const barColor =
+                    pair.label === 'Perfect' ? 'bg-emerald-500' :
+                    pair.label === 'Friendly' ? 'bg-sky-500' : 'bg-slate-500';
+                  return (
+                    <div key={i} className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-slate-300 font-medium">
+                          {label} <span className="text-slate-500 text-sm">({weightPct}% weight)</span>
+                        </span>
+                        <span className={`font-semibold ${labelColor}`}>{pair.label}</span>
+                      </div>
+                      <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${barColor} rounded-full transition-all duration-500`}
+                          style={{ width: `${Math.round(pair.score * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+                <p className="text-slate-300 text-sm text-center pt-1">
+                  Perfect = identical numbers · Friendly = naturally compatible · Neutral = needs conscious effort
+                </p>
+              </div>
             </div>
           )}
         </div>

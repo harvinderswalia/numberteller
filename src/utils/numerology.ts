@@ -100,9 +100,14 @@ export function calculateLifePath(birthDate: Date): number | string {
   const day = birthDate.getDate();
   const year = birthDate.getFullYear();
 
-  const sum = month.toString().split('').reduce((s, d) => s + parseInt(d), 0) +
-              day.toString().split('').reduce((s, d) => s + parseInt(d), 0) +
-              year.toString().split('').reduce((s, d) => s + parseInt(d), 0);
+  const toNum = (val: number | string): number =>
+    typeof val === 'string' ? parseInt(val.split('/').pop() || '0') : val;
+
+  const monthReduced = toNum(reduceToSingleDigit(month, false));
+  const dayReduced = toNum(reduceToSingleDigit(day, false));
+  const yearReduced = toNum(reduceToSingleDigit(year, false));
+
+  const sum = monthReduced + dayReduced + yearReduced;
 
   return reduceToSingleDigit(sum);
 }
@@ -578,48 +583,40 @@ export function generateLoshuGrid(fullName: string): {
   return { grid, missingNumbers, arrows };
 }
 
+const COMPAT_WEIGHTS = { lifePath: 0.4, expression: 0.3, soulUrge: 0.3 } as const;
+
+function harmonyLabel(score: number): string {
+  if (score >= 1.0) return 'Perfect';
+  if (score >= 0.8) return 'Friendly';
+  return 'Neutral';
+}
+
 export function calculateCompatibility(
   person1: { lifePath: number | string; expression: number | string; soulUrge: number | string },
   person2: { lifePath: number | string; expression: number | string; soulUrge: number | string }
-): { score: number; matches: string[] } {
-  let score = 0;
-  const matches: string[] = [];
+): {
+  score: number;
+  lifePath: { score: number; label: string };
+  expression: { score: number; label: string };
+  soulUrge: { score: number; label: string };
+} {
+  const lpHarmony = calculateHarmonyScore(person1.lifePath, person2.lifePath);
+  const exHarmony = calculateHarmonyScore(person1.expression, person2.expression);
+  const suHarmony = calculateHarmonyScore(person1.soulUrge, person2.soulUrge);
 
-  const p1LifePath = typeof person1.lifePath === 'string' ? parseInt(person1.lifePath.split('/')[1]) : person1.lifePath;
-  const p2LifePath = typeof person2.lifePath === 'string' ? parseInt(person2.lifePath.split('/')[1]) : person2.lifePath;
-  const p1Expression = typeof person1.expression === 'string' ? parseInt(person1.expression.split('/')[1]) : person1.expression;
-  const p2Expression = typeof person2.expression === 'string' ? parseInt(person2.expression.split('/')[1]) : person2.expression;
-  const p1SoulUrge = typeof person1.soulUrge === 'string' ? parseInt(person1.soulUrge.split('/')[1]) : person1.soulUrge;
-  const p2SoulUrge = typeof person2.soulUrge === 'string' ? parseInt(person2.soulUrge.split('/')[1]) : person2.soulUrge;
+  const weighted =
+    lpHarmony * COMPAT_WEIGHTS.lifePath +
+    exHarmony * COMPAT_WEIGHTS.expression +
+    suHarmony * COMPAT_WEIGHTS.soulUrge;
 
-  if (p1LifePath === p2LifePath) {
-    score += 30;
-    matches.push('Life Path');
-  }
+  const score = Math.round((weighted - 0.5) * 2 * 100);
 
-  if (p1Expression === p2Expression) {
-    score += 25;
-    matches.push('Expression');
-  }
-
-  if (p1SoulUrge === p2SoulUrge) {
-    score += 25;
-    matches.push('Soul Urge');
-  }
-
-  const harmonyNumbers1 = getHarmonyNumbers(person1.lifePath);
-  const harmonyNumbers2 = getHarmonyNumbers(person2.lifePath);
-
-  if (harmonyNumbers1.includes(p2LifePath) || harmonyNumbers2.includes(p1LifePath)) {
-    score += 15;
-    matches.push('Harmonious Life Paths');
-  }
-
-  if (score === 0) {
-    score = 5;
-  }
-
-  return { score: Math.min(score, 100), matches };
+  return {
+    score: Math.max(0, Math.min(100, score)),
+    lifePath: { score: lpHarmony, label: harmonyLabel(lpHarmony) },
+    expression: { score: exHarmony, label: harmonyLabel(exHarmony) },
+    soulUrge: { score: suHarmony, label: harmonyLabel(suHarmony) },
+  };
 }
 
 export function calculateHouseNumber(number: string): number {
