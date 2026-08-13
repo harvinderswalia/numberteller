@@ -55,7 +55,7 @@ const FEATURE_HIGHLIGHTS: Record<GatedFeature, FeatureHighlight[]> = {
     { icon: Sparkles, title: 'Complete Chart Data', desc: 'All core numbers, interpretations, and Lo Shu analysis in one document', color: 'text-cyan-400' },
   ],
   'save-charts-extended': [
-    { icon: CheckCircle, title: 'Save Up to 10 Charts', desc: 'Store 10 complete client charts accessible from any device', color: 'text-emerald-400' },
+    { icon: CheckCircle, title: 'Unlimited Chart Storage', desc: 'Save unlimited complete client charts accessible from any device', color: 'text-emerald-400' },
     { icon: Star, title: 'Full Chart Access', desc: 'Every saved chart includes all interpretations and analysis', color: 'text-amber-400' },
     { icon: Brain, title: 'Instant Recall', desc: "Open any client's complete chart in one click", color: 'text-cyan-400' },
     { icon: FileText, title: 'Chart History', desc: 'Track client changes over time with named chart storage', color: 'text-blue-400' },
@@ -107,7 +107,7 @@ export default function FeatureGuard({
     'Business Numerology full company profile',
     'Personal Year Forecast narrative',
     'Client-ready PDF with interpretation text',
-    'Save up to 10 charts',
+    'Save unlimited charts',
   ];
 
   return (

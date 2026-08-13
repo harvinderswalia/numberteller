@@ -9,7 +9,6 @@ export interface SavedChart {
   updated_at: string;
 }
 
-const MAX_SAVED_CHARTS = 10;
 
 export async function getSavedCharts(): Promise<SavedChart[]> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -39,15 +38,6 @@ export async function saveChart(name: string, chartData: any): Promise<{ success
     return {
       success: false,
       error: 'You must be signed in to save charts.'
-    };
-  }
-
-  const existingCharts = await getSavedCharts();
-
-  if (existingCharts.length >= MAX_SAVED_CHARTS) {
-    return {
-      success: false,
-      error: `You can only save up to ${MAX_SAVED_CHARTS} charts. Please delete a chart to save a new one.`
     };
   }
 

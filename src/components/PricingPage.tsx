@@ -29,7 +29,7 @@ const featureComparison = [
   { label: 'House / Car / Mobile numbers', silver: true, gold: true, platinum: true },
   { label: 'Business name number', silver: true, gold: true, platinum: true },
   { label: 'PDF export (numbers)', silver: true, gold: true, platinum: true },
-  { label: 'Save charts', silver: '5 charts', gold: '7 charts', platinum: '10 charts' },
+  { label: 'Save charts', silver: 'Unlimited', gold: 'Unlimited', platinum: 'Unlimited' },
   { label: 'Written interpretations', silver: false, gold: true, platinum: true },
   { label: 'Over-energy analysis & warnings', silver: false, gold: true, platinum: true },
   { label: 'Personal Year Forecast narrative', silver: false, gold: true, platinum: true },

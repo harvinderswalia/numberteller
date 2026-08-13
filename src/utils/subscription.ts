@@ -23,7 +23,7 @@ export const PLANS: Record<Exclude<PlanId, 'free'>, Plan> = {
       'Transit chart — pinnacles, personal years & months',
       'House, Car & Mobile number calculators',
       'Business name number calculator',
-      'Save up to 5 charts',
+      'Save unlimited charts',
       'PDF export (numbers only)',
     ],
     notIncluded: [
@@ -44,7 +44,7 @@ export const PLANS: Record<Exclude<PlanId, 'free'>, Plan> = {
       'Full written interpretations on every number',
       'Over-energy analysis & detailed warnings',
       'Personal Year Forecast narrative',
-      'Save up to 7 charts',
+      'Save unlimited charts',
       'PDF export with interpretation text',
     ],
     notIncluded: [
@@ -64,7 +64,7 @@ export const PLANS: Record<Exclude<PlanId, 'free'>, Plan> = {
       'AI Tarot Reading',
       'Business Numerology — full company profile & analysis',
       'Client-ready PDF with interpretation text',
-      'Save up to 10 charts',
+      'Save unlimited charts',
     ],
     notIncluded: [],
   },

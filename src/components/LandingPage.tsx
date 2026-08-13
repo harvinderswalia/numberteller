@@ -545,7 +545,7 @@ export default function LandingPage({ onNavigate, onShowAuth, onShowSignIn }: La
               { icon: Clock, title: 'Save Hours Per Client', desc: 'What used to take 30 minutes of manual calculation now happens in seconds. Spend your time on interpretation, not arithmetic.', color: 'text-blue-400' },
               { icon: Shield, title: 'Precision You Can Trust', desc: 'Master numbers (11, 22, 33) and Karmic Debt numbers (13, 14, 16, 19) are handled correctly — always preserved, never incorrectly reduced.', color: 'text-emerald-400' },
               { icon: Download, title: 'Reports Clients Love', desc: 'Export polished PDF charts that position you as a premium consultant. Clients keep them, refer back to them, and share them.', color: 'text-amber-400' },
-              { icon: Save, title: 'Client Chart History', desc: 'Save up to 10 charts per account. Access any client\'s full chart in one click, from any device.', color: 'text-cyan-400' },
+              { icon: Save, title: 'Client Chart History', desc: 'Save unlimited charts per account. Access any client\'s full chart in one click, from any device.', color: 'text-cyan-400' },
               { icon: BookOpen, title: 'Everything Covered', desc: 'Core chart, transit forecasting, Lo Shu grid, compatibility, name correction, house / car / mobile numbers — no gaps.', color: 'text-rose-400' },
               { icon: Users, title: 'Used by 500+ Practitioners', desc: 'Trusted by numerologists, Vedic astrologers, life coaches, and holistic consultants across the UAE, India, UK, Singapore, and beyond.', color: 'text-teal-400' },
             ].map((f, i) => (

@@ -214,7 +214,7 @@ const features = [
     border: 'border-cyan-600/20',
     page: 'saved',
     points: [
-      'Save up to 10 client charts per account',
+      'Save unlimited client charts per account',
       'Load any saved chart instantly from your dashboard',
       'Name and rename charts for easy client identification',
       'Secure cloud storage via Supabase — encrypted at rest',

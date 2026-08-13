@@ -379,7 +379,7 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
                       </button>
                     </div>
                     <ul className="space-y-1">
-                      {['All calculators', 'Lo Shu Grid', 'Save 5 charts', 'PDF export'].map(f => (
+                      {['All calculators', 'Lo Shu Grid', 'Save unlimited charts', 'PDF export'].map(f => (
                         <li key={f} className="flex items-center gap-1.5 text-xs text-gray-400">
                           <div className="w-1 h-1 rounded-full bg-blue-500 flex-shrink-0" />
                           {f}
@@ -405,7 +405,7 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
                       </button>
                     </div>
                     <ul className="space-y-1">
-                      {['Everything in Silver', 'Written interpretations', 'Over-energy analysis', 'Save 7 charts'].map(f => (
+                      {['Everything in Silver', 'Written interpretations', 'Over-energy analysis', 'Save unlimited charts'].map(f => (
                         <li key={f} className="flex items-center gap-1.5 text-xs text-gray-400">
                           <div className="w-1 h-1 rounded-full bg-blue-500 flex-shrink-0" />
                           {f}
@@ -431,7 +431,7 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
                       </button>
                     </div>
                     <ul className="space-y-1">
-                      {['Everything in Gold', 'AI Name Correction', 'AI Tarot Reading', 'Business Numerology', 'Client-ready PDF', 'Save 10 charts'].map(f => (
+                      {['Everything in Gold', 'AI Name Correction', 'AI Tarot Reading', 'Business Numerology', 'Client-ready PDF', 'Save unlimited charts'].map(f => (
                         <li key={f} className="flex items-center gap-1.5 text-xs text-gray-400">
                           <div className="w-1 h-1 rounded-full bg-amber-500 flex-shrink-0" />
                           {f}
