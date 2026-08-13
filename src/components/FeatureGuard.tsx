@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, ChevronRight, Star, Gift, Brain, FileText, TrendingUp, Building2, Layers, CheckCircle, Sparkles, ArrowLeft } from 'lucide-react';
+import { Lock, ChevronRight, Star, Gift, Brain, FileText, TrendingUp, Building2, Layers, CheckCircle, Sparkles, ArrowLeft, Zap, Crown } from 'lucide-react';
 import { GatedFeature, PLANS } from '../utils/subscription';
 import { usePlanContext, canAccessAppFeature, AppFeature } from '../contexts/PlanContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -95,11 +95,11 @@ export default function FeatureGuard({
     return <>{children}</>;
   }
 
-  const expert = PLANS.expert;
+  const platinum = PLANS.platinum;
   const highlights = FEATURE_HIGHLIGHTS[feature] ?? [];
   const isLoggedIn = !!user;
 
-  const allExpertFeatures = [
+  const allPlatinumFeatures = [
     'Written interpretations on every number',
     'Over-energy analysis & detailed warnings',
     'AI Name Correction — full harmony analysis',
@@ -147,14 +147,14 @@ export default function FeatureGuard({
               <div className="inline-flex flex-col items-center bg-blue-500/10 border border-blue-500/25 rounded-2xl px-8 py-6 mb-8">
                 <div className="flex items-center gap-2 mb-2">
                   <Star className="w-5 h-5 text-blue-400" />
-                  <span className="text-blue-300 font-bold text-lg">Upgrade to Expert to unlock this tool</span>
+                  <span className="text-blue-300 font-bold text-lg">Upgrade to unlock this tool</span>
                 </div>
-                <p className="text-gray-400 text-sm mb-4">Your free trial has ended. Subscribe to continue.</p>
+                <p className="text-gray-400 text-sm mb-4">Your free trial has ended. Request a plan activation to continue.</p>
                 <button
                   onClick={() => setShowModal(true)}
                   className="px-7 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl transition-all"
                 >
-                  View Expert Plan
+                  View Plans
                 </button>
               </div>
             ) : (
@@ -162,9 +162,9 @@ export default function FeatureGuard({
               <div className="inline-flex flex-col items-center bg-emerald-500/10 border border-emerald-500/25 rounded-2xl px-8 py-6 mb-8">
                 <div className="flex items-center gap-2 mb-2">
                   <Gift className="w-5 h-5 text-emerald-400" />
-                  <span className="text-emerald-300 font-bold text-lg">Start with a 7-Day Free Trial</span>
+                  <span className="text-emerald-300 font-bold text-lg">Start with a 3-Day Free Trial</span>
                 </div>
-                <p className="text-gray-400 text-sm mb-4">5 calculations · All calculators · No credit card required</p>
+                <p className="text-gray-400 text-sm mb-4">Unlimited calculations · All Silver plan tools · No credit card required</p>
                 <button
                   onClick={onShowAuth}
                   className="px-7 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-colors"
@@ -179,7 +179,7 @@ export default function FeatureGuard({
                 onClick={() => setShowModal(true)}
                 className="group flex items-center justify-center gap-2 px-7 py-3.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20"
               >
-                View Expert Plan
+                View Plans
                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
               <button
@@ -204,7 +204,7 @@ export default function FeatureGuard({
           {highlights.length > 0 && (
             <div className="mb-10">
               <h2 className="text-xl font-bold text-white text-center mb-6">
-                What You Unlock with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Expert</span>
+                What You Unlock with <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Platinum</span>
               </h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {highlights.map((h, i) => (
@@ -222,13 +222,13 @@ export default function FeatureGuard({
             </div>
           )}
 
-          {/* Expert plan summary */}
+          {/* Platinum plan summary */}
           <div className="bg-gradient-to-b from-blue-950/60 to-slate-800/80 border-2 border-blue-500/30 rounded-2xl p-6 sm:p-8">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <p className="text-blue-300 text-xs font-semibold uppercase tracking-wider mb-1">Expert Plan — after 7-day trial</p>
+                <p className="text-blue-300 text-xs font-semibold uppercase tracking-wider mb-1">Platinum Plan — after 3-day trial</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-white">₹{expert.monthlyPrice.toLocaleString()}</span>
+                  <span className="text-4xl font-bold text-white">₹{platinum.monthlyPrice.toLocaleString()}</span>
                   <span className="text-gray-400">/month</span>
                 </div>
                 <p className="text-gray-500 text-xs mt-1">Billed monthly · Cancel anytime · No annual lock-in</p>
@@ -237,7 +237,7 @@ export default function FeatureGuard({
             </div>
 
             <div className="grid sm:grid-cols-2 gap-2.5 pt-5 border-t border-white/10">
-              {allExpertFeatures.map(f => (
+              {allPlatinumFeatures.map(f => (
                 <div key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
                   <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />
                   {f}

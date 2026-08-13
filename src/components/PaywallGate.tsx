@@ -29,9 +29,9 @@ export default function PaywallGate({ feature, featureLabel, children, hardBlock
               <Lock className="w-6 h-6 text-white" />
             </div>
             <p className="text-white font-semibold text-sm mb-1">{featureLabel}</p>
-            <p className="text-gray-400 text-xs mb-4 text-center px-6">Requires Expert plan</p>
+            <p className="text-gray-400 text-xs mb-4 text-center px-6">Requires Platinum plan</p>
             <div className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-xs font-bold rounded-lg group-hover:from-blue-500 group-hover:to-cyan-500 transition-all">
-              Upgrade to Expert
+              Upgrade to Platinum
             </div>
           </div>
           <div className="pointer-events-none select-none opacity-30">{children}</div>
@@ -48,7 +48,7 @@ export default function PaywallGate({ feature, featureLabel, children, hardBlock
           <div className="bg-slate-900/80 backdrop-blur-md border border-white/15 rounded-xl px-5 py-4 flex flex-col items-center shadow-2xl group-hover:border-blue-500/40 transition-colors">
             <Lock className="w-5 h-5 text-blue-400 mb-2" />
             <p className="text-white text-sm font-semibold mb-1">{featureLabel}</p>
-            <p className="text-gray-400 text-xs mb-3">Expert plan required</p>
+            <p className="text-gray-400 text-xs mb-3">Platinum plan required</p>
             <div className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-xs font-bold rounded-lg group-hover:from-blue-500 group-hover:to-cyan-500 transition-all">
               Upgrade
             </div>

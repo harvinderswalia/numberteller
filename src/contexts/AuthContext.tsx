@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { FREE_TRIAL_CALC_LIMIT, FREE_TRIAL_DAYS } from '../utils/subscription';
+import { BETA_MODE } from '../utils/subscription';
 
 interface AuthContextType {
   user: User | null;
@@ -40,16 +40,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (!error && data.user) {
-        // Create the plan override row with a 7-day trial immediately on signup
-        const trialExpiry = new Date();
-        trialExpiry.setDate(trialExpiry.getDate() + FREE_TRIAL_DAYS);
+        // Create the plan override row with setup pending — no trial starts yet.
+        // The 3-day trial only begins after the user completes the setup form.
         await supabase.from('user_plan_overrides').upsert({
           user_auth_id: data.user.id,
           email,
           plan_id: 'free',
-          trial_expires_at: trialExpiry.toISOString(),
-          trial_calc_limit: FREE_TRIAL_CALC_LIMIT,
+          trial_expires_at: null,
+          trial_calc_limit: 999999,
           calc_used: 0,
+          setup_completed_at: BETA_MODE ? new Date().toISOString() : null,
         }, { onConflict: 'user_auth_id' });
       }
       return { error };

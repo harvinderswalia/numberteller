@@ -8,7 +8,7 @@ interface BillingPageProps {
 }
 
 export default function BillingPage({ onNavigate, onShowAuth, onShowSignIn }: BillingPageProps) {
-  const lastUpdated = 'May 2026';
+  const lastUpdated = 'August 2026';
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -26,7 +26,7 @@ export default function BillingPage({ onNavigate, onShowAuth, onShowSignIn }: Bi
             <section>
               <h2 className="text-xl font-bold text-white mb-3">1. Overview</h2>
               <p>
-                This Billing Policy applies to all paid subscriptions to NumberTeller, operated by Docully SaaS Technologies Co. LLC ("Docully", "we", "us"). By subscribing to a paid plan, you agree to this policy in full.
+                This Billing Policy applies to all paid subscriptions to NumberTeller, operated by Confiex Data Room Private Limited ("Confiex", "we", "us"). By subscribing to a paid plan, you agree to this policy in full.
               </p>
             </section>
 
@@ -46,15 +46,20 @@ export default function BillingPage({ onNavigate, onShowAuth, onShowSignIn }: Bi
                     <tr className="border-b border-white/5">
                       <td className="px-5 py-3 text-gray-300">Free Trial</td>
                       <td className="px-5 py-3 text-gray-300">₹0</td>
-                      <td className="px-5 py-3 text-gray-400">7 days · 5 calculations · No card</td>
+                      <td className="px-5 py-3 text-gray-400">3 days · Unlimited calculations · No card</td>
                     </tr>
                     <tr className="border-b border-white/5">
-                      <td className="px-5 py-3 text-gray-300">Calculator</td>
-                      <td className="px-5 py-3 text-gray-300">₹999/month</td>
+                      <td className="px-5 py-3 text-gray-300">Silver</td>
+                      <td className="px-5 py-3 text-gray-300">₹991/month</td>
+                      <td className="px-5 py-3 text-gray-400">Monthly, recurring</td>
+                    </tr>
+                    <tr className="border-b border-white/5">
+                      <td className="px-5 py-3 text-gray-300">Gold</td>
+                      <td className="px-5 py-3 text-gray-300">₹1,299/month</td>
                       <td className="px-5 py-3 text-gray-400">Monthly, recurring</td>
                     </tr>
                     <tr>
-                      <td className="px-5 py-3 text-gray-300">Expert</td>
+                      <td className="px-5 py-3 text-gray-300">Platinum</td>
                       <td className="px-5 py-3 text-gray-300">₹1,499/month</td>
                       <td className="px-5 py-3 text-gray-400">Monthly, recurring</td>
                     </tr>
@@ -85,7 +90,7 @@ export default function BillingPage({ onNavigate, onShowAuth, onShowSignIn }: Bi
                 <li>Bank transfer (for annual and corporate plans — contact us)</li>
               </ul>
               <p>
-                All payment data is processed securely by Stripe, a PCI-DSS Level 1 certified payment processor. Docully does not store card numbers on its servers.
+                All payment data is processed securely by Stripe, a PCI-DSS Level 1 certified payment processor. Confiex does not store card numbers on its servers.
               </p>
             </section>
 
@@ -119,7 +124,7 @@ export default function BillingPage({ onNavigate, onShowAuth, onShowSignIn }: Bi
                 <li>Partial months or partial annual periods upon early cancellation</li>
               </ul>
               <p>
-                To request a refund within the 7-day window, contact <a href="mailto:billing@numberteller.com" className="text-blue-400 hover:text-blue-300">billing@numberteller.com</a> or reach us on WhatsApp at <a href="https://wa.me/971565043131" className="text-blue-400 hover:text-blue-300">+971 56 504 3131</a>.
+                To request a refund within the 7-day window, contact <a href="mailto:billing@numberteller.com" className="text-blue-400 hover:text-blue-300">billing@numberteller.com</a> or reach us on WhatsApp at <a href="https://wa.me/917900075531" className="text-blue-400 hover:text-blue-300">+91 7900075531</a>.
               </p>
             </section>
 
@@ -154,10 +159,10 @@ export default function BillingPage({ onNavigate, onShowAuth, onShowSignIn }: Bi
               <h2 className="text-xl font-bold text-white mb-3">10. Contact</h2>
               <p>For billing enquiries, contact us at:</p>
               <div className="bg-slate-800 border border-white/10 rounded-xl p-5 mt-3">
-                <p className="font-semibold text-white">Docully SaaS Technologies Co. LLC</p>
-                <p>Dubai, United Arab Emirates</p>
+                <p className="font-semibold text-white">Confiex Data Room Private Limited</p>
+                <p>Unit 302, Bldg 2, New Sonal Industrial Estate, Kachpada, Link Road, Malad West, Mumbai 400064</p>
                 <p>Billing: <a href="mailto:billing@numberteller.com" className="text-blue-400 hover:text-blue-300">billing@numberteller.com</a></p>
-                <p>WhatsApp: <a href="https://wa.me/971565043131" className="text-blue-400 hover:text-blue-300">+971 56 504 3131</a></p>
+                <p>WhatsApp: <a href="https://wa.me/917900075531" className="text-blue-400 hover:text-blue-300">+91 7900075531</a></p>
               </div>
             </section>
 

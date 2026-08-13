@@ -82,7 +82,7 @@ export default function AuthModal({ isOpen, onClose, onNavigate, initialMode = '
         if (error) {
           setError(error.message);
         } else {
-          setSuccess('Account created! You have a 7-day free trial with 5 calculations.');
+          setSuccess('Account created! Complete setup to start your 3-day free trial.');
           setTimeout(() => {
             onClose();
             reset();
@@ -138,7 +138,7 @@ export default function AuthModal({ isOpen, onClose, onNavigate, initialMode = '
               {mode === 'signup' ? 'Create your account' : 'Welcome back'}
             </h2>
             <p className="text-gray-400 text-sm mt-1">
-              {mode === 'signup' ? '7-day free trial · No credit card required' : 'Sign in to NumberTeller'}
+              {mode === 'signup' ? '3-day free trial · No credit card required' : 'Sign in to NumberTeller'}
             </p>
           </div>
 
@@ -240,7 +240,7 @@ export default function AuthModal({ isOpen, onClose, onNavigate, initialMode = '
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   Please wait...
                 </span>
-              ) : mode === 'signup' ? 'Create Account & Start Trial' : 'Sign In'}
+              ) : mode === 'signup' ? 'Create Account' : 'Sign In'}
             </button>
           </form>
 
@@ -265,7 +265,7 @@ export default function AuthModal({ isOpen, onClose, onNavigate, initialMode = '
             <div className="mt-6 p-4 bg-slate-800/60 border border-white/8 rounded-xl">
               <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Free Trial Includes</p>
               <div className="grid grid-cols-2 gap-2">
-                {['7 days free', '5 calculations', 'All calculators', 'No card needed'].map(f => (
+                {['3 days free', 'Unlimited calculations', 'All calculators', 'No card needed'].map(f => (
                   <div key={f} className="flex items-center gap-1.5 text-xs text-gray-300">
                     <div className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
                     {f}

@@ -1,16 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { PlanId, FREE_TRIAL_CALC_LIMIT, FREE_TRIAL_DAYS, BETA_MODE } from '../utils/subscription';
+import { PlanId, FREE_TRIAL_DAYS, BETA_MODE } from '../utils/subscription';
 
 export interface PlanStatus {
   planId: PlanId;
   trialExpiresAt: Date | null;
-  trialCalcLimit: number;
   subscriptionExpiresAt: Date | null;
   calcUsed: number;
+  setupCompletedAt: Date | null;
   loading: boolean;
   incrementCalcUsed: () => Promise<void>;
+  completeSetup: (fullName: string, phone: string) => Promise<void>;
 }
 
 interface RawOverride {
@@ -20,6 +21,9 @@ interface RawOverride {
   trial_calc_limit: number | null;
   subscription_expires_at: string | null;
   calc_used: number;
+  full_name: string | null;
+  phone: string | null;
+  setup_completed_at: string | null;
 }
 
 function trialExpiry(): string {
@@ -28,34 +32,34 @@ function trialExpiry(): string {
   return d.toISOString();
 }
 
-function resolveStatus(data: RawOverride | null): Omit<PlanStatus, 'loading' | 'incrementCalcUsed'> {
+function resolveStatus(data: RawOverride | null): Omit<PlanStatus, 'loading' | 'incrementCalcUsed' | 'completeSetup'> {
   if (!data) {
     return {
       planId: 'free',
       trialExpiresAt: null,
-      trialCalcLimit: FREE_TRIAL_CALC_LIMIT,
       subscriptionExpiresAt: null,
       calcUsed: 0,
+      setupCompletedAt: null,
     };
   }
 
   const planId = (data.plan_id as PlanId) ?? 'free';
   const trialExpires = data.trial_expires_at ? new Date(data.trial_expires_at) : null;
   const subExpires = data.subscription_expires_at ? new Date(data.subscription_expires_at) : null;
-  const calcLimit = data.trial_calc_limit ?? FREE_TRIAL_CALC_LIMIT;
+  const setupAt = data.setup_completed_at ? new Date(data.setup_completed_at) : null;
   const now = new Date();
 
   const effectivePlanId: PlanId =
-    (planId === 'calculator' || planId === 'expert') && subExpires && subExpires <= now
+    (planId === 'silver' || planId === 'gold' || planId === 'platinum') && subExpires && subExpires <= now
       ? 'free'
       : planId;
 
   return {
     planId: effectivePlanId,
     trialExpiresAt: trialExpires,
-    trialCalcLimit: calcLimit,
     subscriptionExpiresAt: subExpires,
     calcUsed: data.calc_used ?? 0,
+    setupCompletedAt: setupAt,
   };
 }
 
@@ -73,32 +77,32 @@ export function usePlan(): PlanStatus {
 
     const { data } = await supabase
       .from('user_plan_overrides')
-      .select('id, plan_id, trial_expires_at, trial_calc_limit, subscription_expires_at, calc_used')
+      .select('id, plan_id, trial_expires_at, trial_calc_limit, subscription_expires_at, calc_used, full_name, phone, setup_completed_at')
       .eq('user_auth_id', user.id)
       .maybeSingle();
 
     if (data) {
-      setOverride(data);
+      setOverride(data as RawOverride);
       setLoading(false);
       return;
     }
 
-    // No row exists — create it now.
-    // In beta mode: no expiry, effectively unlimited calc limit (99999).
+    // No row exists — create it with setup pending (no trial yet)
     const { data: inserted } = await supabase
       .from('user_plan_overrides')
       .upsert({
         user_auth_id: user.id,
         email: user.email ?? '',
         plan_id: 'free',
-        trial_expires_at: BETA_MODE ? null : trialExpiry(),
-        trial_calc_limit: BETA_MODE ? 99999 : FREE_TRIAL_CALC_LIMIT,
+        trial_expires_at: null,
+        trial_calc_limit: 999999,
         calc_used: 0,
+        setup_completed_at: BETA_MODE ? new Date().toISOString() : null,
       }, { onConflict: 'user_auth_id' })
-      .select('id, plan_id, trial_expires_at, trial_calc_limit, subscription_expires_at, calc_used')
+      .select('id, plan_id, trial_expires_at, trial_calc_limit, subscription_expires_at, calc_used, full_name, phone, setup_completed_at')
       .maybeSingle();
 
-    setOverride(inserted ?? null);
+    setOverride(inserted as RawOverride | null);
     setLoading(false);
   }, [user]);
 
@@ -150,37 +154,93 @@ export function usePlan(): PlanStatus {
         email: user.email ?? '',
         plan_id: 'free',
         calc_used: newCount,
-        trial_calc_limit: FREE_TRIAL_CALC_LIMIT,
-        trial_expires_at: trialExpiry(),
+        trial_calc_limit: 999999,
       }, { onConflict: 'user_auth_id' });
     }
 
-    // Optimistic update so UI responds immediately without waiting for realtime
     setOverride(prev => prev
       ? { ...prev, calc_used: newCount }
       : {
           id: '',
           plan_id: 'free',
           trial_expires_at: null,
-          trial_calc_limit: FREE_TRIAL_CALC_LIMIT,
           subscription_expires_at: null,
           calc_used: newCount,
+          full_name: null,
+          phone: null,
+          setup_completed_at: null,
         }
     );
   }, [user, override]);
 
-  return { ...resolveStatus(override), loading, incrementCalcUsed };
+  const completeSetup = useCallback(async (fullName: string, phone: string) => {
+    if (!user) return;
+
+    const now = new Date().toISOString();
+    const expiry = trialExpiry();
+
+    if (override?.id) {
+      await supabase
+        .from('user_plan_overrides')
+        .update({
+          full_name: fullName,
+          phone,
+          setup_completed_at: now,
+          trial_expires_at: expiry,
+          trial_calc_limit: 999999,
+          calc_used: 0,
+        })
+        .eq('id', override.id);
+    } else {
+      await supabase.from('user_plan_overrides').upsert({
+        user_auth_id: user.id,
+        email: user.email ?? '',
+        plan_id: 'free',
+        full_name: fullName,
+        phone,
+        setup_completed_at: now,
+        trial_expires_at: expiry,
+        trial_calc_limit: 999999,
+        calc_used: 0,
+      }, { onConflict: 'user_auth_id' });
+    }
+
+    setOverride(prev => prev
+      ? {
+          ...prev,
+          full_name: fullName,
+          phone,
+          setup_completed_at: now,
+          trial_expires_at: expiry,
+          calc_used: 0,
+        }
+      : {
+          id: '',
+          plan_id: 'free',
+          trial_expires_at: expiry,
+          subscription_expires_at: null,
+          calc_used: 0,
+          full_name: fullName,
+          phone,
+          setup_completed_at: now,
+        }
+    );
+  }, [user, override]);
+
+  return { ...resolveStatus(override), loading, incrementCalcUsed, completeSetup };
 }
 
 export function getPlanLabel(planId: PlanId): string {
-  if (planId === 'expert') return 'Expert';
-  if (planId === 'calculator') return 'Calculator';
+  if (planId === 'platinum') return 'Platinum';
+  if (planId === 'gold') return 'Gold';
+  if (planId === 'silver') return 'Silver';
   return 'Free Trial';
 }
 
 export function getPlanColor(planId: PlanId): string {
-  if (planId === 'expert') return 'text-amber-400';
-  if (planId === 'calculator') return 'text-blue-400';
+  if (planId === 'platinum') return 'text-amber-400';
+  if (planId === 'gold') return 'text-yellow-400';
+  if (planId === 'silver') return 'text-blue-400';
   return 'text-emerald-400';
 }
 

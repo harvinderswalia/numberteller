@@ -19,7 +19,7 @@ export default function CalculatorForm({ onNavigate, onCalculate, onShowUpgrade 
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear().toString());
   const [loading, setLoading] = useState(false);
-  const { planId, trialActive, calcUsed, trialCalcLimit, incrementCalcUsed } = usePlanContext();
+  const { planId, trialActive } = usePlanContext();
 
   const canCalculate = planId !== 'free' || trialActive;
 
@@ -105,13 +105,11 @@ export default function CalculatorForm({ onNavigate, onCalculate, onShowUpgrade 
         loshuGrid
       };
 
-      incrementCalcUsed();
       setLoading(false);
       onCalculate(results);
     }, 800);
   };
 
-  const remaining = planId !== 'free' ? -1 : Math.max(0, trialCalcLimit - calcUsed);
   const isFormValid = firstName && lastName && birthDate;
 
   return (
@@ -133,11 +131,6 @@ export default function CalculatorForm({ onNavigate, onCalculate, onShowUpgrade 
             <p className="text-sm md:text-base text-slate-400">
               Enter your full birth name and date to unlock your numerology insights
             </p>
-            {remaining >= 0 && (
-              <p className="text-amber-400 mt-2 text-sm">
-                {remaining} free calculation{remaining !== 1 ? 's' : ''} remaining
-              </p>
-            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">

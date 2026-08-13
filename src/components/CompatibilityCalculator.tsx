@@ -15,7 +15,7 @@ export default function CompatibilityCalculator({ onNavigate, onShowUpgrade }: C
   const [person2Date, setPerson2Date] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const { planId, trialActive, calcUsed, trialCalcLimit, incrementCalcUsed } = usePlanContext();
+  const { planId, trialActive } = usePlanContext();
 
   const canCalculate = planId !== 'free' || trialActive;
 
@@ -55,12 +55,10 @@ export default function CompatibilityCalculator({ onNavigate, onShowUpgrade }: C
         compatibility
       });
 
-      incrementCalcUsed();
       setLoading(false);
     }, 800);
   };
 
-  const remaining = planId !== 'free' ? -1 : Math.max(0, trialCalcLimit - calcUsed);
   const isFormValid = person1Name && person1Date && person2Name && person2Date;
 
   return (
@@ -85,11 +83,6 @@ export default function CompatibilityCalculator({ onNavigate, onShowUpgrade }: C
             <p className="text-sm md:text-base text-slate-400">
               Discover the harmony between two individuals
             </p>
-            {remaining >= 0 && (
-              <p className="text-amber-400 mt-2 text-sm">
-                {remaining} free calculation{remaining !== 1 ? 's' : ''} remaining
-              </p>
-            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">

@@ -8,7 +8,7 @@ interface PrivacyPageProps {
 }
 
 export default function PrivacyPage({ onNavigate, onShowAuth, onShowSignIn }: PrivacyPageProps) {
-  const lastUpdated = 'May 2026';
+  const lastUpdated = 'August 2026';
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -26,7 +26,7 @@ export default function PrivacyPage({ onNavigate, onShowAuth, onShowSignIn }: Pr
             <section>
               <h2 className="text-xl font-bold text-white mb-3">1. Introduction</h2>
               <p>
-                Docully SaaS Technologies Co. LLC ("Docully", "we", "us", or "our"), the operator of NumberTeller, is committed to protecting your privacy. This Privacy Policy explains what data we collect, how we use it, and your rights in relation to it.
+                Confiex Data Room Private Limited ("Confiex", "we", "us", or "our"), the operator of NumberTeller, is committed to protecting your privacy. This Privacy Policy explains what data we collect, how we use it, and your rights in relation to it.
               </p>
               <p>
                 This policy applies to all users of the NumberTeller platform, accessible at numberteller.com and related subdomains.
@@ -71,7 +71,7 @@ export default function PrivacyPage({ onNavigate, onShowAuth, onShowSignIn }: Pr
             <section>
               <h2 className="text-xl font-bold text-white mb-3">5. Data Retention</h2>
               <p>
-                We retain your account data for as long as your account is active. If you delete your account, we will delete your personal data within 30 days, except where retention is required by law (e.g., billing records, which are retained for 7 years in accordance with UAE commercial regulations).
+                We retain your account data for as long as your account is active. If you delete your account, we will delete your personal data within 30 days, except where retention is required by law (e.g., billing records, which are retained for 7 years in accordance with applicable Indian regulations).
               </p>
             </section>
 
@@ -116,7 +116,7 @@ export default function PrivacyPage({ onNavigate, onShowAuth, onShowSignIn }: Pr
                 As a practitioner using NumberTeller, you may input data relating to your clients (names, dates of birth). You are solely responsible for ensuring that you have the appropriate legal basis to process this data and that doing so complies with all applicable data protection laws in your jurisdiction.
               </p>
               <p>
-                Docully acts as a data processor in respect of client data you input, and you act as the data controller. Our Data Processing Agreement is available upon request.
+                Confiex acts as a data processor in respect of client data you input, and you act as the data controller. Our Data Processing Agreement is available upon request.
               </p>
             </section>
 
@@ -130,10 +130,10 @@ export default function PrivacyPage({ onNavigate, onShowAuth, onShowSignIn }: Pr
             <section>
               <h2 className="text-xl font-bold text-white mb-3">11. Contact</h2>
               <div className="bg-slate-800 border border-white/10 rounded-xl p-5 mt-3">
-                <p className="font-semibold text-white">Docully SaaS Technologies Co. LLC</p>
-                <p>Dubai, United Arab Emirates</p>
+                <p className="font-semibold text-white">Confiex Data Room Private Limited</p>
+                <p>Unit 302, Bldg 2, New Sonal Industrial Estate, Kachpada, Link Road, Malad West, Mumbai 400064</p>
                 <p>Privacy enquiries: <a href="mailto:privacy@numberteller.com" className="text-blue-400 hover:text-blue-300">privacy@numberteller.com</a></p>
-                <p>Phone / WhatsApp: <a href="tel:+971565043131" className="text-blue-400 hover:text-blue-300">+971 56 504 3131</a></p>
+                <p>Phone / WhatsApp: <a href="tel:+917900075531" className="text-blue-400 hover:text-blue-300">+91 7900075531</a></p>
               </div>
             </section>
 

@@ -52,7 +52,7 @@ export default function ContactPage({ onNavigate, onShowAuth, onShowSignIn }: Co
                   </div>
                   <div>
                     <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-0.5">Phone / WhatsApp</p>
-                    <a href="tel:+971565043131" className="text-white font-medium hover:text-blue-300 transition-colors">+971 56 504 3131</a>
+                    <a href="tel:+917900075531" className="text-white font-medium hover:text-blue-300 transition-colors">+91 7900075531</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -70,8 +70,8 @@ export default function ContactPage({ onNavigate, onShowAuth, onShowSignIn }: Co
                   </div>
                   <div>
                     <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-0.5">Company</p>
-                    <p className="text-white font-medium">Docully SaaS Technologies Co. LLC</p>
-                    <p className="text-gray-400 text-sm">Dubai, United Arab Emirates</p>
+                    <p className="text-white font-medium">Confiex Data Room Private Limited</p>
+                    <p className="text-gray-400 text-sm">Unit 302, Bldg 2, New Sonal Industrial Estate,<br />Kachpada, Link Road, Malad West, Mumbai 400064</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -80,8 +80,8 @@ export default function ContactPage({ onNavigate, onShowAuth, onShowSignIn }: Co
                   </div>
                   <div>
                     <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-0.5">Support Hours</p>
-                    <p className="text-white font-medium">Mon – Fri, 9am – 6pm GST</p>
-                    <p className="text-gray-400 text-sm">UTC+4 (Dubai time)</p>
+                    <p className="text-white font-medium">Mon – Fri, 9am – 6pm IST</p>
+                    <p className="text-gray-400 text-sm">UTC+5:30 (India time)</p>
                   </div>
                 </div>
               </div>
@@ -97,7 +97,7 @@ export default function ContactPage({ onNavigate, onShowAuth, onShowSignIn }: Co
                 For quick questions and faster responses, message us directly on WhatsApp. We typically respond within a few hours during business hours.
               </p>
               <a
-                href="https://wa.me/971565043131"
+                href="https://wa.me/917900075531"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-colors"

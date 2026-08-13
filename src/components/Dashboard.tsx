@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Hash, Calculator, Users, Home, Grid3x3, CreditCard as Edit3, Building2, BookOpen, Save, ChevronRight, Crown, Zap, Gift, LogOut, Trash2, Calendar, User, TrendingUp, Clock, AlertCircle, RefreshCw, Lock } from 'lucide-react';
+import { Hash, Calculator, Users, Home, Grid3x3, CreditCard as Edit3, Building2, BookOpen, Save, ChevronRight, Crown, Zap, Star, Gift, LogOut, Trash2, Calendar, User, TrendingUp, Clock, AlertCircle, RefreshCw, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getPlanLabel, getPlanColor, trialDaysLeft } from '../hooks/usePlan';
 import { usePlanContext } from '../contexts/PlanContext';
@@ -17,7 +17,7 @@ interface Tool {
   description: string;
   icon: React.ElementType;
   page: string;
-  requiredPlan: 'free' | 'calculator' | 'expert';
+  requiredPlan: 'free' | 'silver' | 'gold' | 'platinum';
   color: string;
   badge?: string;
 }
@@ -65,9 +65,9 @@ const TOOLS: Tool[] = [
     description: 'Goal-aligned name variants with harmony scoring',
     icon: Edit3,
     page: 'name-correction',
-    requiredPlan: 'expert',
+    requiredPlan: 'platinum',
     color: 'from-amber-500 to-orange-500',
-    badge: 'Expert',
+    badge: 'Platinum',
   },
   {
     id: 'business',
@@ -75,9 +75,9 @@ const TOOLS: Tool[] = [
     description: 'Company profile, partner compatibility & brand names',
     icon: Building2,
     page: 'business',
-    requiredPlan: 'expert',
+    requiredPlan: 'platinum',
     color: 'from-orange-500 to-rose-500',
-    badge: 'Expert',
+    badge: 'Platinum',
   },
   {
     id: 'tarot',
@@ -85,13 +85,13 @@ const TOOLS: Tool[] = [
     description: 'Numerology-integrated tarot with AI narratives',
     icon: BookOpen,
     page: 'tarot',
-    requiredPlan: 'expert',
+    requiredPlan: 'platinum',
     color: 'from-rose-500 to-pink-600',
-    badge: 'Expert',
+    badge: 'Platinum',
   },
 ];
 
-const PLAN_RANK: Record<string, number> = { free: 0, calculator: 1, expert: 2 };
+const PLAN_RANK: Record<string, number> = { free: 0, silver: 1, gold: 2, platinum: 3 };
 
 
 function canAccess(toolPlan: string, userPlan: string, trialActive: boolean): boolean {
@@ -131,7 +131,6 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
   };
 
   const daysLeft = trialDaysLeft(plan.trialExpiresAt);
-  const calcsLeft = Math.max(0, plan.trialCalcLimit - plan.calcUsed);
   const isFreeTrial = plan.planId === 'free';
   // Use computed trialActive from PlanContext (checks both DB and localStorage)
   const trialActive = plan.trialActive;
@@ -139,7 +138,7 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
   const planLabel = getPlanLabel(plan.planId);
   const planColor = getPlanColor(plan.planId);
 
-  const PlanIcon = plan.planId === 'expert' ? Crown : plan.planId === 'calculator' ? Zap : Gift;
+  const PlanIcon = plan.planId === 'platinum' ? Crown : plan.planId === 'gold' ? Star : plan.planId === 'silver' ? Zap : Gift;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -189,9 +188,11 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
 
           {/* Plan status card */}
           <div className={`lg:w-80 rounded-2xl p-5 border flex flex-col gap-3 ${
-            plan.planId === 'expert'
+            plan.planId === 'platinum'
               ? 'bg-amber-950/30 border-amber-500/25'
-              : plan.planId === 'calculator'
+              : plan.planId === 'gold'
+              ? 'bg-yellow-950/30 border-yellow-500/25'
+              : plan.planId === 'silver'
               ? 'bg-blue-950/30 border-blue-500/25'
               : 'bg-emerald-950/30 border-emerald-500/25'
           }`}>
@@ -212,16 +213,6 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
 
             {isFreeTrial && !plan.loading && (
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400 flex items-center gap-1.5"><Calculator className="w-3.5 h-3.5" /> Calculations</span>
-                  <span className="font-semibold text-white">{calcsLeft} / {plan.trialCalcLimit} left</span>
-                </div>
-                <div className="w-full bg-slate-800 rounded-full h-1.5">
-                  <div
-                    className="bg-gradient-to-r from-emerald-500 to-teal-500 h-1.5 rounded-full transition-all"
-                    style={{ width: `${Math.max(4, (calcsLeft / plan.trialCalcLimit) * 100)}%` }}
-                  />
-                </div>
                 <div className="flex items-center gap-1.5 text-xs text-gray-400">
                   <Clock className="w-3 h-3" />
                   {daysLeft > 0 ? `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left in trial` : 'Trial expired'}
@@ -229,14 +220,7 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
               </div>
             )}
 
-            {plan.planId === 'calculator' && plan.subscriptionExpiresAt && (
-              <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                <Calendar className="w-3 h-3" />
-                Renews {plan.subscriptionExpiresAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </div>
-            )}
-
-            {plan.planId === 'expert' && plan.subscriptionExpiresAt && (
+            {(plan.planId === 'silver' || plan.planId === 'gold' || plan.planId === 'platinum') && plan.subscriptionExpiresAt && (
               <div className="flex items-center gap-1.5 text-xs text-gray-400">
                 <Calendar className="w-3 h-3" />
                 Renews {plan.subscriptionExpiresAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -245,7 +229,7 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
 
             {isFreeTrial && (
               <div className="text-xs text-gray-500 border-t border-white/8 pt-2">
-                Upgrade for unlimited calculations & full features
+                Upgrade for full features & client-ready reports
               </div>
             )}
           </div>
@@ -260,8 +244,8 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
             <div className="grid sm:grid-cols-2 gap-3">
               {TOOLS.map(tool => {
                 const accessible = canAccess(tool.requiredPlan, plan.planId, trialActive);
-                const isExpertOnly = tool.requiredPlan === 'expert';
-                const showUpgradeBadge = isExpertOnly && !accessible && !trialActive;
+                const isPaidOnly = tool.requiredPlan !== 'free';
+                const showUpgradeBadge = isPaidOnly && !accessible && !trialActive;
                 const Icon = tool.icon;
                 return (
                   <button
@@ -278,9 +262,9 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
                         {showUpgradeBadge ? <Lock className="w-5 h-5 text-white" /> : <Icon className="w-5 h-5 text-white" />}
                       </div>
                       <div className="flex items-center gap-2">
-                        {isExpertOnly && trialActive && (
+                        {isPaidOnly && trialActive && (
                           <span className="text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/25 px-2 py-0.5 rounded-full">
-                            Expert
+                            {tool.badge}
                           </span>
                         )}
                         <ChevronRight className={`w-4 h-4 transition-transform ${accessible ? 'text-gray-500 group-hover:text-white group-hover:translate-x-0.5' : 'text-gray-600'}`} />
@@ -292,7 +276,7 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
                     {showUpgradeBadge && (
                       <div className="mt-3 pt-3 border-t border-white/5 flex items-center gap-1.5">
                         <AlertCircle className="w-3 h-3 text-amber-500" />
-                        <span className="text-xs text-amber-500 font-medium">Requires Expert — upgrade to access</span>
+                        <span className="text-xs text-amber-500 font-medium">Requires {tool.badge} — upgrade to access</span>
                       </div>
                     )}
                   </button>
@@ -380,18 +364,18 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
                   <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Plans</p>
                 </div>
                 <div className="divide-y divide-white/5">
-                  {/* Calculator plan */}
+                  {/* Silver plan */}
                   <div className="px-4 py-4">
                     <div className="flex items-center justify-between mb-2">
                       <div>
-                        <p className="text-sm font-bold text-white">Calculator</p>
-                        <p className="text-xs text-gray-500">₹999 / month</p>
+                        <p className="text-sm font-bold text-white">Silver</p>
+                        <p className="text-xs text-gray-500">₹991 / month</p>
                       </div>
                       <button
                         onClick={onShowUpgrade}
                         className="text-xs font-semibold text-blue-400 hover:text-blue-300 border border-blue-500/30 hover:border-blue-400/50 px-3 py-1 rounded-lg transition-all"
                       >
-                        Upgrade
+                        View Plans
                       </button>
                     </div>
                     <ul className="space-y-1">
@@ -403,13 +387,39 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
                       ))}
                     </ul>
                   </div>
-                  {/* Expert plan */}
+                  {/* Gold plan */}
+                  <div className="px-4 py-4 bg-blue-950/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold text-white">Gold</p>
+                          <span className="text-[9px] font-bold bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full border border-blue-500/30">POPULAR</span>
+                        </div>
+                        <p className="text-xs text-gray-500">₹1,299 / month</p>
+                      </div>
+                      <button
+                        onClick={onShowUpgrade}
+                        className="text-xs font-bold bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white px-3 py-1 rounded-lg transition-all"
+                      >
+                        View Plans
+                      </button>
+                    </div>
+                    <ul className="space-y-1">
+                      {['Everything in Silver', 'Written interpretations', 'Over-energy analysis', 'Save 7 charts'].map(f => (
+                        <li key={f} className="flex items-center gap-1.5 text-xs text-gray-400">
+                          <div className="w-1 h-1 rounded-full bg-blue-500 flex-shrink-0" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  {/* Platinum plan */}
                   <div className="px-4 py-4 bg-amber-950/20">
                     <div className="flex items-center justify-between mb-2">
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-bold text-white">Expert</p>
-                          <span className="text-[9px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-500/30">POPULAR</span>
+                          <p className="text-sm font-bold text-white">Platinum</p>
+                          <span className="text-[9px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-500/30">BEST</span>
                         </div>
                         <p className="text-xs text-gray-500">₹1,499 / month</p>
                       </div>
@@ -417,11 +427,11 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
                         onClick={onShowUpgrade}
                         className="text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white px-3 py-1 rounded-lg transition-all"
                       >
-                        Upgrade
+                        View Plans
                       </button>
                     </div>
                     <ul className="space-y-1">
-                      {['Everything in Calculator', 'AI Name Correction', 'AI Tarot Reading', 'Business Numerology', 'Written interpretations', 'Save 10 charts'].map(f => (
+                      {['Everything in Gold', 'AI Name Correction', 'AI Tarot Reading', 'Business Numerology', 'Client-ready PDF', 'Save 10 charts'].map(f => (
                         <li key={f} className="flex items-center gap-1.5 text-xs text-gray-400">
                           <div className="w-1 h-1 rounded-full bg-amber-500 flex-shrink-0" />
                           {f}

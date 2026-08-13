@@ -12,7 +12,7 @@ export default function LoShuGridCalculator({ onNavigate, onCalculate, onShowUpg
   const [name, setName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState('male');
-  const { planId, trialActive, incrementCalcUsed } = usePlanContext();
+  const { planId, trialActive } = usePlanContext();
 
   const canCalculate = planId !== 'free' || trialActive;
 
@@ -23,7 +23,6 @@ export default function LoShuGridCalculator({ onNavigate, onCalculate, onShowUpg
       return;
     }
     if (name && dateOfBirth) {
-      incrementCalcUsed();
       onCalculate({ name, dateOfBirth, gender });
     }
   };

@@ -146,7 +146,7 @@ export default function AboutPage({ onNavigate, onShowAuth, onShowSignIn }: Abou
               </div>
               <div>
                 <p className="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-2">Contact</p>
-                <p><a href="tel:+971565043131" className="hover:text-white transition-colors">+971 56 504 3131</a></p>
+                <p><a href="tel:+917900075531" className="hover:text-white transition-colors">+91 7900075531</a></p>
                 <p><a href="mailto:support@numberteller.com" className="hover:text-white transition-colors">support@numberteller.com</a></p>
               </div>
               <div>

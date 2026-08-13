@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Menu, X, ChevronDown, Hash, LayoutDashboard } from 'lucide-react';
+import { Menu, X, ChevronDown, Hash, LayoutDashboard, MessageCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Page } from '../App';
+import { WHATSAPP_LINK } from '../utils/subscription';
 
 interface SiteNavigationProps {
   onNavigate: (page: string) => void;
@@ -117,6 +118,16 @@ export default function SiteNavigation({ onNavigate, onShowAuth, onShowSignIn, c
 
           {/* Desktop Auth / User actions */}
           <div className="hidden lg:flex items-center gap-3">
+            <a
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/10 rounded-lg transition-colors"
+              title="Chat with us on WhatsApp"
+            >
+              <MessageCircle className="w-4 h-4" />
+              WhatsApp
+            </a>
             {user ? (
               <>
                 <button
@@ -151,13 +162,24 @@ export default function SiteNavigation({ onNavigate, onShowAuth, onShowSignIn, c
             )}
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 text-gray-300 hover:text-white"
-          >
-            {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile WhatsApp + hamburger */}
+          <div className="lg:hidden flex items-center gap-2">
+            <a
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 text-[#25D366] border border-[#25D366]/30 rounded-lg"
+              title="Chat on WhatsApp"
+            >
+              <MessageCircle className="w-5 h-5" />
+            </a>
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-2 text-gray-300 hover:text-white"
+            >
+              {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -198,6 +220,15 @@ export default function SiteNavigation({ onNavigate, onShowAuth, onShowSignIn, c
             </button>
           ))}
           <div className="pt-3 mt-2 border-t border-white/10 flex flex-col gap-2">
+            <a
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-[#25D366] border border-[#25D366]/30 rounded-lg"
+            >
+              <MessageCircle className="w-4 h-4" />
+              WhatsApp Us
+            </a>
             {user ? (
               <button
                 onClick={() => { signOut(); nav('home'); }}

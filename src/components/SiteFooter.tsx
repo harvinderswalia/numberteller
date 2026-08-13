@@ -71,11 +71,11 @@ export default function SiteFooter({ onNavigate, onShowAuth }: SiteFooterProps) 
             <div className="space-y-2 text-sm text-gray-400">
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                <span>Docully SaaS Technologies Co. LLC<br />Dubai, UAE</span>
+                <span>Confiex Data Room Private Limited<br />Unit 302, Bldg 2, New Sonal Industrial Estate, Kachpada, Link Road, Malad West, Mumbai 400064</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                <a href="tel:+971565043131" className="hover:text-white transition-colors">+971 56 504 3131</a>
+                <a href="tel:+917900075531" className="hover:text-white transition-colors">+91 7900075531</a>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-blue-400 flex-shrink-0" />
@@ -135,7 +135,7 @@ export default function SiteFooter({ onNavigate, onShowAuth }: SiteFooterProps) 
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Connect With Us</h4>
             <a
-              href="https://wa.me/971565043131"
+              href="https://wa.me/917900075531"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl transition-colors mb-6"
@@ -146,7 +146,7 @@ export default function SiteFooter({ onNavigate, onShowAuth }: SiteFooterProps) 
               Chat on WhatsApp
             </a>
             <p className="text-xs text-gray-500 leading-relaxed">
-              NumberTeller is a product of Docully SaaS Technologies Co. LLC, registered in Dubai, UAE. Built exclusively for numerology practitioners and consultants worldwide.
+              NumberTeller is a product of Confiex Data Room Private Limited, registered in Mumbai, India. Built exclusively for numerology practitioners and consultants worldwide.
             </p>
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function SiteFooter({ onNavigate, onShowAuth }: SiteFooterProps) 
       <div className="border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} Docully SaaS Technologies Co. LLC. All rights reserved.
+            &copy; {new Date().getFullYear()} Confiex Data Room Private Limited. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <button onClick={() => nav('terms')} className="hover:text-gray-300 transition-colors">Terms</button>

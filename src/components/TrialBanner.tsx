@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Zap, FlaskConical } from 'lucide-react';
+import { X, Zap, FlaskConical, Clock } from 'lucide-react';
 import { usePlanContext } from '../contexts/PlanContext';
 import { trialDaysLeft } from '../hooks/usePlan';
 
@@ -9,7 +9,7 @@ interface TrialBannerProps {
 
 export default function TrialBanner({ onUpgrade }: TrialBannerProps) {
   const [dismissed, setDismissed] = useState(false);
-  const { planId, trialActive, calcUsed, trialCalcLimit, trialExpiresAt, loading, isBeta } = usePlanContext();
+  const { planId, trialActive, trialExpiresAt, loading, isBeta } = usePlanContext();
 
   if (loading || dismissed) return null;
   if (planId !== 'free') return null;
@@ -30,8 +30,7 @@ export default function TrialBanner({ onUpgrade }: TrialBannerProps) {
     );
   }
 
-  // Standard trial mode (used after BETA_MODE is turned off)
-  const remaining = Math.max(0, trialCalcLimit - calcUsed);
+  // Standard trial mode
   const daysLeft = trialDaysLeft(trialExpiresAt);
 
   if (!trialActive) {
@@ -39,14 +38,14 @@ export default function TrialBanner({ onUpgrade }: TrialBannerProps) {
       <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-4 py-2.5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Zap className="w-4 h-4 flex-shrink-0" />
-          Your free trial has ended. Subscribe to continue using NumberTeller.
+          Your free trial has ended. Request plan activation to continue using NumberTeller.
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           <button
             onClick={onUpgrade}
             className="text-xs font-bold bg-white text-amber-700 px-3 py-1 rounded-lg hover:bg-amber-50 transition-colors"
           >
-            Subscribe Now
+            Activate Plan
           </button>
           <button onClick={() => setDismissed(true)} className="text-white/70 hover:text-white transition-colors">
             <X className="w-4 h-4" />
@@ -56,19 +55,18 @@ export default function TrialBanner({ onUpgrade }: TrialBannerProps) {
     );
   }
 
-  if (remaining <= 2) {
+  if (daysLeft !== null && daysLeft <= 1) {
     return (
       <div className="bg-slate-800 border-b border-white/10 text-white px-4 py-2 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm text-gray-300">
-          <Zap className="w-4 h-4 text-blue-400 flex-shrink-0" />
-          Free trial: <span className="font-semibold text-white">{remaining} calculation{remaining !== 1 ? 's' : ''}</span> remaining
-          {daysLeft !== null && daysLeft > 0 && <span className="text-gray-500">· {daysLeft} day{daysLeft !== 1 ? 's' : ''} left</span>}
+          <Clock className="w-4 h-4 text-blue-400 flex-shrink-0" />
+          Free trial: <span className="font-semibold text-white">{daysLeft} day{daysLeft !== 1 ? 's' : ''}</span> left
         </div>
         <button
           onClick={onUpgrade}
           className="text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-3 py-1 rounded-lg hover:from-blue-500 hover:to-cyan-500 transition-all flex-shrink-0"
         >
-          Upgrade
+          View Plans
         </button>
       </div>
     );

@@ -156,7 +156,7 @@ export default function LandingPage({ onNavigate, onShowAuth, onShowSignIn }: La
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-gray-500 text-sm mb-12">7 days free · 5 calculations · No credit card</p>
+            <p className="text-gray-500 text-sm mb-12">3 days free · Unlimited calculations · No credit card</p>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
@@ -643,36 +643,47 @@ export default function LandingPage({ onNavigate, onShowAuth, onShowSignIn }: La
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 px-5 py-2 rounded-full mb-6 text-sm font-medium">
             <Gift className="w-4 h-4" />
-            7-Day Free Trial — No Credit Card Required
+            3-Day Free Trial — No Credit Card Required
           </div>
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
             Simple, Transparent Pricing
           </h2>
           <p className="text-xl text-gray-400 mb-3">
-            Try everything free. Subscribe to the plan that fits your practice.
+            Try everything free for 3 days. Then request activation for the plan that fits your practice.
           </p>
           <p className="text-sm text-blue-400/80 font-medium mb-12">
-            Intentional pricing: ₹999 reduces to 9 · ₹1,499 reduces to 5
+            Intentional pricing: ₹991 → 1 (new beginnings) · ₹1,299 → 3 (creativity) · ₹1,499 → 5 (change & growth)
           </p>
-          <div className="grid sm:grid-cols-2 gap-6 mb-10">
-            <div className="bg-slate-800 border border-white/10 rounded-2xl p-8 text-left">
-              <p className="text-blue-300 text-sm font-semibold uppercase tracking-wider mb-2">Calculator</p>
-              <div className="text-4xl font-bold text-white mb-1">₹999<span className="text-xl font-normal text-gray-400">/mo</span></div>
-              <p className="text-gray-500 text-sm mb-6">Cancel anytime · No lock-in</p>
-              <ul className="space-y-3 text-sm text-gray-300">
-                {['All calculators', 'Lo Shu Grid display', 'Transit chart numbers', 'Compatibility score & matrix'].map(f => (
+          <div className="grid sm:grid-cols-3 gap-5 mb-10">
+            <div className="bg-slate-800 border border-white/10 rounded-2xl p-6 text-left">
+              <p className="text-blue-300 text-sm font-semibold uppercase tracking-wider mb-2">Silver</p>
+              <div className="text-3xl font-bold text-white mb-1">₹991<span className="text-lg font-normal text-gray-400">/mo</span></div>
+              <p className="text-gray-500 text-xs mb-5">Cancel anytime · No lock-in</p>
+              <ul className="space-y-2 text-sm text-gray-300">
+                {['All calculators', 'Lo Shu Grid display', 'Transit chart numbers', 'Compatibility score'].map(f => (
                   <li key={f} className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />{f}</li>
                 ))}
               </ul>
             </div>
-            <div className="bg-gradient-to-br from-blue-900/60 to-cyan-900/40 border-2 border-blue-500/50 rounded-2xl p-8 text-left relative overflow-hidden">
-              <div className="absolute top-4 right-4 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">MOST POPULAR</div>
-              <p className="text-blue-300 text-sm font-semibold uppercase tracking-wider mb-2">Expert</p>
-              <div className="text-4xl font-bold text-white mb-1">₹1,499<span className="text-xl font-normal text-gray-400">/mo</span></div>
-              <p className="text-gray-500 text-sm mb-6">Cancel anytime · No lock-in</p>
-              <ul className="space-y-3 text-sm text-gray-300">
-                {['Everything in Calculator', 'Full written interpretations', 'AI Name Correction', 'Client-ready PDF reports', 'AI Tarot & Business tools'].map(f => (
+            <div className="bg-gradient-to-br from-blue-900/60 to-cyan-900/40 border-2 border-blue-500/50 rounded-2xl p-6 text-left relative overflow-hidden">
+              <div className="absolute top-3 right-3 bg-blue-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">POPULAR</div>
+              <p className="text-blue-300 text-sm font-semibold uppercase tracking-wider mb-2">Gold</p>
+              <div className="text-3xl font-bold text-white mb-1">₹1,299<span className="text-lg font-normal text-gray-400">/mo</span></div>
+              <p className="text-gray-500 text-xs mb-5">Cancel anytime · No lock-in</p>
+              <ul className="space-y-2 text-sm text-gray-300">
+                {['Everything in Silver', 'Written interpretations', 'Over-energy analysis', 'PDF with interpretations'].map(f => (
                   <li key={f} className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />{f}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-gradient-to-br from-amber-900/40 to-orange-900/30 border-2 border-amber-500/40 rounded-2xl p-6 text-left relative overflow-hidden">
+              <div className="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">BEST</div>
+              <p className="text-amber-300 text-sm font-semibold uppercase tracking-wider mb-2">Platinum</p>
+              <div className="text-3xl font-bold text-white mb-1">₹1,499<span className="text-lg font-normal text-gray-400">/mo</span></div>
+              <p className="text-gray-500 text-xs mb-5">Cancel anytime · No lock-in</p>
+              <ul className="space-y-2 text-sm text-gray-300">
+                {['Everything in Gold', 'AI Name Correction', 'AI Tarot & Business tools', 'Client-ready PDF reports'].map(f => (
+                  <li key={f} className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />{f}</li>
                 ))}
               </ul>
             </div>
@@ -693,7 +704,7 @@ export default function LandingPage({ onNavigate, onShowAuth, onShowSignIn }: La
               View full pricing <ArrowRight className="w-4 h-4" />
             </button>
           </div>
-          <p className="text-gray-600 text-sm mt-4">No credit card · 7 days · 5 calculations</p>
+          <p className="text-gray-600 text-sm mt-4">No credit card · 3 days · Unlimited calculations</p>
         </div>
       </section>
 
@@ -712,7 +723,7 @@ export default function LandingPage({ onNavigate, onShowAuth, onShowSignIn }: La
           <p className="text-xl text-blue-100/80 mb-3">
             Join 500+ numerology practitioners who use NumberTeller for faster, more accurate, and more professional consultations.
           </p>
-          <p className="text-blue-300/70 text-base mb-10">7 days free · 5 calculations · No credit card required · Cancel anytime</p>
+          <p className="text-blue-300/70 text-base mb-10">3 days free · Unlimited calculations · No credit card required · Cancel anytime</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={onShowAuth}

@@ -24,6 +24,8 @@ import NameCorrectionTool from './components/NameCorrectionTool';
 import BusinessNumerologyPage from './components/BusinessNumerologyPage';
 import FeatureGuard from './components/FeatureGuard';
 import TrialBanner from './components/TrialBanner';
+import SetupForm from './components/SetupForm';
+import ActivationRequestForm from './components/ActivationRequestForm';
 import { exportToPDF } from './utils/pdfExport';
 import { useAuth } from './contexts/AuthContext';
 import { usePlanContext } from './contexts/PlanContext';
@@ -31,7 +33,7 @@ import { calculateLoShuGrid, LoShuGridData } from './utils/loShuGrid';
 
 export type Page =
   | 'home' | 'dashboard' | 'features' | 'pricing' | 'about' | 'contact' | 'resources'
-  | 'terms' | 'privacy' | 'billing'
+  | 'terms' | 'privacy' | 'billing' | 'setup' | 'activate'
   | 'calculator' | 'results' | 'compatibility' | 'house'
   | 'saved' | 'loshu' | 'loshu-results' | 'name-correction' | 'tarot' | 'business'
   | 'admin';
@@ -64,7 +66,7 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signup');
   const { loading, user } = useAuth();
-  const { planId } = usePlanContext();
+  const { planId, setupComplete, trialActive } = usePlanContext();
 
   // Seed initial history entry so popstate works from first page
   useEffect(() => {
@@ -94,12 +96,32 @@ function App() {
 
   // Route logged-out users away from auth-protected pages
   useEffect(() => {
-    const protectedPages: Page[] = ['dashboard', 'saved', 'billing'];
+    const protectedPages: Page[] = ['dashboard', 'saved', 'billing', 'setup', 'activate'];
     if (!loading && !user && protectedPages.includes(currentPage)) {
       setCurrentPage('home');
       window.history.replaceState({ page: 'home' }, '', window.location.pathname);
     }
   }, [loading, user, currentPage]);
+
+  // Setup gate: if user is logged in but hasn't completed setup, redirect to setup
+  // (unless they're on admin or already on setup/activate page)
+  useEffect(() => {
+    if (!loading && user && !setupComplete && !isAdminPath && currentPage !== 'setup' && currentPage !== 'activate') {
+      setCurrentPage('setup');
+      window.history.replaceState({ page: 'setup' }, '', window.location.pathname);
+    }
+  }, [loading, user, setupComplete, isAdminPath, currentPage]);
+
+  // Trial expired gate: if user's trial has ended and no paid plan, redirect to activation
+  useEffect(() => {
+    if (!loading && user && setupComplete && !trialActive && planId === 'free' && !isAdminPath
+        && currentPage !== 'activate' && currentPage !== 'pricing' && currentPage !== 'home'
+        && currentPage !== 'features' && currentPage !== 'about' && currentPage !== 'contact'
+        && currentPage !== 'resources' && currentPage !== 'terms' && currentPage !== 'privacy') {
+      setCurrentPage('activate');
+      window.history.replaceState({ page: 'activate' }, '', window.location.pathname);
+    }
+  }, [loading, user, setupComplete, trialActive, planId, isAdminPath, currentPage]);
 
   if (loading) {
     return (
@@ -171,6 +193,10 @@ function App() {
     switch (currentPage) {
       case 'admin':
         return <SuperAdminPortal />;
+      case 'setup':
+        return <SetupForm onComplete={() => { setCurrentPage('dashboard'); window.history.replaceState({ page: 'dashboard' }, '', window.location.pathname); }} />;
+      case 'activate':
+        return <ActivationRequestForm onNavigate={handleNavigate} />;
       case 'dashboard':
         return (
           <Dashboard
@@ -202,7 +228,7 @@ function App() {
           <FeatureGuard
             feature="tarot"
             featureLabel="AI Tarot Reading"
-            featureDescription="Numerology-integrated tarot spreads with AI-generated narratives. Requires an Expert plan subscription."
+            featureDescription="Numerology-integrated tarot spreads with AI-generated narratives. Requires a Platinum plan subscription."
             onNavigate={handleNavigate}
             onShowAuth={handleShowAuth}
           >
@@ -252,7 +278,7 @@ function App() {
           <FeatureGuard
             feature="name-correction-full"
             featureLabel="AI Name Correction"
-            featureDescription="Intelligent name variants aligned to your client's desired outcomes using BD, LP, EX & SU harmony scoring. Requires an Expert plan subscription."
+            featureDescription="Intelligent name variants aligned to your client's desired outcomes using BD, LP, EX & SU harmony scoring. Requires a Platinum plan subscription."
             onNavigate={handleNavigate}
             onShowAuth={handleShowAuth}
           >
@@ -264,7 +290,7 @@ function App() {
           <FeatureGuard
             feature="business-full"
             featureLabel="Business Numerology"
-            featureDescription="Full company profile analysis, ideal business number matching, partner compatibility, and brand name suggestions. Requires an Expert plan subscription."
+            featureDescription="Full company profile analysis, ideal business number matching, partner compatibility, and brand name suggestions. Requires a Platinum plan subscription."
             onNavigate={handleNavigate}
             onShowAuth={handleShowAuth}
           >
