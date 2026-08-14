@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Hash, Calculator, Users, Home, Grid3x3, CreditCard as Edit3, Building2, BookOpen, Save, ChevronRight, Crown, Zap, Star, Gift, LogOut, Trash2, Calendar, User, TrendingUp, Clock, AlertCircle, RefreshCw, Lock } from 'lucide-react';
+import { Hash, Calculator, Users, Home, Grid3x3, CreditCard as Edit3, Building2, BookOpen, Save, ChevronRight, Crown, Zap, Star, Gift, LogOut, Trash2, Calendar, User, TrendingUp, AlertCircle, RefreshCw, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getPlanLabel, getPlanColor, trialDaysLeft } from '../hooks/usePlan';
+import { getPlanLabel, getPlanColor } from '../hooks/usePlan';
 import { usePlanContext } from '../contexts/PlanContext';
 import { getSavedCharts, deleteChart, SavedChart } from '../utils/savedCharts';
 
@@ -130,9 +130,7 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
     onLoadChart(chart.chart_data);
   };
 
-  const daysLeft = trialDaysLeft(plan.trialExpiresAt);
-  const isFreeTrial = plan.planId === 'free';
-  // Use computed trialActive from PlanContext (checks both DB and localStorage)
+  const isFreePlan = plan.planId === 'free';
   const trialActive = plan.trialActive;
 
   const planLabel = getPlanLabel(plan.planId);
@@ -201,22 +199,19 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
                 <PlanIcon className="w-4 h-4" />
                 {planLabel} Plan
               </div>
-              {isFreeTrial && (
+              {isFreePlan && (
                 <button
                   onClick={onShowUpgrade}
                   className="text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-3 py-1 rounded-lg hover:from-blue-500 hover:to-cyan-500 transition-all"
                 >
-                  Upgrade
+                  Activate
                 </button>
               )}
             </div>
 
-            {isFreeTrial && !plan.loading && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                  <Clock className="w-3 h-3" />
-                  {daysLeft > 0 ? `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left in trial` : 'Trial expired'}
-                </div>
+            {isFreePlan && (
+              <div className="text-xs text-gray-500 border-t border-white/8 pt-2">
+                Request plan activation to unlock all features
               </div>
             )}
 
@@ -227,9 +222,9 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
               </div>
             )}
 
-            {isFreeTrial && (
+            {isFreePlan && (
               <div className="text-xs text-gray-500 border-t border-white/8 pt-2">
-                Upgrade for full features & client-ready reports
+                Request plan activation to unlock all features
               </div>
             )}
           </div>
@@ -358,7 +353,7 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
             </div>
 
             {/* Inline plan comparison */}
-            {isFreeTrial && (
+            {isFreePlan && (
               <div className="mt-4 bg-slate-900 border border-white/8 rounded-2xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-white/6">
                   <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Plans</p>

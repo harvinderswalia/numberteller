@@ -279,7 +279,7 @@ export default function ActivationRequestForm({ onNavigate }: ActivationRequestF
             <Sparkles className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Activate Your Plan</h1>
-          <p className="text-gray-400">Your free trial has ended. Choose a plan and request activation below.</p>
+          <p className="text-gray-400">Choose a plan and request activation to unlock all features.</p>
         </div>
 
         {/* Plan comparison */}

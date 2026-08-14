@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Shield, Users, TrendingUp, Search, RefreshCw, Mail, Hash, LogOut, AlertCircle, CheckCircle, Clock, Crown, Zap, Star, Gift, X, Save, Ban, RotateCcw, CreditCard, IndianRupee, ChevronDown, ChevronUp, Eye, EyeOff, Activity, ArrowUpRight, FileText, BadgeCheck, AlertOctagon, MessageCircle, Send } from 'lucide-react';
+import { Shield, Users, TrendingUp, Search, RefreshCw, Mail, Hash, LogOut, AlertCircle, CheckCircle, Clock, Crown, Zap, Star, Gift, X, Save, Ban, CreditCard, IndianRupee, ChevronDown, ChevronUp, Eye, EyeOff, ArrowUpRight, FileText, BadgeCheck, AlertOctagon, MessageCircle, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { PLAN_PRICES } from '../utils/subscription';
@@ -20,10 +20,9 @@ interface PlanOverride {
   email: string;
   plan_id: string;
   trial_expires_at: string | null;
-  trial_calc_limit: number | null;
   subscription_expires_at: string | null;
+  activated_at: string | null;
   notes: string;
-  calc_used: number;
   monthly_amount: number;
   full_name: string | null;
   phone: string | null;
@@ -219,7 +218,7 @@ export default function SuperAdminPortal() {
   const [editForm, setEditForm] = useState<Partial<PlanOverride & { monthly_amount_input: string }>>({});
   const [notesValue, setNotesValue] = useState('');
   const [amountValue, setAmountValue] = useState('');
-  const [approveForm, setApproveForm] = useState<{ planId: string; expiryDate: string; monthlyAmount: string }>({ planId: '', expiryDate: '', monthlyAmount: '' });
+  const [approveForm, setApproveForm] = useState<{ planId: string; activationDate: string; expiryDate: string; monthlyAmount: string }>({ planId: '', activationDate: '', expiryDate: '', monthlyAmount: '' });
   const [rejectNotes, setRejectNotes] = useState('');
   const [editPlanForm, setEditPlanForm] = useState<Partial<PlanDef & { featuresText: string; notIncludedText: string }>>({});
 
@@ -264,16 +263,15 @@ export default function SuperAdminPortal() {
   const pendingRequests = activationRequests.filter(r => r.status === 'pending');
 
   const stats = (() => {
-    let silver = 0, gold = 0, platinum = 0, freeTrial = 0, mrr = 0, totalCalcs = 0, pendingCount = pendingRequests.length;
+    let silver = 0, gold = 0, platinum = 0, freeTrial = 0, mrr = 0, pendingCount = pendingRequests.length;
     for (const u of users) {
       const ov = getOverride(u.user_id);
       if (ov?.plan_id === 'silver')   { silver++;   mrr += ov.monthly_amount || PLAN_PRICES.silver; }
       else if (ov?.plan_id === 'gold')     { gold++;     mrr += ov.monthly_amount || PLAN_PRICES.gold; }
       else if (ov?.plan_id === 'platinum') { platinum++; mrr += ov.monthly_amount || PLAN_PRICES.platinum; }
       else freeTrial++;
-      totalCalcs += ov?.calc_used ?? 0;
     }
-    return { total: users.length, silver, gold, platinum, freeTrial, mrr, totalCalcs, pendingCount };
+    return { total: users.length, silver, gold, platinum, freeTrial, mrr, pendingCount };
   })();
 
   // ── Edit plan modal ──
@@ -284,8 +282,8 @@ export default function SuperAdminPortal() {
       email: u.email,
       plan_id: ov?.plan_id ?? 'free',
       trial_expires_at: ov?.trial_expires_at ? ov.trial_expires_at.split('T')[0] : '',
-      trial_calc_limit: ov?.trial_calc_limit ?? null,
       subscription_expires_at: ov?.subscription_expires_at ? ov.subscription_expires_at.split('T')[0] : '',
+      activated_at: ov?.activated_at ? ov.activated_at.split('T')[0] : '',
       notes: ov?.notes ?? '',
       monthly_amount: ov?.monthly_amount ?? 0,
       monthly_amount_input: String(ov?.monthly_amount ?? PLAN_PRICES[ov?.plan_id ?? 'free'] ?? 0),
@@ -299,20 +297,25 @@ export default function SuperAdminPortal() {
     setBusyUser(editForm.user_auth_id);
     const planId = editForm.plan_id ?? 'free';
     const isPaid = planId === 'silver' || planId === 'gold' || planId === 'platinum';
+    const existing = getOverride(editForm.user_auth_id);
+    const wasFree = !existing?.plan_id || existing.plan_id === 'free';
+    const nowIso = new Date().toISOString();
+
     const payload: any = {
       user_auth_id: editForm.user_auth_id,
       email: editForm.email,
       plan_id: planId,
       trial_expires_at: isPaid ? null : (editForm.trial_expires_at || null),
-      trial_calc_limit: isPaid ? null : (editForm.trial_calc_limit ?? null),
       subscription_expires_at: isPaid ? (editForm.subscription_expires_at || null) : null,
+      activated_at: isPaid
+        ? (editForm.activated_at || (wasFree ? nowIso.split('T')[0] : existing?.activated_at ?? null))
+        : null,
       notes: editForm.notes ?? '',
       monthly_amount: isPaid ? (parseInt(editForm.monthly_amount_input ?? '0') || PLAN_PRICES[planId]) : 0,
-      updated_at: new Date().toISOString(),
+      updated_at: nowIso,
       updated_by: user?.email ?? '',
     };
     try {
-      const existing = getOverride(editForm.user_auth_id);
       const { error } = existing?.id
         ? await supabase.from('user_plan_overrides').update(payload).eq('id', existing.id)
         : await supabase.from('user_plan_overrides').insert(payload);
@@ -322,24 +325,6 @@ export default function SuperAdminPortal() {
       showToast(`Plan updated to ${planMeta(planId).label} for ${editForm.email}`);
     } catch (err: any) {
       showToast('Save failed: ' + err.message, 'error');
-    } finally {
-      setBusyUser(null);
-    }
-  };
-
-  const resetCalcUsed = async (u: AdminUser) => {
-    const ov = getOverride(u.user_id);
-    if (!ov?.id) return;
-    setBusyUser(u.user_id);
-    try {
-      const { error } = await supabase.from('user_plan_overrides')
-        .update({ calc_used: 0, updated_at: new Date().toISOString(), updated_by: user?.email ?? '' })
-        .eq('id', ov.id);
-      if (error) throw error;
-      await loadData();
-      showToast(`Calculation count reset for ${u.email}`);
-    } catch (err: any) {
-      showToast('Reset failed: ' + err.message, 'error');
     } finally {
       setBusyUser(null);
     }
@@ -373,7 +358,7 @@ export default function SuperAdminPortal() {
       if (ov?.id) {
         await supabase.from('user_plan_overrides').update({ notes: notesValue, updated_by: user?.email ?? '', updated_at: new Date().toISOString() }).eq('id', ov.id);
       } else {
-        await supabase.from('user_plan_overrides').upsert({ user_auth_id: modalUser.user_id, email: modalUser.email, notes: notesValue, plan_id: 'free', calc_used: 0 }, { onConflict: 'user_auth_id' });
+        await supabase.from('user_plan_overrides').upsert({ user_auth_id: modalUser.user_id, email: modalUser.email, notes: notesValue, plan_id: 'free' }, { onConflict: 'user_auth_id' });
       }
       await loadData();
       closeModal();
@@ -422,8 +407,8 @@ export default function SuperAdminPortal() {
         await supabase.from('user_plan_overrides').update({
           plan_id: 'free',
           trial_expires_at: new Date(0).toISOString(),
-          trial_calc_limit: 0,
           subscription_expires_at: null,
+          activated_at: null,
           notes: `[REVOKED by admin ${user?.email} on ${new Date().toLocaleDateString()}] ${ov.notes ?? ''}`.trim(),
           updated_by: user?.email ?? '',
           updated_at: new Date().toISOString(),
@@ -443,6 +428,7 @@ export default function SuperAdminPortal() {
   const openApprove = (req: ActivationRequest) => {
     setApproveForm({
       planId: req.requested_plan_id,
+      activationDate: new Date().toISOString().split('T')[0],
       expiryDate: addOneMonth(new Date()).toISOString().split('T')[0],
       monthlyAmount: String(PLAN_PRICES[req.requested_plan_id] ?? 0),
     });
@@ -455,6 +441,7 @@ export default function SuperAdminPortal() {
     setBusyUser(modalRequest.id);
     try {
       const expiryDate = new Date(approveForm.expiryDate + 'T12:00:00');
+      const activationDate = new Date(approveForm.activationDate + 'T12:00:00');
       const monthlyAmount = parseInt(approveForm.monthlyAmount) || PLAN_PRICES[approveForm.planId] || 0;
       const planId = approveForm.planId;
 
@@ -477,9 +464,9 @@ export default function SuperAdminPortal() {
         email: modalRequest.email,
         plan_id: planId,
         subscription_expires_at: expiryDate.toISOString(),
+        activated_at: activationDate.toISOString(),
         monthly_amount: monthlyAmount,
         trial_expires_at: null,
-        trial_calc_limit: null,
         updated_at: new Date().toISOString(),
         updated_by: user?.email ?? '',
       };
@@ -684,7 +671,6 @@ export default function SuperAdminPortal() {
               <StatCard label="Total Users" value={loading ? '—' : stats.total} sub="registered accounts" icon={Users} gradient="from-blue-600 to-blue-500" />
               <StatCard label="Monthly Revenue" value={loading ? '—' : fmtRupees(stats.mrr)} sub="MRR from paid plans" icon={IndianRupee} gradient="from-emerald-600 to-teal-500" />
               <StatCard label="Pending Activations" value={loading ? '—' : stats.pendingCount} sub="awaiting review" icon={Mail} gradient="from-amber-600 to-orange-500" />
-              <StatCard label="Total Calculations" value={loading ? '—' : stats.totalCalcs.toLocaleString('en-IN')} sub="across all users" icon={Activity} gradient="from-purple-600 to-pink-500" />
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -765,7 +751,6 @@ export default function SuperAdminPortal() {
                       <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Joined</th>
                       <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Last Login</th>
                       <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Plan</th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden xl:table-cell">Usage</th>
                       <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
@@ -812,25 +797,11 @@ export default function SuperAdminPortal() {
                                 <p className="text-xs text-gray-600 mt-0.5">{fmtRupees(ov.monthly_amount)}/mo</p>
                               ) : null}
                             </td>
-                            <td className="px-5 py-4 hidden xl:table-cell">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-sm font-semibold text-white">{ov?.calc_used ?? 0}</span>
-                                {planId === 'free' && (
-                                  <span className="text-xs text-gray-600">/ {ov?.trial_calc_limit ?? 5}</span>
-                                )}
-                              </div>
-                              {planId === 'free' && (
-                                <div className="w-16 h-1 bg-slate-700 rounded-full mt-1">
-                                  <div className="h-1 bg-blue-500 rounded-full transition-all" style={{ width: `${Math.min(100, ((ov?.calc_used ?? 0) / (ov?.trial_calc_limit ?? 5)) * 100)}%` }} />
-                                </div>
-                              )}
-                            </td>
                             <td className="px-5 py-4">
                               <div className="flex items-center justify-end gap-0.5">
                                 <IconBtn icon={CreditCard} label="Edit Plan" onClick={() => openEdit(u)} color="blue" />
                                 <IconBtn icon={IndianRupee} label="Set Amount" onClick={() => openAmount(u)} color="amber" />
                                 <IconBtn icon={FileText} label="Admin Notes" onClick={() => openNotes(u)} />
-                                <IconBtn icon={RotateCcw} label="Reset Calc Count" onClick={() => resetCalcUsed(u)} color="emerald" disabled={busyUser === u.user_id || !ov?.id} />
                                 <IconBtn icon={Mail} label="Send Password Reset" onClick={() => sendReset(u)} disabled={busyUser === u.user_id + '_reset'} spin={busyUser === u.user_id + '_reset'} />
                                 <IconBtn icon={isExpanded ? EyeOff : Eye} label={isExpanded ? 'Collapse' : 'View Details'} onClick={() => setExpandedUser(isExpanded ? null : u.user_id)} />
                                 <IconBtn icon={Ban} label="Revoke Access" onClick={() => openDelete(u)} danger />
@@ -840,13 +811,12 @@ export default function SuperAdminPortal() {
 
                           {isExpanded && (
                             <tr className="border-b border-white/5 bg-slate-800/20">
-                              <td colSpan={6} className="px-5 py-4">
+                              <td colSpan={5} className="px-5 py-4">
                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-xs">
                                   {[
                                     { label: 'User ID', value: u.user_id.split('-')[0] + '…', mono: true },
                                     { label: 'Plan', value: planMeta(planId).label },
-                                    { label: 'Calcs Used', value: ov?.calc_used ?? 0 },
-                                    { label: 'Calc Limit', value: planId === 'free' ? (ov?.trial_calc_limit ?? 5) : 'Unlimited' },
+                                    { label: 'Activated', value: fmt(ov?.activated_at ?? null) },
                                     { label: 'Trial Expires', value: fmt(ov?.trial_expires_at ?? null) },
                                     { label: 'Sub Expires', value: fmt(ov?.subscription_expires_at ?? null) },
                                     { label: 'Monthly Amt', value: ov?.monthly_amount ? fmtRupees(ov.monthly_amount) : '—' },
@@ -1075,10 +1045,6 @@ export default function SuperAdminPortal() {
                   <FieldLabel>Trial Expiry Date</FieldLabel>
                   <Input type="date" value={editForm.trial_expires_at ?? ''} onChange={(e: any) => setEditForm(f => ({ ...f, trial_expires_at: e.target.value }))} />
                 </div>
-                <div>
-                  <FieldLabel>Calc Limit (default 5)</FieldLabel>
-                  <Input type="number" value={editForm.trial_calc_limit ?? ''} onChange={(e: any) => setEditForm(f => ({ ...f, trial_calc_limit: e.target.value ? parseInt(e.target.value) : null }))} placeholder="5" min={0} max={999} />
-                </div>
               </div>
             )}
 
@@ -1091,11 +1057,16 @@ export default function SuperAdminPortal() {
                   </p>
                 </div>
                 <div>
+                  <FieldLabel>Activation Date</FieldLabel>
+                  <Input type="date" value={editForm.activated_at ?? ''} onChange={(e: any) => setEditForm(f => ({ ...f, activated_at: e.target.value }))} />
+                  <p className="text-xs text-gray-600 mt-1">Billing anchor for renewals</p>
+                </div>
+                <div>
                   <FieldLabel>Subscription Expiry</FieldLabel>
                   <Input type="date" value={editForm.subscription_expires_at ?? ''} onChange={(e: any) => setEditForm(f => ({ ...f, subscription_expires_at: e.target.value }))} />
                   <p className="text-xs text-gray-600 mt-1">Leave blank = never expires</p>
                 </div>
-                <div>
+                <div className="col-span-2">
                   <FieldLabel>Monthly Amount (₹)</FieldLabel>
                   <Input type="number" value={editForm.monthly_amount_input ?? ''} onChange={(e: any) => setEditForm(f => ({ ...f, monthly_amount_input: e.target.value }))} placeholder={String(PLAN_PRICES[editForm.plan_id ?? 'free'])} min={0} />
                   <p className="text-xs text-gray-600 mt-1">Standard: {fmtRupees(PLAN_PRICES[editForm.plan_id ?? 'free'])}</p>
@@ -1183,7 +1154,7 @@ export default function SuperAdminPortal() {
               <Ban className="w-5 h-5 text-rose-400 mt-0.5 shrink-0" />
               <div>
                 <p className="text-rose-300 font-semibold text-sm mb-1">This will revoke all access for this user.</p>
-                <p className="text-rose-400/70 text-xs">The user account will remain but their trial will be marked expired and their calc limit set to zero. The user will be blocked from all tools.</p>
+                <p className="text-rose-400/70 text-xs">The user account will remain but their plan will be reset to free with an expired trial. The user will be blocked from all paid tools.</p>
               </div>
             </div>
             <div className="bg-slate-800 rounded-xl px-4 py-3">
@@ -1226,11 +1197,16 @@ export default function SuperAdminPortal() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <FieldLabel>Activation Date</FieldLabel>
+                <Input type="date" value={approveForm.activationDate} onChange={(e: any) => setApproveForm(f => ({ ...f, activationDate: e.target.value }))} />
+                <p className="text-xs text-gray-600 mt-1">Set as today's date</p>
+              </div>
+              <div>
                 <FieldLabel>Subscription Expiry</FieldLabel>
                 <Input type="date" value={approveForm.expiryDate} onChange={(e: any) => setApproveForm(f => ({ ...f, expiryDate: e.target.value }))} />
                 <p className="text-xs text-gray-600 mt-1">Auto-renews monthly</p>
               </div>
-              <div>
+              <div className="col-span-2">
                 <FieldLabel>Monthly Amount (₹)</FieldLabel>
                 <Input type="number" value={approveForm.monthlyAmount} onChange={(e: any) => setApproveForm(f => ({ ...f, monthlyAmount: e.target.value }))} min={0} />
               </div>

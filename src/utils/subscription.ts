@@ -77,7 +77,6 @@ export const PLAN_PRICES: Record<string, number> = {
   platinum: 1499,
 };
 
-export const FREE_TRIAL_CALC_LIMIT = Infinity;
 export const FREE_TRIAL_DAYS = 3;
 
 // WhatsApp contact number for activation support

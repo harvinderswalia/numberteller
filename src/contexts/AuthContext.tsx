@@ -47,8 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email,
           plan_id: 'free',
           trial_expires_at: null,
-          trial_calc_limit: 999999,
-          calc_used: 0,
           setup_completed_at: BETA_MODE ? new Date().toISOString() : null,
         }, { onConflict: 'user_auth_id' });
       }

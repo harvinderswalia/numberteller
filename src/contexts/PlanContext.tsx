@@ -10,14 +10,8 @@ export interface PlanContextValue extends PlanStatus {
 
 const PlanContext = createContext<PlanContextValue | undefined>(undefined);
 
-function computeTrialActive(plan: PlanStatus): boolean {
-  if (plan.loading) return false;
-  if (plan.planId !== 'free') return false;
-  if (!plan.setupCompletedAt) return false;
-  if (!plan.trialExpiresAt) return false;
-
-  const expired = plan.trialExpiresAt <= new Date();
-  return !expired;
+function computeTrialActive(_plan: PlanStatus): boolean {
+  return false;
 }
 
 export function PlanProvider({ children }: { children: React.ReactNode }) {

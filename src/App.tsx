@@ -59,7 +59,6 @@ function App() {
   };
 
   const [currentPage, setCurrentPage] = useState<Page>(getInitialPage);
-  const planSystemLaunch = new Date('2026-08-13T11:32:08Z');
   const [calculationResults, setCalculationResults] = useState<any>(null);
   const [loShuResults, setLoShuResults] = useState<LoShuGridData | null>(null);
   const [sharedNumerology, setSharedNumerology] = useState<SharedNumerologyContext | null>(null);
@@ -67,7 +66,7 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signup');
   const { loading: authLoading, user } = useAuth();
-  const { planId, setupComplete, trialActive, loading: planLoading } = usePlanContext();
+  const { planId, setupComplete, loading: planLoading } = usePlanContext();
 
   // Seed initial history entry so popstate works from first page
   useEffect(() => {
@@ -96,31 +95,27 @@ function App() {
     }
   }, [authLoading, user, currentPage]);
 
-  // Only accounts created after the new plan rollout use the setup gate.
-  // Wait for plan data to load so we don't redirect based on default 'free' state.
+  // Setup gate: any signed-in user who hasn't completed setup is redirected to the setup form.
   useEffect(() => {
-    const isNewAccount = user ? new Date(user.created_at) >= planSystemLaunch : false;
-    if (!authLoading && !planLoading && user && isNewAccount && !setupComplete && !isAdminPath && currentPage !== 'setup' && currentPage !== 'activate') {
+    if (!authLoading && !planLoading && user && !setupComplete && !isAdminPath && currentPage !== 'setup' && currentPage !== 'activate') {
       setCurrentPage('setup');
       window.history.replaceState({ page: 'setup' }, '', window.location.pathname);
     }
   }, [authLoading, planLoading, user, setupComplete, isAdminPath, currentPage]);
 
-  // Trial expired gate: if user's trial has ended and no paid plan, redirect to activation.
-  // Only applies to accounts created after the new plan rollout.
-  // Wait for plan data so planId/trialActive reflect the real DB state.
+  // Activation gate: any signed-in user on the free plan (no paid subscription) is redirected
+  // to the activation request form. They can sign in but all features are locked until activated.
   useEffect(() => {
-    const isNewAccount = user ? new Date(user.created_at) >= planSystemLaunch : false;
-    if (!authLoading && !planLoading && user && isNewAccount && setupComplete && !trialActive && planId === 'free' && !isAdminPath
+    if (!authLoading && !planLoading && user && setupComplete && planId === 'free' && !isAdminPath
         && currentPage !== 'activate' && currentPage !== 'pricing' && currentPage !== 'home'
         && currentPage !== 'features' && currentPage !== 'about' && currentPage !== 'contact'
         && currentPage !== 'resources' && currentPage !== 'terms' && currentPage !== 'privacy') {
       setCurrentPage('activate');
       window.history.replaceState({ page: 'activate' }, '', window.location.pathname);
     }
-  }, [authLoading, planLoading, user, setupComplete, trialActive, planId, isAdminPath, currentPage]);
+  }, [authLoading, planLoading, user, setupComplete, planId, isAdminPath, currentPage]);
 
-  if (authLoading || (user && planLoading)) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
@@ -194,7 +189,7 @@ function App() {
         return (
           <SetupForm
             onNavigate={handleNavigate}
-            onComplete={() => { setCurrentPage('dashboard'); window.history.replaceState({ page: 'dashboard' }, '', window.location.pathname); }}
+            onComplete={() => { setCurrentPage('activate'); window.history.replaceState({ page: 'activate' }, '', window.location.pathname); }}
           />
         );
       case 'activate':

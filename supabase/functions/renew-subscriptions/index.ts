@@ -72,7 +72,7 @@ Deno.serve(async (req: Request) => {
     // Find all paid plans where subscription_expires_at <= now
     // These need to be renewed (month added) and a renewal email sent
     const { data: expiredSubs, error: subError } = await fetch(
-      `${supabaseUrl}/rest/v1/user_plan_overrides?plan_id=in.(silver,gold,platinum)&subscription_expires_at=lt.${now.toISOString()}&select=id,user_auth_id,email,plan_id,monthly_amount,subscription_expires_at,full_name`,
+      `${supabaseUrl}/rest/v1/user_plan_overrides?plan_id=in.(silver,gold,platinum)&subscription_expires_at=lt.${now.toISOString()}&select=id,user_auth_id,email,plan_id,monthly_amount,subscription_expires_at,activated_at,full_name`,
       { headers }
     ).then(r => r.json()).catch(() => ({ data: null, error: 'fetch failed' }));
 
@@ -85,7 +85,8 @@ Deno.serve(async (req: Request) => {
       for (const sub of expiredSubs) {
         try {
           const oldExpiry = new Date(sub.subscription_expires_at);
-          const { newDate: newExpiry, originalDay } = addOneMonth(oldExpiry);
+          const anchor = sub.activated_at ? new Date(sub.activated_at) : oldExpiry;
+          const { newDate: newExpiry, originalDay } = addOneMonth(oldExpiry, anchor.getDate());
           const monthlyAmount = sub.monthly_amount || PLAN_PRICES[sub.plan_id] || 0;
 
           // Update subscription_expires_at to new date

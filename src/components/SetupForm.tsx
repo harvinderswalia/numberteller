@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { User, Phone, ArrowRight, Hash, Sparkles, AlertCircle, Home, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlanContext } from '../contexts/PlanContext';
-import { FREE_TRIAL_DAYS, FREE_TRIAL_CALC_LIMIT } from '../utils/subscription';
+
 
 interface SetupFormProps {
   onComplete: () => void;
@@ -76,15 +76,15 @@ export default function SetupForm({ onComplete, onNavigate }: SetupFormProps) {
           <div className="h-1 w-full bg-gradient-to-r from-blue-600 to-cyan-500" />
 
           <div className="p-8">
-            {/* Trial info banner */}
-            <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-4 py-3 mb-6 flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+            {/* Info banner */}
+            <div className="bg-blue-500/10 border border-blue-500/25 rounded-xl px-4 py-3 mb-6 flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-blue-400 flex-shrink-0" />
               <div>
-                <p className="text-emerald-300 font-semibold text-sm">
-                  {FREE_TRIAL_DAYS}-Day Free Trial Starts After Setup
+                <p className="text-blue-300 font-semibold text-sm">
+                  Complete setup to request plan activation
                 </p>
                 <p className="text-gray-400 text-xs mt-0.5">
-                  {FREE_TRIAL_CALC_LIMIT} calculations · All Silver plan tools · No credit card
+                  Choose your plan after setup · Full access once activated
                 </p>
               </div>
             </div>
@@ -156,7 +156,7 @@ export default function SetupForm({ onComplete, onNavigate }: SetupFormProps) {
                   </span>
                 ) : (
                   <>
-                    Start My Free Trial
+                    Continue to Plan Activation
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
