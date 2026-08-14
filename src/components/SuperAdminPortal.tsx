@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { PLAN_PRICES } from '../utils/subscription';
 
-const SUPER_ADMIN_EMAIL = 'harvenderswalia@gmail.com';
+const SUPER_ADMIN_EMAIL = 'harvinderswalia@gmail.com';
 
 interface AdminUser {
   user_id: string;

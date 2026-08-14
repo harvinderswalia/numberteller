@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { User, Phone, ArrowRight, Hash, Sparkles, AlertCircle } from 'lucide-react';
+import { User, Phone, ArrowRight, Hash, Sparkles, AlertCircle, Home, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlanContext } from '../contexts/PlanContext';
 import { FREE_TRIAL_DAYS, FREE_TRIAL_CALC_LIMIT } from '../utils/subscription';
 
 interface SetupFormProps {
   onComplete: () => void;
+  onNavigate: (page: string) => void;
 }
 
-export default function SetupForm({ onComplete }: SetupFormProps) {
-  const { user } = useAuth();
+export default function SetupForm({ onComplete, onNavigate }: SetupFormProps) {
+  const { user, signOut } = useAuth();
   const { completeSetup } = usePlanContext();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -45,6 +46,23 @@ export default function SetupForm({ onComplete }: SetupFormProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        {/* Top-right exit buttons */}
+        <div className="flex items-center justify-end gap-2 mb-4">
+          <button
+            onClick={() => onNavigate('home')}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-white border border-white/10 hover:border-white/20 rounded-lg transition-all"
+          >
+            <Home className="w-3.5 h-3.5" />
+            Home
+          </button>
+          <button
+            onClick={() => { signOut(); onNavigate('home'); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-white border border-white/10 hover:border-white/20 rounded-lg transition-all"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Sign Out
+          </button>
+        </div>
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/25">

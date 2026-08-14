@@ -59,14 +59,15 @@ function App() {
   };
 
   const [currentPage, setCurrentPage] = useState<Page>(getInitialPage);
+  const planSystemLaunch = new Date('2026-08-13T11:32:08Z');
   const [calculationResults, setCalculationResults] = useState<any>(null);
   const [loShuResults, setLoShuResults] = useState<LoShuGridData | null>(null);
   const [sharedNumerology, setSharedNumerology] = useState<SharedNumerologyContext | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signup');
-  const { loading, user } = useAuth();
-  const { planId, setupComplete, trialActive } = usePlanContext();
+  const { loading: authLoading, user } = useAuth();
+  const { planId, setupComplete, trialActive, loading: planLoading } = usePlanContext();
 
   // Seed initial history entry so popstate works from first page
   useEffect(() => {
@@ -86,44 +87,40 @@ function App() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  // Route logged-in users to dashboard when they land on 'home' (and not admin path)
-  useEffect(() => {
-    if (!loading && user && currentPage === 'home' && !isAdminPath) {
-      setCurrentPage('dashboard');
-      window.history.replaceState({ page: 'dashboard' }, '', window.location.pathname);
-    }
-  }, [loading, user, currentPage, isAdminPath]);
-
   // Route logged-out users away from auth-protected pages
   useEffect(() => {
     const protectedPages: Page[] = ['dashboard', 'saved', 'billing', 'setup', 'activate'];
-    if (!loading && !user && protectedPages.includes(currentPage)) {
+    if (!authLoading && !user && protectedPages.includes(currentPage)) {
       setCurrentPage('home');
       window.history.replaceState({ page: 'home' }, '', window.location.pathname);
     }
   }, [loading, user, currentPage]);
 
-  // Setup gate: if user is logged in but hasn't completed setup, redirect to setup
-  // (unless they're on admin or already on setup/activate page)
+  // Only accounts created after the new plan rollout use the setup gate.
+  // Wait for plan data to load so we don't redirect based on default 'free' state.
   useEffect(() => {
-    if (!loading && user && !setupComplete && !isAdminPath && currentPage !== 'setup' && currentPage !== 'activate') {
+    const isNewAccount = user ? new Date(user.created_at) >= planSystemLaunch : false;
+    if (!authLoading && !planLoading && user && isNewAccount && !setupComplete && !isAdminPath && currentPage !== 'setup' && currentPage !== 'activate') {
       setCurrentPage('setup');
       window.history.replaceState({ page: 'setup' }, '', window.location.pathname);
     }
-  }, [loading, user, setupComplete, isAdminPath, currentPage]);
+  }, [authLoading, planLoading, user, setupComplete, isAdminPath, currentPage]);
 
-  // Trial expired gate: if user's trial has ended and no paid plan, redirect to activation
+  // Trial expired gate: if user's trial has ended and no paid plan, redirect to activation.
+  // Only applies to accounts created after the new plan rollout.
+  // Wait for plan data so planId/trialActive reflect the real DB state.
   useEffect(() => {
-    if (!loading && user && setupComplete && !trialActive && planId === 'free' && !isAdminPath
+    const isNewAccount = user ? new Date(user.created_at) >= planSystemLaunch : false;
+    if (!authLoading && !planLoading && user && isNewAccount && setupComplete && !trialActive && planId === 'free' && !isAdminPath
         && currentPage !== 'activate' && currentPage !== 'pricing' && currentPage !== 'home'
         && currentPage !== 'features' && currentPage !== 'about' && currentPage !== 'contact'
         && currentPage !== 'resources' && currentPage !== 'terms' && currentPage !== 'privacy') {
       setCurrentPage('activate');
       window.history.replaceState({ page: 'activate' }, '', window.location.pathname);
     }
-  }, [loading, user, setupComplete, trialActive, planId, isAdminPath, currentPage]);
+  }, [authLoading, planLoading, user, setupComplete, trialActive, planId, isAdminPath, currentPage]);
 
-  if (loading) {
+  if (authLoading || (user && planLoading)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
@@ -194,7 +191,12 @@ function App() {
       case 'admin':
         return <SuperAdminPortal />;
       case 'setup':
-        return <SetupForm onComplete={() => { setCurrentPage('dashboard'); window.history.replaceState({ page: 'dashboard' }, '', window.location.pathname); }} />;
+        return (
+          <SetupForm
+            onNavigate={handleNavigate}
+            onComplete={() => { setCurrentPage('dashboard'); window.history.replaceState({ page: 'dashboard' }, '', window.location.pathname); }}
+          />
+        );
       case 'activate':
         return <ActivationRequestForm onNavigate={handleNavigate} />;
       case 'dashboard':
@@ -304,7 +306,7 @@ function App() {
 
   return (
     <>
-      <TrialBanner onUpgrade={() => setShowUpgradeModal(true)} />
+      {!isAdminPath && <TrialBanner onUpgrade={() => setShowUpgradeModal(true)} />}
       {renderPage()}
       <SubscriptionModal
         isOpen={showUpgradeModal}

@@ -70,7 +70,7 @@ const allTools = [
   { icon: Smartphone, title: 'Mobile Number', desc: 'Phone number vibration analysis and optimisation for business and personal use', page: 'house', color: 'from-orange-600 to-amber-500' },
   { icon: Calculator, title: 'Business Name', desc: 'Company name numerology with EX/SU alignment for maximum business success', page: 'house', color: 'from-blue-700 to-blue-600' },
   { icon: Download, title: 'PDF Export', desc: 'Generate and download professional branded PDF reports to share with clients', page: 'calculator', color: 'from-emerald-700 to-emerald-600' },
-  { icon: Save, title: 'Save Charts', desc: 'Securely store up to 10 client charts per account — access anytime, anywhere', page: 'saved', color: 'from-cyan-700 to-cyan-600' },
+  { icon: Save, title: 'Save Charts', desc: 'Securely store unlimited client charts per account — access anytime, anywhere', page: 'saved', color: 'from-cyan-700 to-cyan-600' },
   { icon: Layers, title: 'AI Tarot Reading', desc: 'Numerology-integrated tarot spreads with AI-generated contextual narratives and actionable guidance', page: 'tarot', color: 'from-blue-600 to-blue-400', badge: 'NEW' },
   { icon: Building2, title: 'Business Numerology', desc: 'Company name analysis, ideal business number matching, brand name suggestions, and partner compatibility', page: 'business', color: 'from-amber-600 to-orange-500', badge: 'NEW' },
 ];
