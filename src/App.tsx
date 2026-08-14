@@ -94,7 +94,7 @@ function App() {
       setCurrentPage('home');
       window.history.replaceState({ page: 'home' }, '', window.location.pathname);
     }
-  }, [loading, user, currentPage]);
+  }, [authLoading, user, currentPage]);
 
   // Only accounts created after the new plan rollout use the setup gate.
   // Wait for plan data to load so we don't redirect based on default 'free' state.
