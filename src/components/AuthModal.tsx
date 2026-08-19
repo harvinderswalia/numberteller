@@ -86,6 +86,7 @@ export default function AuthModal({ isOpen, onClose, onNavigate, initialMode = '
           setTimeout(() => {
             onClose();
             reset();
+            if (onNavigate) onNavigate('dashboard');
           }, 1500);
         }
       } else {
@@ -95,6 +96,7 @@ export default function AuthModal({ isOpen, onClose, onNavigate, initialMode = '
         } else {
           onClose();
           reset();
+          if (onNavigate) onNavigate('dashboard');
         }
       }
     } catch {
