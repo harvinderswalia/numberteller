@@ -54,14 +54,18 @@ function resolveStatus(data: RawOverride | null): Omit<PlanStatus, 'loading' | '
 export function usePlan(): PlanStatus {
   const { user } = useAuth();
   const [override, setOverride] = useState<RawOverride | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
+  const [fetching, setFetching] = useState(false);
 
   const fetchOverride = useCallback(async () => {
     if (!user) {
       setOverride(null);
-      setLoading(false);
+      setLoadedUserId(null);
+      setFetching(false);
       return;
     }
+
+    setFetching(true);
 
     const { data } = await supabase
       .from('user_plan_overrides')
@@ -71,7 +75,8 @@ export function usePlan(): PlanStatus {
 
     if (data) {
       setOverride(data as RawOverride);
-      setLoading(false);
+      setLoadedUserId(user.id);
+      setFetching(false);
       return;
     }
 
@@ -89,13 +94,16 @@ export function usePlan(): PlanStatus {
       .maybeSingle();
 
     setOverride(inserted as RawOverride | null);
-    setLoading(false);
+    setLoadedUserId(user.id);
+    setFetching(false);
   }, [user]);
 
   useEffect(() => {
-    setLoading(true);
     fetchOverride();
   }, [fetchOverride]);
+
+  // loading is true while fetching, or when we have a user but haven't loaded their data yet
+  const loading = fetching || (!!user && loadedUserId !== user.id);
 
   // Realtime: SA portal changes propagate to the user instantly
   useEffect(() => {
@@ -175,7 +183,7 @@ export function getPlanLabel(planId: PlanId): string {
   if (planId === 'platinum') return 'Platinum';
   if (planId === 'gold') return 'Gold';
   if (planId === 'silver') return 'Silver';
-  return 'Free Trial';
+  return 'Free Plan';
 }
 
 export function getPlanColor(planId: PlanId): string {

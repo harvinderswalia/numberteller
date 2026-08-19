@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle, Lock, ArrowRight, Hash, Sparkles, AlertCircle, Phone, User, MessageCircle, Clock, Zap, Star, Crown } from 'lucide-react';
+import { CheckCircle, ArrowRight, Sparkles, AlertCircle, Phone, User, MessageCircle, Clock, Zap, Star, Crown, Home, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { PLANS, WHATSAPP_LINK, PlanId } from '../utils/subscription';
@@ -17,7 +17,7 @@ interface ExistingRequest {
 }
 
 export default function ActivationRequestForm({ onNavigate }: ActivationRequestFormProps) {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -152,11 +152,36 @@ export default function ActivationRequestForm({ onNavigate }: ActivationRequestF
 
   const planIcons: Record<string, React.ElementType> = { silver: Zap, gold: Star, platinum: Crown };
 
+  const handleSignOut = async () => {
+    await signOut();
+    onNavigate('home');
+  };
+
+  const ExitActions = () => (
+    <div className="flex items-center justify-center gap-3 mb-8">
+      <button
+        onClick={() => onNavigate('home')}
+        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-300 hover:text-white border border-white/10 hover:border-white/25 rounded-xl transition-colors"
+      >
+        <Home className="w-4 h-4" />
+        Back to website
+      </button>
+      <button
+        onClick={() => { void handleSignOut(); }}
+        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-400 hover:text-white border border-white/10 hover:border-white/25 rounded-xl transition-colors"
+      >
+        <LogOut className="w-4 h-4" />
+        Sign out
+      </button>
+    </div>
+  );
+
   // ─── Success state ──────────────────────────────────────────────────────────
   if (success) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
+          <ExitActions />
           <div className="w-16 h-16 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-8 h-8 text-emerald-400" />
           </div>
@@ -200,12 +225,7 @@ export default function ActivationRequestForm({ onNavigate }: ActivationRequestF
               <MessageCircle className="w-5 h-5" />
               Message us on WhatsApp
             </a>
-            <button
-              onClick={() => onNavigate('dashboard')}
-              className="text-gray-400 hover:text-white text-sm transition-colors"
-            >
-              Back to Dashboard
-            </button>
+            <p className="text-xs text-gray-500">You can return to the website or sign out while your request is reviewed.</p>
           </div>
         </div>
       </div>
@@ -217,6 +237,7 @@ export default function ActivationRequestForm({ onNavigate }: ActivationRequestF
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
+          <ExitActions />
           <div className="w-16 h-16 bg-amber-500/15 border border-amber-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <Clock className="w-8 h-8 text-amber-400" />
           </div>
@@ -258,12 +279,7 @@ export default function ActivationRequestForm({ onNavigate }: ActivationRequestF
             </div>
           </div>
 
-          <button
-            onClick={() => onNavigate('dashboard')}
-            className="text-gray-400 hover:text-white text-sm transition-colors"
-          >
-            Back to Dashboard
-          </button>
+          <p className="text-xs text-gray-500">You can return to the website or sign out while your request is reviewed.</p>
         </div>
       </div>
     );
@@ -273,6 +289,7 @@ export default function ActivationRequestForm({ onNavigate }: ActivationRequestF
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-12 px-4">
       <div className="max-w-3xl mx-auto">
+        <ExitActions />
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/25">

@@ -95,27 +95,43 @@ function App() {
     }
   }, [authLoading, user, currentPage]);
 
-  // Setup gate: any signed-in user who hasn't completed setup is redirected to the setup form.
-  useEffect(() => {
-    if (!authLoading && !planLoading && user && !setupComplete && !isAdminPath && currentPage !== 'setup' && currentPage !== 'activate') {
-      setCurrentPage('setup');
-      window.history.replaceState({ page: 'setup' }, '', window.location.pathname);
-    }
-  }, [authLoading, planLoading, user, setupComplete, isAdminPath, currentPage]);
+  // Pages that are always accessible regardless of plan/setup status
+  const publicPages: Page[] = ['home', 'features', 'pricing', 'about', 'contact', 'resources', 'terms', 'privacy'];
+  // Pages that require a paid plan (not free)
+  const paidPages: Page[] = ['calculator', 'results', 'compatibility', 'house', 'saved', 'loshu', 'loshu-results', 'name-correction', 'tarot', 'business', 'billing'];
 
-  // Activation gate: any signed-in user on the free plan (no paid subscription) is redirected
-  // to the activation request form. They can sign in but all features are locked until activated.
+  // Single deterministic redirect: runs only when both auth and plan data are loaded.
+  // Computes the correct page in one pass — no competing effects, no race conditions.
   useEffect(() => {
-    if (!authLoading && !planLoading && user && setupComplete && planId === 'free' && !isAdminPath
-        && currentPage !== 'activate' && currentPage !== 'pricing' && currentPage !== 'home'
-        && currentPage !== 'features' && currentPage !== 'about' && currentPage !== 'contact'
-        && currentPage !== 'resources' && currentPage !== 'terms' && currentPage !== 'privacy') {
-      setCurrentPage('activate');
-      window.history.replaceState({ page: 'activate' }, '', window.location.pathname);
-    }
-  }, [authLoading, planLoading, user, setupComplete, planId, isAdminPath, currentPage]);
+    if (authLoading || (user && planLoading) || isAdminPath) return;
+    if (!user) return; // logged-out redirect handled separately
 
-  if (authLoading) {
+    let targetPage: Page | null = null;
+
+    if (!setupComplete) {
+      // User hasn't completed setup — must go to setup (unless already there or on activate)
+      if (currentPage !== 'setup' && currentPage !== 'activate') {
+        targetPage = 'setup';
+      }
+    } else if (planId === 'free') {
+      // Setup done but no paid plan — must go to activate, unless on a public page
+      if (!publicPages.includes(currentPage) && currentPage !== 'activate') {
+        targetPage = 'activate';
+      }
+    } else {
+      // Paid plan active — must NOT be on setup or activate page
+      if (currentPage === 'setup' || currentPage === 'activate') {
+        targetPage = 'dashboard';
+      }
+    }
+
+    if (targetPage) {
+      setCurrentPage(targetPage);
+      window.history.replaceState({ page: targetPage }, '', window.location.pathname);
+    }
+  }, [authLoading, planLoading, user, setupComplete, planId, isAdminPath, currentPage, publicPages]);
+
+  if (authLoading || (user && planLoading)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
