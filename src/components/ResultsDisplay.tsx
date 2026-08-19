@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { ArrowLeft, ChevronDown, ChevronUp, Download, Info, Save, Layers, Sparkles } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, Download, Info, Save, Layers, Sparkles, Lock } from 'lucide-react';
 import { NUMBER_INTERPRETATIONS, KARMIC_LESSON_INTERPRETATIONS, PERSONAL_YEAR_INTERPRETATIONS, HOUSE_NUMBER_INTERPRETATIONS } from '../data/interpretations';
 import { NUMBER_ELEMENT_MAP, FiveElement } from '../data/loShuInterpretations';
 import TransitChart from './TransitChart';
 import { saveChart } from '../utils/savedCharts';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlanContext, canAccessAppFeature } from '../contexts/PlanContext';
+import { PLANS } from '../utils/subscription';
 
 const ELEMENT_COLORS: Record<FiveElement, { bg: string; text: string; border: string }> = {
   Wood:  { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30' },
@@ -21,13 +23,26 @@ interface ResultsDisplayProps {
   onNavigateToTarot?: () => void;
 }
 
+interface Toast {
+  message: string;
+  type: 'success' | 'error' | 'info';
+}
+
 export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNavigateToTarot }: ResultsDisplayProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['core']));
   const [saving, setSaving] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [chartName, setChartName] = useState('');
   const [autoSave, setAutoSave] = useState(false);
+  const [toast, setToast] = useState<Toast | null>(null);
   const { user } = useAuth();
+  const { planId } = usePlanContext();
+  const hasInterpretations = canAccessAppFeature('interpretations', planId);
+
+  const showToast = (message: string, type: Toast['type'] = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -41,7 +56,7 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
 
   const handleSaveChart = async () => {
     if (!chartName.trim()) {
-      alert('Please enter a name for your chart');
+      showToast('Please enter a name for your chart', 'error');
       return;
     }
 
@@ -49,11 +64,11 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
     const result = await saveChart(chartName.trim(), results);
 
     if (result.success) {
-      alert('Chart saved successfully!');
+      showToast('Chart saved successfully!', 'success');
       setShowSaveDialog(false);
       setChartName('');
     } else {
-      alert(result.error || 'Failed to save chart');
+      showToast(result.error || 'Failed to save chart', 'error');
     }
     setSaving(false);
   };
@@ -67,9 +82,9 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
       const result = await saveChart(defaultName, results);
 
       if (result.success) {
-        alert('Chart saved successfully!');
+        showToast('Chart saved successfully!', 'success');
       } else {
-        alert(result.error || 'Failed to save chart');
+        showToast(result.error || 'Failed to save chart', 'error');
         setAutoSave(false);
       }
       setSaving(false);
@@ -85,7 +100,7 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
         <div className="flex items-start justify-between mb-3">
           <div>
             <h4 className="text-base md:text-lg font-semibold text-white mb-1">{label}</h4>
-            {description && <p className="text-xs md:text-sm text-slate-400">{description}</p>}
+            {description && hasInterpretations && <p className="text-xs md:text-sm text-slate-400">{description}</p>}
           </div>
           <div className="relative group">
             <div className={`text-2xl md:text-3xl font-bold ${isMaster ? 'text-amber-400' : 'text-amber-500'} flex items-center gap-2`}>
@@ -97,7 +112,7 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
           </div>
         </div>
 
-        {interpretation && (
+        {interpretation && hasInterpretations && (
           <div className="space-y-3">
             <div>
               <p className="text-xs font-semibold text-emerald-400 mb-1">Positive Traits</p>
@@ -134,6 +149,13 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
                 ))}
               </ul>
             </div>
+          </div>
+        )}
+
+        {interpretation && !hasInterpretations && (
+          <div className="mt-2 pt-3 border-t border-slate-700/50 flex items-center gap-2 text-slate-500 text-xs">
+            <Lock className="w-3.5 h-3.5" />
+            <span>Upgrade to Gold for written interpretations</span>
           </div>
         )}
       </div>
@@ -182,7 +204,7 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
             <button
               onClick={() => {
                 if (!user) {
-                  alert('Please sign in to save charts');
+                  showToast('Please sign in to save charts', 'error');
                   return;
                 }
                 setShowSaveDialog(true);
@@ -268,19 +290,25 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
                 <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
                   <h4 className="text-lg font-semibold text-white mb-2">Personal Year</h4>
                   <div className="text-3xl font-bold text-amber-500 mb-2">{results.cycles.personalYear}</div>
-                  <p className="text-sm text-slate-300">{PERSONAL_YEAR_INTERPRETATIONS[results.cycles.personalYear]}</p>
+                  {hasInterpretations ? (
+                    <p className="text-sm text-slate-300">{PERSONAL_YEAR_INTERPRETATIONS[results.cycles.personalYear]}</p>
+                  ) : (
+                    <p className="text-sm text-slate-500 flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5" /> Gold plan required for interpretation
+                    </p>
+                  )}
                 </div>
 
                 <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
                   <h4 className="text-lg font-semibold text-white mb-2">Universal Year</h4>
                   <div className="text-3xl font-bold text-amber-500 mb-2">{results.cycles.universalYear}</div>
-                  <p className="text-sm text-slate-300">Global energy influencing everyone this year</p>
+                  {hasInterpretations && <p className="text-sm text-slate-300">Global energy influencing everyone this year</p>}
                 </div>
 
                 <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
                   <h4 className="text-lg font-semibold text-white mb-2">Essence Number</h4>
                   <div className="text-3xl font-bold text-amber-500 mb-2">{results.cycles.essence}</div>
-                  <p className="text-sm text-slate-300">Current yearly influences and themes</p>
+                  {hasInterpretations && <p className="text-sm text-slate-300">Current yearly influences and themes</p>}
                 </div>
               </div>
 
@@ -348,7 +376,13 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
                             <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">Modified</span>
                           )}
                         </div>
-                        <p className="text-sm text-slate-300">{KARMIC_LESSON_INTERPRETATIONS[lesson.number]}</p>
+                        {hasInterpretations ? (
+                          <p className="text-sm text-slate-300">{KARMIC_LESSON_INTERPRETATIONS[lesson.number]}</p>
+                        ) : (
+                          <p className="text-sm text-slate-500 flex items-center gap-1.5">
+                            <Lock className="w-3.5 h-3.5" /> Gold plan required for interpretation
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -360,12 +394,12 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
               <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
                 <h4 className="text-lg font-semibold text-white mb-2">Prime Intensifier</h4>
                 <div className="text-3xl font-bold text-amber-500 mb-2">{results.karmic.primeIntensifier}</div>
-                <p className="text-sm text-slate-300">Most frequent number in your name, amplifying its energy</p>
+                {hasInterpretations && <p className="text-sm text-slate-300">Most frequent number in your name, amplifying its energy</p>}
               </div>
             </div>
           ))}
 
-          {renderSection('details', 'Additional Details', (
+          {hasInterpretations && renderSection('details', 'Additional Details', (
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
                 <h4 className="text-sm font-semibold text-slate-400 mb-2">Ruling Planet</h4>
@@ -402,6 +436,20 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
               </div>
             </div>
           ))}
+
+          {!hasInterpretations && (
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6 text-center">
+              <Lock className="w-8 h-8 text-amber-400 mx-auto mb-3" />
+              <h3 className="text-xl font-bold text-white mb-2">Additional Details Locked</h3>
+              <p className="text-slate-400 text-sm mb-4">Ruling planet, harmony numbers, favourable colours, zodiac sign, and letter analysis are available with the Gold plan.</p>
+              <button
+                onClick={() => onNavigate('pricing')}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all"
+              >
+                Upgrade to Gold
+              </button>
+            </div>
+          )}
 
           {renderSection('loshu', 'Loshu Grid Chart', (
             <div className="space-y-4">
@@ -477,9 +525,11 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
                       </div>
                     </div>
                     <div className="mt-3 pt-3 border-t border-slate-700">
-                      <p className="text-xs text-slate-500 leading-relaxed">
-                        BD ({results.loshuGrid.extraNumbers?.bd}), LP ({results.loshuGrid.extraNumbers?.lp}), and Kua ({results.loshuGrid.kuaNumber}) are included in the grid and factored into all arrow and plane analysis.
-                      </p>
+                      {hasInterpretations && (
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                          BD ({results.loshuGrid.extraNumbers?.bd}), LP ({results.loshuGrid.extraNumbers?.lp}), and Kua ({results.loshuGrid.kuaNumber}) are included in the grid and factored into all arrow and plane analysis.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -492,9 +542,11 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
                       <Info className="w-4 h-4 text-blue-400" />
                       Grid Legend
                     </h3>
-                    <p className="text-slate-300 text-sm leading-relaxed mb-3">
-                      Each dot (•) represents one occurrence in your birth date digits. BD, LP, and Kua badges indicate additional placements from your core numbers — these are included in arrow and plane calculations.
-                    </p>
+                    {hasInterpretations && (
+                      <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                        Each dot (•) represents one occurrence in your birth date digits. BD, LP, and Kua badges indicate additional placements from your core numbers — these are included in arrow and plane calculations.
+                      </p>
+                    )}
                     <div className="grid grid-cols-3 gap-2 text-xs mb-4">
                       {[1,2,3,4,5,6,7,8,9].map((num) => {
                         const bdc = results.loshuGrid.birthDigitCounts || {};
@@ -514,34 +566,38 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
                       })}
                     </div>
                     {/* Five Element Map */}
-                    <div className="pt-3 border-t border-slate-700">
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Five Element Map</p>
-                      <div className="grid grid-cols-5 gap-1 text-[10px]">
-                        {(['Wood','Fire','Earth','Metal','Water'] as FiveElement[]).map(el => {
-                          const c = ELEMENT_COLORS[el];
-                          return (
-                            <div key={el} className={`${c.bg} ${c.text} border ${c.border} rounded px-1.5 py-1 text-center`}>
-                              <div className="font-bold">{el[0]}</div>
-                              <div className="opacity-70">{el}</div>
-                            </div>
-                          );
-                        })}
+                    {hasInterpretations && (
+                      <div className="pt-3 border-t border-slate-700">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Five Element Map</p>
+                        <div className="grid grid-cols-5 gap-1 text-[10px]">
+                          {(['Wood','Fire','Earth','Metal','Water'] as FiveElement[]).map(el => {
+                            const c = ELEMENT_COLORS[el];
+                            return (
+                              <div key={el} className={`${c.bg} ${c.text} border ${c.border} rounded px-1.5 py-1 text-center`}>
+                                <div className="font-bold">{el[0]}</div>
+                                <div className="opacity-70">{el}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="text-[10px] text-slate-600 mt-1.5">Letter in top-right of each cell = element</p>
                       </div>
-                      <p className="text-[10px] text-slate-600 mt-1.5">Letter in top-right of each cell = element</p>
-                    </div>
+                    )}
                   </div>
 
                   {/* Five Element Cycles */}
-                  <div className="p-4 bg-slate-900 rounded-lg border border-slate-700">
-                    <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      Five Element Cycles
-                    </h3>
-                    <div className="space-y-1.5 text-xs text-slate-400">
-                      <div><span className="text-emerald-400 font-medium">Productive:</span> Wood → Fire → Earth → Metal → Water → Wood</div>
-                      <div><span className="text-orange-400 font-medium">Exhaustive:</span> Fire exhausts Wood · Earth exhausts Fire · Metal exhausts Earth · Water exhausts Metal · Wood exhausts Water</div>
+                  {hasInterpretations && (
+                    <div className="p-4 bg-slate-900 rounded-lg border border-slate-700">
+                      <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400" />
+                        Five Element Cycles
+                      </h3>
+                      <div className="space-y-1.5 text-xs text-slate-400">
+                        <div><span className="text-emerald-400 font-medium">Productive:</span> Wood → Fire → Earth → Metal → Water → Wood</div>
+                        <div><span className="text-orange-400 font-medium">Exhaustive:</span> Fire exhausts Wood · Earth exhausts Fire · Metal exhausts Earth · Water exhausts Metal · Wood exhausts Water</div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -550,7 +606,7 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
                 <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
                   <h4 className="text-sm font-semibold text-rose-400 mb-2">Missing Numbers</h4>
                   <p className="text-white">{results.loshuGrid.missingNumbers.join(', ')}</p>
-                  <p className="text-sm text-slate-400 mt-1">These represent karmic lessons to learn</p>
+                  {hasInterpretations && <p className="text-sm text-slate-400 mt-1">These represent karmic lessons to learn</p>}
                 </div>
               )}
 
@@ -584,7 +640,15 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
       {showSaveDialog && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-800 rounded-2xl max-w-md w-full border border-slate-700 shadow-2xl p-6">
-            <h3 className="text-2xl font-bold text-white mb-4">Save Chart</h3>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">N</span>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white leading-none">Save Chart</h3>
+                <p className="text-amber-400 text-xs font-medium">numberteller.com</p>
+              </div>
+            </div>
             <p className="text-slate-400 mb-4 text-sm">Give your chart a name so you can easily find it later.</p>
 
             <input
@@ -624,6 +688,39 @@ export default function ResultsDisplay({ results, onNavigate, onExportPDF, onNav
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div
+          className="fixed bottom-6 right-6 z-[60] transition-all duration-300 ease-out"
+          style={{ animation: 'toastSlideIn 0.3s ease-out' }}
+        >
+          <div className={`rounded-xl shadow-2xl border px-5 py-4 max-w-sm flex items-center gap-3 ${
+            toast.type === 'success'
+              ? 'bg-emerald-900/95 border-emerald-500/40'
+              : toast.type === 'error'
+                ? 'bg-rose-900/95 border-rose-500/40'
+                : 'bg-slate-800/95 border-slate-600'
+          }`}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+              toast.type === 'success'
+                ? 'bg-emerald-500/20'
+                : toast.type === 'error'
+                  ? 'bg-rose-500/20'
+                  : 'bg-amber-500/20'
+            }`}>
+              <span className={`text-sm font-bold ${
+                toast.type === 'success' ? 'text-emerald-300' : toast.type === 'error' ? 'text-rose-300' : 'text-amber-300'
+              }`}>N</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-amber-400 font-medium leading-none mb-0.5">numberteller.com</p>
+              <p className={`text-sm font-medium leading-tight ${
+                toast.type === 'success' ? 'text-emerald-200' : toast.type === 'error' ? 'text-rose-200' : 'text-slate-200'
+              }`}>{toast.message}</p>
             </div>
           </div>
         </div>

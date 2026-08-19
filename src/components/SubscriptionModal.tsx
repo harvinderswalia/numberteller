@@ -1,5 +1,6 @@
 import { X, CheckCircle, Lock, Zap, Star, Crown, Gift, MessageCircle } from 'lucide-react';
 import { PLANS, WHATSAPP_LINK, PlanId } from '../utils/subscription';
+import { usePlanContext } from '../contexts/PlanContext';
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ interface SubscriptionModalProps {
 const planIcons: Record<string, React.ElementType> = { silver: Zap, gold: Star, platinum: Crown };
 
 export default function SubscriptionModal({ isOpen, onClose, onShowAuth, onNavigate, featureBlocked }: SubscriptionModalProps) {
+  const { planId, loading: planLoading } = usePlanContext();
+
   if (!isOpen) return null;
 
   const handleChoosePlan = () => {
@@ -77,6 +80,7 @@ export default function SubscriptionModal({ isOpen, onClose, onShowAuth, onNavig
             {Object.values(PLANS).map((plan) => {
               const Icon = planIcons[plan.id];
               const isFeatured = plan.id === 'gold';
+              const isCurrentPlan = !planLoading && planId === plan.id;
               return (
                 <div
                   key={plan.id}
@@ -111,14 +115,17 @@ export default function SubscriptionModal({ isOpen, onClose, onShowAuth, onNavig
                     )}
                   </ul>
                   <button
-                    onClick={handleChoosePlan}
+                    onClick={isCurrentPlan ? undefined : handleChoosePlan}
+                    disabled={isCurrentPlan}
                     className={`w-full py-2.5 text-white text-sm font-semibold rounded-lg transition-colors ${
-                      isFeatured
-                        ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500'
-                        : 'bg-slate-700 hover:bg-slate-600 border border-white/10'
+                      isCurrentPlan
+                        ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 cursor-default'
+                        : isFeatured
+                          ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500'
+                          : 'bg-slate-700 hover:bg-slate-600 border border-white/10'
                     }`}
                   >
-                    Request Activation
+                    {isCurrentPlan ? 'Current Plan' : 'Request Activation'}
                   </button>
                 </div>
               );

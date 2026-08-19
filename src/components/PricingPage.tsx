@@ -4,6 +4,7 @@ import SiteNavigation from './SiteNavigation';
 import SiteFooter from './SiteFooter';
 import { PLANS, WHATSAPP_LINK } from '../utils/subscription';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlanContext } from '../contexts/PlanContext';
 
 interface PricingPageProps {
   onNavigate: (page: string) => void;
@@ -72,8 +73,10 @@ function CheckCell({ value }: { value: boolean | string }) {
 export default function PricingPage({ onNavigate, onShowAuth, onShowSignIn }: PricingPageProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const { user } = useAuth();
+  const { planId, loading: planLoading } = usePlanContext();
 
-  const handlePlanClick = () => {
+  const handlePlanClick = (selectedPlan: string) => {
+    if (selectedPlan === planId && !planLoading) return;
     if (user) {
       onNavigate('activate');
     } else {
@@ -137,12 +140,19 @@ export default function PricingPage({ onNavigate, onShowAuth, onShowSignIn }: Pr
             <p className="text-gray-400 text-sm mb-8 leading-relaxed">{PLANS.silver.description}</p>
 
             <button
-              onClick={handlePlanClick}
-              className="w-full py-3.5 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-colors mb-2 border border-white/10"
+              onClick={() => handlePlanClick('silver')}
+              disabled={planId === 'silver' && !planLoading}
+              className={`w-full py-3.5 text-white font-semibold rounded-xl transition-colors mb-2 border ${
+                planId === 'silver' && !planLoading
+                  ? 'bg-emerald-600/20 border-emerald-500/40 text-emerald-300 cursor-default'
+                  : 'bg-slate-700 hover:bg-slate-600 border-white/10'
+              }`}
             >
-              {user ? 'Request Activation' : 'Start Free Trial'}
+              {planId === 'silver' && !planLoading ? 'Current Plan' : user ? 'Request Activation' : 'Start Free Trial'}
             </button>
-            <p className="text-center text-xs text-gray-500 mb-8">{user ? 'Or message us on WhatsApp' : '3 days free · no card needed'}</p>
+            <p className="text-center text-xs text-gray-500 mb-8">
+              {planId === 'silver' && !planLoading ? 'Your active subscription' : user ? 'Or message us on WhatsApp' : '3 days free · no card needed'}
+            </p>
 
             <div className="space-y-1 mb-6">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Included</p>
@@ -184,12 +194,19 @@ export default function PricingPage({ onNavigate, onShowAuth, onShowSignIn }: Pr
               <p className="text-gray-300 text-sm mb-8 leading-relaxed">{PLANS.gold.description}</p>
 
               <button
-                onClick={handlePlanClick}
-                className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/25 mb-2"
+                onClick={() => handlePlanClick('gold')}
+                disabled={planId === 'gold' && !planLoading}
+                className={`w-full py-3.5 text-white font-bold rounded-xl transition-all shadow-lg mb-2 ${
+                  planId === 'gold' && !planLoading
+                    ? 'bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 cursor-default'
+                    : 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 shadow-blue-500/25'
+                }`}
               >
-                {user ? 'Request Activation' : 'Start Free Trial'}
+                {planId === 'gold' && !planLoading ? 'Current Plan' : user ? 'Request Activation' : 'Start Free Trial'}
               </button>
-              <p className="text-center text-xs text-gray-500 mb-8">{user ? 'Or message us on WhatsApp' : '3 days free · no card needed'}</p>
+              <p className="text-center text-xs text-gray-500 mb-8">
+                {planId === 'gold' && !planLoading ? 'Your active subscription' : user ? 'Or message us on WhatsApp' : '3 days free · no card needed'}
+              </p>
 
               <div className="space-y-1">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Included</p>
@@ -222,12 +239,19 @@ export default function PricingPage({ onNavigate, onShowAuth, onShowSignIn }: Pr
               <p className="text-gray-300 text-sm mb-8 leading-relaxed">{PLANS.platinum.description}</p>
 
               <button
-                onClick={handlePlanClick}
-                className="w-full py-3.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-amber-500/25 mb-2"
+                onClick={() => handlePlanClick('platinum')}
+                disabled={planId === 'platinum' && !planLoading}
+                className={`w-full py-3.5 text-white font-bold rounded-xl transition-all shadow-lg mb-2 ${
+                  planId === 'platinum' && !planLoading
+                    ? 'bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 cursor-default'
+                    : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-500/25'
+                }`}
               >
-                {user ? 'Request Activation' : 'Start Free Trial'}
+                {planId === 'platinum' && !planLoading ? 'Current Plan' : user ? 'Request Activation' : 'Start Free Trial'}
               </button>
-              <p className="text-center text-xs text-gray-500 mb-8">{user ? 'Or message us on WhatsApp' : '3 days free · no card needed'}</p>
+              <p className="text-center text-xs text-gray-500 mb-8">
+                {planId === 'platinum' && !planLoading ? 'Your active subscription' : user ? 'Or message us on WhatsApp' : '3 days free · no card needed'}
+              </p>
 
               <div className="space-y-1">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Everything included</p>
