@@ -138,10 +138,10 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const apiKey = Deno.env.get("OPENAI_API_KEY");
+    const apiKey = Deno.env.get("XAI_API_KEY");
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "AI reading service not configured. Please add your OpenAI API key in settings." }),
+        JSON.stringify({ error: "AI reading service not configured. Please add your xAI API key in settings." }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -155,14 +155,14 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.x.ai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "grok-4",
         temperature: 0.85,
         max_tokens: 2000,
         messages: [

@@ -126,7 +126,22 @@ function Toast({ msg, type = 'success' }: { msg: string; type?: 'success' | 'err
   );
 }
 
-function PlanBadge({ planId }: { planId: string }) {
+function isRevoked(ov: PlanOverride | undefined): boolean {
+  if (!ov) return false;
+  if (ov.plan_id !== 'free') return false;
+  if (!ov.trial_expires_at) return false;
+  return new Date(ov.trial_expires_at).getTime() < new Date('2000-01-01').getTime();
+}
+
+function PlanBadge({ planId, revoked }: { planId: string; revoked?: boolean }) {
+  if (revoked) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border text-rose-400 bg-rose-500/15 border-rose-500/30">
+        <Ban className="w-3 h-3" />
+        Revoked
+      </span>
+    );
+  }
   const m = planMeta(planId);
   const Icon = m.icon;
   return (
@@ -414,6 +429,13 @@ export default function SuperAdminPortal() {
           updated_at: new Date().toISOString(),
         }).eq('id', ov.id);
       }
+      // Send access revoked email to the user (best-effort)
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({ type: 'access_revoked', userEmail: modalUser.email, userName: ov?.full_name }),
+      }).catch(() => {});
+
       await loadData();
       closeModal();
       showToast(`Access revoked for ${modalUser.email}`);
@@ -521,6 +543,20 @@ export default function SuperAdminPortal() {
         })
         .eq('id', modalRequest.id);
       if (error) throw error;
+
+      // Send rejection email to the user (best-effort)
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({
+          type: 'request_rejected',
+          userEmail: modalRequest.email,
+          userName: modalRequest.full_name,
+          requestedPlan: modalRequest.requested_plan_id,
+          adminNotes: rejectNotes || undefined,
+        }),
+      }).catch(() => {});
+
       await loadData();
       closeModal();
       showToast(`Request rejected for ${modalRequest.email}`);
@@ -758,6 +794,7 @@ export default function SuperAdminPortal() {
                     {filteredUsers.map(u => {
                       const ov = getOverride(u.user_id);
                       const planId = ov?.plan_id ?? 'free';
+                      const revoked = isRevoked(ov);
                       const isExpanded = expandedUser === u.user_id;
                       const subExpired = isExpired(ov?.subscription_expires_at ?? null);
                       const trialExp = isExpired(ov?.trial_expires_at ?? null);
@@ -781,14 +818,14 @@ export default function SuperAdminPortal() {
                             <td className="px-5 py-4 text-sm text-gray-500 hidden md:table-cell">{fmt(u.created_at)}</td>
                             <td className="px-5 py-4 text-sm text-gray-500 hidden lg:table-cell">{fmt(u.last_sign_in_at)}</td>
                             <td className="px-5 py-4">
-                              <PlanBadge planId={planId} />
+                              <PlanBadge planId={planId} revoked={revoked} />
                               {planId !== 'free' && ov?.subscription_expires_at && (
                                 <p className={`text-xs mt-1 ${subExpired ? 'text-rose-400' : 'text-gray-600'}`}>
                                   {subExpired ? 'Expired' : `Exp ${fmt(ov.subscription_expires_at, true)}`}
                                   {!subExpired && dl !== null && dl <= 7 && <span className="text-amber-400"> · {dl}d left</span>}
                                 </p>
                               )}
-                              {planId === 'free' && ov?.trial_expires_at && (
+                              {planId === 'free' && ov?.trial_expires_at && !revoked && (
                                 <p className={`text-xs mt-1 ${trialExp ? 'text-rose-400' : 'text-gray-600'}`}>
                                   {trialExp ? 'Trial expired' : `Trial exp ${fmt(ov.trial_expires_at, true)}`}
                                 </p>

@@ -49,6 +49,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           trial_expires_at: null,
           setup_completed_at: BETA_MODE ? new Date().toISOString() : null,
         }, { onConflict: 'user_auth_id' });
+
+        // Send welcome email to user + signup alert to admin (best-effort, non-blocking)
+        const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`;
+        const headers = {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        };
+        fetch(apiUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ type: 'welcome', userEmail: email }),
+        }).catch(() => {});
+        fetch(apiUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ type: 'signup_alert', userEmail: email }),
+        }).catch(() => {});
       }
       return { error };
     } catch (error) {

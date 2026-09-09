@@ -12,10 +12,39 @@ interface ContactPageProps {
 export default function ContactPage({ onNavigate, onShowAuth, onShowSignIn }: ContactPageProps) {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`;
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          type: 'contact_form',
+          userEmail: form.email,
+          formName: form.name,
+          formEmail: form.email,
+          formSubject: form.subject,
+          formMessage: form.message,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to send');
+      setSubmitted(true);
+    } catch {
+      setSubmitError('Something went wrong. Please try again or email us directly at support@numberteller.com');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -177,12 +206,18 @@ export default function ContactPage({ onNavigate, onShowAuth, onShowSignIn }: Co
                       placeholder="Describe your query or how we can help..."
                     />
                   </div>
+                  {submitError && (
+                    <div className="flex items-start gap-2.5 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl">
+                      <p className="text-sm text-rose-300">{submitError}</p>
+                    </div>
+                  )}
                   <button
                     type="submit"
-                    className="group w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20"
+                    disabled={submitting}
+                    className="group w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Send Message
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    {submitting ? 'Sending...' : 'Send Message'}
+                    {!submitting && <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
                   </button>
                 </form>
               </div>
