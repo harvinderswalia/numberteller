@@ -40,6 +40,7 @@ interface EmailPayload {
   formEmail?: string;
   formSubject?: string;
   formMessage?: string;
+  ccAdmin?: boolean;
 }
 
 function brandedWrapper(content: string): string {
@@ -350,7 +351,8 @@ async function sendResendEmail(
   to: string,
   subject: string,
   html: string,
-  replyTo?: string
+  replyTo?: string,
+  bcc?: string
 ): Promise<void> {
   const apiKey = Deno.env.get("RESEND_API_KEY");
 
@@ -367,6 +369,7 @@ async function sendResendEmail(
     html,
   };
   if (replyTo) body.reply_to = replyTo;
+  if (bcc) body.bcc = [bcc];
 
   const res = await fetch(RESEND_API_URL, {
     method: "POST",
@@ -399,7 +402,7 @@ Deno.serve(async (req: Request) => {
     let errorMessage: string | null = null;
 
     try {
-      await sendResendEmail(recipient, subject, html, replyTo);
+      await sendResendEmail(recipient, subject, html, replyTo, payload.ccAdmin ? ADMIN_EMAIL : undefined);
     } catch (err) {
       status = "failed";
       errorMessage = err.message || String(err);

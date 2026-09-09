@@ -60,7 +60,7 @@ interface PlanDef {
 }
 
 type Tab = 'dashboard' | 'users' | 'activations' | 'plans';
-type ModalType = 'edit' | 'delete' | 'notes' | 'amount' | 'approve' | 'reject' | 'editPlan' | null;
+type ModalType = 'edit' | 'delete' | 'notes' | 'amount' | 'approve' | 'reject' | 'editPlan' | 'expireTrial' | null;
 
 function fmt(dt: string | null, short = false): string {
   if (!dt) return '—';
@@ -71,6 +71,13 @@ function fmt(dt: string | null, short = false): string {
 }
 
 function fmtRupees(n: number) { return `₹${n.toLocaleString('en-IN')}`; }
+
+function isTrialExpired(ov: PlanOverride | undefined): boolean {
+  if (!ov || ov.plan_id !== 'free') return false;
+  if (isRevoked(ov)) return false;
+  if (!ov.trial_expires_at) return true;
+  return new Date(ov.trial_expires_at) <= new Date();
+}
 
 function isExpired(dt: string | null): boolean {
   if (!dt) return false;
@@ -133,12 +140,20 @@ function isRevoked(ov: PlanOverride | undefined): boolean {
   return new Date(ov.trial_expires_at).getTime() < new Date('2000-01-01').getTime();
 }
 
-function PlanBadge({ planId, revoked }: { planId: string; revoked?: boolean }) {
+function PlanBadge({ planId, revoked, trialExpired }: { planId: string; revoked?: boolean; trialExpired?: boolean }) {
   if (revoked) {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border text-rose-400 bg-rose-500/15 border-rose-500/30">
         <Ban className="w-3 h-3" />
         Revoked
+      </span>
+    );
+  }
+  if (planId === 'free' && trialExpired) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border text-amber-400 bg-amber-500/15 border-amber-500/30">
+        <Clock className="w-3 h-3" />
+        Free Trial - Expired
       </span>
     );
   }
@@ -278,15 +293,17 @@ export default function SuperAdminPortal() {
   const pendingRequests = activationRequests.filter(r => r.status === 'pending');
 
   const stats = (() => {
-    let silver = 0, gold = 0, platinum = 0, freeTrial = 0, mrr = 0, pendingCount = pendingRequests.length;
+    let silver = 0, gold = 0, platinum = 0, freeTrial = 0, expiredTrials = 0, mrr = 0, pendingCount = pendingRequests.length;
     for (const u of users) {
       const ov = getOverride(u.user_id);
+      const trialWasExpired = isTrialExpired(ov);
       if (ov?.plan_id === 'silver')   { silver++;   mrr += ov.monthly_amount || PLAN_PRICES.silver; }
       else if (ov?.plan_id === 'gold')     { gold++;     mrr += ov.monthly_amount || PLAN_PRICES.gold; }
       else if (ov?.plan_id === 'platinum') { platinum++; mrr += ov.monthly_amount || PLAN_PRICES.platinum; }
+      else if (trialWasExpired) { expiredTrials++; }
       else freeTrial++;
     }
-    return { total: users.length, silver, gold, platinum, freeTrial, mrr, pendingCount };
+    return { total: users.length, silver, gold, platinum, freeTrial, expiredTrials, mrr, pendingCount };
   })();
 
   // ── Edit plan modal ──
@@ -413,6 +430,55 @@ export default function SuperAdminPortal() {
 
   const openDelete = (u: AdminUser) => { setModalUser(u); setModal('delete'); };
 
+  const openExpireTrial = (u: AdminUser) => { setModalUser(u); setModal('expireTrial'); };
+
+  const confirmExpireTrial = async () => {
+    if (!modalUser) return;
+    const ov = getOverride(modalUser.user_id);
+    setBusyUser(modalUser.user_id);
+    try {
+      const yesterday = new Date(Date.now() - 86400000).toISOString();
+      const expireNotes = `[TRIAL EXPIRED by admin ${user?.email} on ${new Date().toLocaleDateString()}] ${ov?.notes ?? ''}`.trim();
+      const payload = {
+        user_auth_id: modalUser.user_id,
+        email: modalUser.email,
+        plan_id: 'free',
+        trial_expires_at: yesterday,
+        subscription_expires_at: null,
+        activated_at: null,
+        notes: expireNotes,
+        monthly_amount: 0,
+        updated_by: user?.email ?? '',
+        updated_at: new Date().toISOString(),
+      };
+
+      let dbError;
+      if (ov?.id) {
+        const res = await supabase.from('user_plan_overrides').update(payload).eq('id', ov.id);
+        dbError = res.error;
+      } else {
+        const res = await supabase.from('user_plan_overrides').upsert(payload, { onConflict: 'user_auth_id' });
+        dbError = res.error;
+      }
+      if (dbError) throw dbError;
+
+      // Send trial expired email to the user + BCC admin (best-effort)
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({ type: 'trial_expired', userEmail: modalUser.email, userName: ov?.full_name, ccAdmin: true }),
+      }).catch(() => {});
+
+      await loadData();
+      closeModal();
+      showToast(`Trial expired for ${modalUser.email}`);
+    } catch (err: any) {
+      showToast('Error: ' + err.message, 'error');
+    } finally {
+      setBusyUser(null);
+    }
+  };
+
   const confirmDelete = async () => {
     if (!modalUser) return;
     const ov = getOverride(modalUser.user_id);
@@ -445,7 +511,7 @@ export default function SuperAdminPortal() {
       await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
-        body: JSON.stringify({ type: 'access_revoked', userEmail: modalUser.email, userName: ov?.full_name }),
+        body: JSON.stringify({ type: 'access_revoked', userEmail: modalUser.email, userName: ov?.full_name, ccAdmin: true }),
       }).catch(() => {});
 
       await loadData();
@@ -524,6 +590,7 @@ export default function SuperAdminPortal() {
           activatedPlan: planMeta(planId).label,
           monthlyAmount,
           expiryDate: expiryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          ccAdmin: true,
         }),
       }).catch(() => {});
 
@@ -566,6 +633,7 @@ export default function SuperAdminPortal() {
           userName: modalRequest.full_name,
           requestedPlan: modalRequest.requested_plan_id,
           adminNotes: rejectNotes || undefined,
+          ccAdmin: true,
         }),
       }).catch(() => {});
 
@@ -725,7 +793,8 @@ export default function SuperAdminPortal() {
               <StatCard label="Platinum" value={loading ? '—' : stats.platinum} sub={`@ ${fmtRupees(PLAN_PRICES.platinum)}/mo`} icon={Crown} gradient="from-amber-600 to-orange-500" />
               <StatCard label="Gold" value={loading ? '—' : stats.gold} sub={`@ ${fmtRupees(PLAN_PRICES.gold)}/mo`} icon={Star} gradient="from-yellow-600 to-amber-500" />
               <StatCard label="Silver" value={loading ? '—' : stats.silver} sub={`@ ${fmtRupees(PLAN_PRICES.silver)}/mo`} icon={Zap} gradient="from-blue-700 to-cyan-600" />
-              <StatCard label="Free Trial" value={loading ? '—' : stats.freeTrial} sub="potential conversions" icon={Gift} gradient="from-emerald-600 to-teal-500" />
+              <StatCard label="Free Trial (Active)" value={loading ? '—' : stats.freeTrial} sub="within trial period" icon={Gift} gradient="from-emerald-600 to-teal-500" />
+              <StatCard label="Trial Expired" value={loading ? '—' : stats.expiredTrials} sub="needs activation" icon={Clock} gradient="from-amber-600 to-orange-500" />
             </div>
 
             {/* Recent signups */}
@@ -757,7 +826,7 @@ export default function SuperAdminPortal() {
                         {planId !== 'free' && ov?.monthly_amount ? (
                           <span className="text-xs text-gray-500">{fmtRupees(ov.monthly_amount)}/mo</span>
                         ) : null}
-                        <PlanBadge planId={planId} />
+                        <PlanBadge planId={planId} trialExpired={isTrialExpired(ov)} />
                       </div>
                     </div>
                   );
@@ -830,7 +899,7 @@ export default function SuperAdminPortal() {
                             <td className="px-5 py-4 text-sm text-gray-500 hidden md:table-cell">{fmt(u.created_at)}</td>
                             <td className="px-5 py-4 text-sm text-gray-500 hidden lg:table-cell">{fmt(u.last_sign_in_at)}</td>
                             <td className="px-5 py-4">
-                              <PlanBadge planId={planId} revoked={revoked} />
+                              <PlanBadge planId={planId} revoked={revoked} trialExpired={isTrialExpired(ov)} />
                               {planId !== 'free' && ov?.subscription_expires_at && (
                                 <p className={`text-xs mt-1 ${subExpired ? 'text-rose-400' : 'text-gray-600'}`}>
                                   {subExpired ? 'Expired' : `Exp ${fmt(ov.subscription_expires_at, true)}`}
@@ -853,6 +922,7 @@ export default function SuperAdminPortal() {
                                 <IconBtn icon={FileText} label="Admin Notes" onClick={() => openNotes(u)} />
                                 <IconBtn icon={Mail} label="Send Password Reset" onClick={() => sendReset(u)} disabled={busyUser === u.user_id + '_reset'} spin={busyUser === u.user_id + '_reset'} />
                                 <IconBtn icon={isExpanded ? EyeOff : Eye} label={isExpanded ? 'Collapse' : 'View Details'} onClick={() => setExpandedUser(isExpanded ? null : u.user_id)} />
+                                <IconBtn icon={Clock} label="Expire Trial" onClick={() => openExpireTrial(u)} color="amber" />
                                 <IconBtn icon={Ban} label="Revoke Access" onClick={() => openDelete(u)} danger />
                               </div>
                             </td>
@@ -1189,6 +1259,32 @@ export default function SuperAdminPortal() {
               <button onClick={closeModal} className="px-4 py-2 text-sm text-gray-400 hover:text-white border border-white/10 rounded-xl transition-colors">Cancel</button>
               <button onClick={saveAmount} disabled={!!busyUser} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50">
                 <Save className="w-4 h-4" />Update Amount
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Expire Trial Modal */}
+      {modal === 'expireTrial' && modalUser && (
+        <Modal title="Expire Free Trial" onClose={closeModal}>
+          <div className="space-y-5">
+            <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/25 rounded-xl">
+              <Clock className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-amber-300 font-semibold text-sm mb-1">This will mark the user's free trial as expired.</p>
+                <p className="text-amber-400/70 text-xs">The user can still sign in and access the dashboard, but all paid tools will be gated behind the activation prompt. The user can submit an activation request to upgrade.</p>
+              </div>
+            </div>
+            <div className="bg-slate-800 rounded-xl px-4 py-3">
+              <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">User</p>
+              <p className="text-white font-semibold">{modalUser.email}</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <button onClick={closeModal} className="px-4 py-2 text-sm text-gray-400 hover:text-white border border-white/10 rounded-xl transition-colors">Cancel</button>
+              <button onClick={confirmExpireTrial} disabled={!!busyUser}
+                className="flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50">
+                <Clock className="w-4 h-4" />Expire Trial
               </button>
             </div>
           </div>
