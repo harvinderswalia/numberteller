@@ -1,27 +1,17 @@
 import { useState } from 'react';
 import { ArrowLeft, Calculator } from 'lucide-react';
-import { usePlanContext } from '../contexts/PlanContext';
 
 interface LoShuGridCalculatorProps {
   onNavigate: (page: string) => void;
   onCalculate: (data: { name: string; dateOfBirth: string; gender: string }) => void;
-  onShowUpgrade: () => void;
 }
 
-export default function LoShuGridCalculator({ onNavigate, onCalculate, onShowUpgrade }: LoShuGridCalculatorProps) {
+export default function LoShuGridCalculator({ onNavigate, onCalculate }: LoShuGridCalculatorProps) {
   const [name, setName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [gender, setGender] = useState('male');
-  const { planId, trialActive } = usePlanContext();
-
-  const canCalculate = planId !== 'free' || trialActive;
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canCalculate) {
-      onShowUpgrade();
-      return;
-    }
     if (name && dateOfBirth) {
       onCalculate({ name, dateOfBirth, gender });
     }

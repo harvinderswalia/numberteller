@@ -1,32 +1,20 @@
 import { useState } from 'react';
 import { ArrowLeft, Heart, Calendar, User } from 'lucide-react';
 import * as numerology from '../utils/numerology';
-import { usePlanContext } from '../contexts/PlanContext';
 
 interface CompatibilityCalculatorProps {
   onNavigate: (page: string) => void;
-  onShowUpgrade: () => void;
 }
 
-export default function CompatibilityCalculator({ onNavigate, onShowUpgrade }: CompatibilityCalculatorProps) {
+export default function CompatibilityCalculator({ onNavigate }: CompatibilityCalculatorProps) {
   const [person1Name, setPerson1Name] = useState('');
   const [person1Date, setPerson1Date] = useState('');
   const [person2Name, setPerson2Name] = useState('');
   const [person2Date, setPerson2Date] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const { planId, trialActive } = usePlanContext();
-
-  const canCalculate = planId !== 'free' || trialActive;
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!canCalculate) {
-      onShowUpgrade();
-      return;
-    }
-
     setLoading(true);
 
     setTimeout(() => {

@@ -66,7 +66,7 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signup');
   const { loading: authLoading, user } = useAuth();
-  const { planId, setupComplete, loading: planLoading } = usePlanContext();
+  const { planId, setupComplete, loading: planLoading, trialActive } = usePlanContext();
 
   // Seed initial history entry so popstate works from first page
   useEffect(() => {
@@ -97,9 +97,8 @@ function App() {
 
   // Pages that are always accessible regardless of plan/setup status
   const publicPages: Page[] = ['home', 'features', 'pricing', 'about', 'contact', 'resources', 'terms', 'privacy'];
-  // Pages that require a paid plan (not free)
-  const paidPages: Page[] = ['calculator', 'results', 'compatibility', 'house', 'saved', 'loshu', 'loshu-results', 'name-correction', 'tarot', 'business', 'billing'];
-
+  // Pages accessible to all logged-in users (free-tier tools)
+  const freeToolPages: Page[] = ['calculator', 'results', 'compatibility', 'house', 'loshu', 'loshu-results', 'saved', 'dashboard'];
   // Single deterministic redirect: runs only when both auth and plan data are loaded.
   // Computes the correct page in one pass — no competing effects, no race conditions.
   useEffect(() => {
@@ -114,9 +113,19 @@ function App() {
         targetPage = 'setup';
       }
     } else if (planId === 'free') {
-      // Setup done but no paid plan — must go to activate, unless on a public page
-      if (!publicPages.includes(currentPage) && currentPage !== 'activate') {
-        targetPage = 'activate';
+      // Setup done but no paid plan
+      if (trialActive) {
+        // Trial active — all pages accessible, but redirect away from setup/activate
+        if (currentPage === 'setup' || currentPage === 'activate') {
+          targetPage = 'dashboard';
+        }
+      } else {
+        // Trial expired — allow free tools, dashboard, and public pages; redirect paid tools to activate
+        if (!publicPages.includes(currentPage)
+            && !freeToolPages.includes(currentPage)
+            && currentPage !== 'activate') {
+          targetPage = 'activate';
+        }
       }
     } else {
       // Paid plan active — must NOT be on setup or activate page
@@ -129,7 +138,7 @@ function App() {
       setCurrentPage(targetPage);
       window.history.replaceState({ page: targetPage }, '', window.location.pathname);
     }
-  }, [authLoading, planLoading, user, setupComplete, planId, isAdminPath, currentPage, publicPages]);
+  }, [authLoading, planLoading, user, setupComplete, planId, trialActive, isAdminPath, currentPage, publicPages]);
 
   if (authLoading || (user && planLoading)) {
     return (
@@ -253,7 +262,6 @@ function App() {
           <CalculatorForm
             onNavigate={handleNavigate}
             onCalculate={handleCalculate}
-            onShowUpgrade={() => setShowUpgradeModal(true)}
           />
         );
       case 'results':
@@ -271,20 +279,19 @@ function App() {
         return (
           <CompatibilityCalculator
             onNavigate={handleNavigate}
-            onShowUpgrade={() => setShowUpgradeModal(true)}
           />
         );
       case 'house':
-        return <HouseNumberCalculator onNavigate={handleNavigate} onShowUpgrade={() => setShowUpgradeModal(true)} />;
+        return <HouseNumberCalculator onNavigate={handleNavigate} />;
       case 'saved':
         return <SavedCharts onNavigate={handleNavigate} onLoadChart={handleLoadChart} />;
       case 'loshu':
-        return <LoShuGridCalculator onNavigate={handleNavigate} onCalculate={handleLoShuCalculate} onShowUpgrade={() => setShowUpgradeModal(true)} />;
+        return <LoShuGridCalculator onNavigate={handleNavigate} onCalculate={handleLoShuCalculate} />;
       case 'loshu-results':
         return loShuResults ? (
           <LoShuGridResults results={loShuResults} onNavigate={handleNavigate} />
         ) : (
-          <LoShuGridCalculator onNavigate={handleNavigate} onCalculate={handleLoShuCalculate} onShowUpgrade={() => setShowUpgradeModal(true)} />
+          <LoShuGridCalculator onNavigate={handleNavigate} onCalculate={handleLoShuCalculate} />
         );
       case 'name-correction':
         return (

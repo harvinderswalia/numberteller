@@ -2,16 +2,14 @@ import { useState } from 'react';
 import { Calendar, User, ArrowLeft, CircleUser as UserCircle } from 'lucide-react';
 import * as numerology from '../utils/numerology';
 import { calculateEssenceForAge } from '../utils/transitCalculations';
-import { usePlanContext } from '../contexts/PlanContext';
 import { calculateLoShuGrid } from '../utils/loShuGrid';
 
 interface CalculatorFormProps {
   onNavigate: (page: string) => void;
   onCalculate: (results: any) => void;
-  onShowUpgrade: () => void;
 }
 
-export default function CalculatorForm({ onNavigate, onCalculate, onShowUpgrade }: CalculatorFormProps) {
+export default function CalculatorForm({ onNavigate, onCalculate }: CalculatorFormProps) {
   const [firstName, setFirstName] = useState('');
   const [middleName, setMiddleName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -19,18 +17,8 @@ export default function CalculatorForm({ onNavigate, onCalculate, onShowUpgrade 
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear().toString());
   const [loading, setLoading] = useState(false);
-  const { planId, trialActive } = usePlanContext();
-
-  const canCalculate = planId !== 'free' || trialActive;
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!canCalculate) {
-      onShowUpgrade();
-      return;
-    }
-
     setLoading(true);
 
     setTimeout(() => {

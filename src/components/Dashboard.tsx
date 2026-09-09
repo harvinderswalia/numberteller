@@ -209,9 +209,16 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
               )}
             </div>
 
-            {isFreePlan && (
-              <div className="text-xs text-gray-500 border-t border-white/8 pt-2">
-                Request plan activation to unlock all features
+            {isFreePlan && trialActive && (
+              <div className="flex items-center gap-1.5 text-xs text-blue-300 border-t border-white/8 pt-2">
+                <Zap className="w-3 h-3" />
+                Free trial — {plan.trialDaysLeft} {plan.trialDaysLeft === 1 ? 'day' : 'days'} left
+              </div>
+            )}
+
+            {isFreePlan && !trialActive && (
+              <div className="text-xs text-amber-400 border-t border-white/8 pt-2">
+                Free trial expired — request activation to continue
               </div>
             )}
 
@@ -219,12 +226,6 @@ export default function Dashboard({ onNavigate, onShowUpgrade, onLoadChart }: Da
               <div className="flex items-center gap-1.5 text-xs text-gray-400">
                 <Calendar className="w-3 h-3" />
                 Renews {plan.subscriptionExpiresAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </div>
-            )}
-
-            {isFreePlan && (
-              <div className="text-xs text-gray-500 border-t border-white/8 pt-2">
-                Request plan activation to unlock all features
               </div>
             )}
           </div>

@@ -418,17 +418,29 @@ export default function SuperAdminPortal() {
     const ov = getOverride(modalUser.user_id);
     setBusyUser(modalUser.user_id);
     try {
+      const revokedNotes = `[REVOKED by admin ${user?.email} on ${new Date().toLocaleDateString()}] ${ov?.notes ?? ''}`.trim();
+      const payload = {
+        user_auth_id: modalUser.user_id,
+        email: modalUser.email,
+        plan_id: 'free',
+        trial_expires_at: new Date(0).toISOString(),
+        subscription_expires_at: null,
+        activated_at: null,
+        notes: revokedNotes,
+        updated_by: user?.email ?? '',
+        updated_at: new Date().toISOString(),
+      };
+
+      let dbError;
       if (ov?.id) {
-        await supabase.from('user_plan_overrides').update({
-          plan_id: 'free',
-          trial_expires_at: new Date(0).toISOString(),
-          subscription_expires_at: null,
-          activated_at: null,
-          notes: `[REVOKED by admin ${user?.email} on ${new Date().toLocaleDateString()}] ${ov.notes ?? ''}`.trim(),
-          updated_by: user?.email ?? '',
-          updated_at: new Date().toISOString(),
-        }).eq('id', ov.id);
+        const res = await supabase.from('user_plan_overrides').update(payload).eq('id', ov.id);
+        dbError = res.error;
+      } else {
+        const res = await supabase.from('user_plan_overrides').upsert(payload, { onConflict: 'user_auth_id' });
+        dbError = res.error;
       }
+      if (dbError) throw dbError;
+
       // Send access revoked email to the user (best-effort)
       await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
         method: 'POST',

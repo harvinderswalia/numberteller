@@ -1,27 +1,30 @@
 import { createContext, useContext } from 'react';
-import { usePlan, PlanStatus } from '../hooks/usePlan';
+import { usePlan, PlanStatus, trialDaysLeft } from '../hooks/usePlan';
 import { BETA_MODE } from '../utils/subscription';
 
 export interface PlanContextValue extends PlanStatus {
   trialActive: boolean;
+  trialDaysLeft: number;
   isBeta: boolean;
   setupComplete: boolean;
 }
 
 const PlanContext = createContext<PlanContextValue | undefined>(undefined);
 
-function computeTrialActive(_plan: PlanStatus): boolean {
-  return false;
+function computeTrialActive(plan: PlanStatus): boolean {
+  if (!plan.trialExpiresAt) return false;
+  return plan.trialExpiresAt.getTime() > Date.now();
 }
 
 export function PlanProvider({ children }: { children: React.ReactNode }) {
   const plan = usePlan();
   const trialActive = computeTrialActive(plan);
+  const trialDaysRemaining = trialDaysLeft(plan.trialExpiresAt);
   const isBeta = BETA_MODE && plan.planId === 'free';
   const setupComplete = !!plan.setupCompletedAt;
 
   return (
-    <PlanContext.Provider value={{ ...plan, trialActive, isBeta, setupComplete }}>
+    <PlanContext.Provider value={{ ...plan, trialActive, trialDaysLeft: trialDaysRemaining, isBeta, setupComplete }}>
       {children}
     </PlanContext.Provider>
   );

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { PlanId, BETA_MODE } from '../utils/subscription';
+import { PlanId, BETA_MODE, FREE_TRIAL_DAYS } from '../utils/subscription';
 
 export interface PlanStatus {
   planId: PlanId;
@@ -136,6 +136,7 @@ export function usePlan(): PlanStatus {
     if (!user) return;
 
     const now = new Date().toISOString();
+    const trialExpires = new Date(Date.now() + FREE_TRIAL_DAYS * 86400000).toISOString();
 
     if (override?.id) {
       await supabase
@@ -144,6 +145,7 @@ export function usePlan(): PlanStatus {
           full_name: fullName,
           phone,
           setup_completed_at: now,
+          trial_expires_at: trialExpires,
         })
         .eq('id', override.id);
     } else {
@@ -154,6 +156,7 @@ export function usePlan(): PlanStatus {
         full_name: fullName,
         phone,
         setup_completed_at: now,
+        trial_expires_at: trialExpires,
       }, { onConflict: 'user_auth_id' });
     }
 
@@ -163,11 +166,12 @@ export function usePlan(): PlanStatus {
           full_name: fullName,
           phone,
           setup_completed_at: now,
+          trial_expires_at: trialExpires,
         }
       : {
           id: '',
           plan_id: 'free',
-          trial_expires_at: null,
+          trial_expires_at: trialExpires,
           subscription_expires_at: null,
           full_name: fullName,
           phone,
