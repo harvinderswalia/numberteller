@@ -113,7 +113,7 @@ export function calculateExpression(fullName: string): number | string {
 }
 
 export function calculateExpressionFromParts(firstName: string, middleName: string, lastName: string): number | string {
-  const parts = [firstName, middleName, lastName].filter(part => part.trim().length > 0);
+  const parts = [firstName, middleName, lastName].flatMap(field => field.split(' ')).filter(part => part.trim().length > 0);
 
   const reducedParts = parts.map(part => {
     const cleaned = cleanName(part);
@@ -162,7 +162,7 @@ export function calculateSoulUrge(fullName: string): number | string {
 }
 
 export function calculateSoulUrgeFromParts(firstName: string, middleName: string, lastName: string): number | string {
-  const parts = [firstName, middleName, lastName].filter(part => part.trim().length > 0);
+  const parts = [firstName, middleName, lastName].flatMap(field => field.split(' ')).filter(part => part.trim().length > 0);
 
   const reducedParts = parts.map(part => {
     const cleaned = cleanName(part);
@@ -214,7 +214,7 @@ export function calculatePersonality(fullName: string): number | string {
 }
 
 export function calculatePersonalityFromParts(firstName: string, middleName: string, lastName: string): number | string {
-  const parts = [firstName, middleName, lastName].filter(part => part.trim().length > 0);
+  const parts = [firstName, middleName, lastName].flatMap(field => field.split(' ')).filter(part => part.trim().length > 0);
 
   const reducedParts = parts.map(part => {
     const cleaned = cleanName(part);
