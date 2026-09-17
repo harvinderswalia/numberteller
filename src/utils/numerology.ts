@@ -378,19 +378,17 @@ export function calculateChallenges(birthDate: Date, lifePath: number | string) 
   const day = birthDate.getDate();
   const year = birthDate.getFullYear();
 
-  const monthDigitsSum = month.toString().split('').reduce((s, d) => s + parseInt(d), 0);
-  const dayDigitsSum = day.toString().split('').reduce((s, d) => s + parseInt(d), 0);
-  const yearDigitsSum = year.toString().split('').reduce((s, d) => s + parseInt(d), 0);
+  const toNum = (val: number | string): number =>
+    typeof val === 'string' ? parseInt(val.split('/').pop() || '0') : val;
 
-  const firstRaw = Math.abs(monthDigitsSum - dayDigitsSum);
-  const secondRaw = Math.abs(dayDigitsSum - yearDigitsSum);
-  const thirdRaw = Math.abs(firstRaw - secondRaw);
-  const fourthRaw = Math.abs(monthDigitsSum - yearDigitsSum);
+  const monthReduced = toNum(reduceToSingleDigit(month, false));
+  const dayReduced = toNum(reduceToSingleDigit(day, false));
+  const yearReduced = toNum(reduceToSingleDigit(year, false));
 
-  const first = firstRaw > 9 ? reduceToSingleDigit(firstRaw, false) : firstRaw;
-  const second = secondRaw > 9 ? reduceToSingleDigit(secondRaw, false) : secondRaw;
-  const third = thirdRaw > 9 ? reduceToSingleDigit(thirdRaw, false) : thirdRaw;
-  const fourth = fourthRaw > 9 ? reduceToSingleDigit(fourthRaw, false) : fourthRaw;
+  const first = Math.abs(monthReduced - dayReduced);
+  const second = Math.abs(dayReduced - yearReduced);
+  const third = Math.abs(first - second);
+  const fourth = Math.abs(monthReduced - yearReduced);
 
   const lifePathNum = typeof lifePath === 'string' ? parseInt(lifePath.split('/')[1]) : lifePath;
   const firstAge = 36 - lifePathNum;
