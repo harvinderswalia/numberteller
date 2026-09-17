@@ -46,17 +46,8 @@ export function getLetterValue(letter: string): number {
   return LETTER_VALUES[letter.toUpperCase()] || 0;
 }
 
-export function isVowel(letter: string, word: string, index: number): boolean {
-  const upper = letter.toUpperCase();
-  if (VOWELS.includes(upper)) return true;
-
-  if (upper === 'Y') {
-    if (index === 0) return false;
-    const prevChar = word[index - 1]?.toUpperCase();
-    return !VOWELS.includes(prevChar);
-  }
-
-  return false;
+export function isVowel(letter: string, _word: string, _index: number): boolean {
+  return VOWELS.includes(letter.toUpperCase());
 }
 
 export function cleanName(name: string): string {
