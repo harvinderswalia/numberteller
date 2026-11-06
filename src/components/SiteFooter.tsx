@@ -44,12 +44,7 @@ export default function SiteFooter({ onNavigate, onShowAuth }: SiteFooterProps) 
     { label: 'Billing Policy', page: 'billing' },
   ];
 
-  const keywords = [
-    'numerology calculator', 'pythagorean numerology', 'lo shu grid calculator',
-    'life path number', 'expression number', 'soul urge number', 'name correction numerology',
-    'best numerology calculator app', 'numerology for practitioners', 'numerology chart reading',
-    'karmic debt numbers', 'master numbers', 'transit chart numerology', 'compatibility numerology',
-  ];
+
 
   return (
     <footer className="bg-slate-950 border-t border-white/10">
@@ -148,20 +143,6 @@ export default function SiteFooter({ onNavigate, onShowAuth }: SiteFooterProps) 
             <p className="text-xs text-gray-500 leading-relaxed">
               NumberTeller is a product of Confiex Data Room Private Limited, registered in Mumbai, India. Built exclusively for numerology practitioners and consultants worldwide.
             </p>
-          </div>
-        </div>
-      </div>
-
-      {/* SEO Keywords Bar */}
-      <div className="border-t border-white/5 bg-slate-950/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          <p className="text-xs text-gray-600 text-center mb-3">Popular searches on NumberTeller:</p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {keywords.map(kw => (
-              <span key={kw} className="text-xs text-gray-600 bg-slate-900 px-2.5 py-1 rounded-full border border-white/5 hover:text-gray-400 cursor-default transition-colors">
-                {kw}
-              </span>
-            ))}
           </div>
         </div>
       </div>

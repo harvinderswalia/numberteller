@@ -10,10 +10,10 @@ interface AboutPageProps {
 
 const team = [
   {
-    name: 'Docully Product Team',
+    name: 'Confiex Product Team',
     role: 'Platform Development',
-    avatar: 'DT',
-    bio: 'A cross-functional team of engineers, designers, and numerology domain experts based in Dubai — building tools that make practitioners more effective.',
+    avatar: 'CT',
+    bio: 'A cross-functional team of engineers, designers, and numerology domain experts based in Mumbai — building tools that make practitioners more effective.',
   },
 ];
 
@@ -79,7 +79,7 @@ export default function AboutPage({ onNavigate, onShowAuth, onShowSignIn }: Abou
                   Numerology is a sophisticated discipline. Yet for years, practitioners have had to rely on generic spreadsheets, outdated websites, or manual calculations to run their consultations. There was no single tool that handled the full scope of a professional numerology practice.
                 </p>
                 <p>
-                  NumberTeller was built by Docully SaaS Technologies Co. LLC from Dubai, UAE, with a clear mandate: create a platform designed exclusively for practitioners — not casual users seeking quick answers, but professionals who stake their reputation on the accuracy and depth of their work.
+                  NumberTeller was built by Confiex Data Room Private Limited from Mumbai, India, with a clear mandate: create a platform designed exclusively for practitioners — not casual users seeking quick answers, but professionals who stake their reputation on the accuracy and depth of their work.
                 </p>
                 <p>
                   From the AI-powered Name Correction tool to the precise handling of master numbers and karmic debt numbers, every feature in NumberTeller reflects the real demands of professional consultations.
@@ -135,14 +135,14 @@ export default function AboutPage({ onNavigate, onShowAuth, onShowSignIn }: Abou
                 <Hash className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h3 className="text-white font-bold text-xl">Docully SaaS Technologies Co. LLC</h3>
-                <p className="text-gray-400">Dubai, United Arab Emirates</p>
+                <h3 className="text-white font-bold text-xl">Confiex Data Room Private Limited</h3>
+                <p className="text-gray-400">Mumbai, Maharashtra, India</p>
               </div>
             </div>
             <div className="grid sm:grid-cols-2 gap-6 text-sm text-gray-300">
               <div>
                 <p className="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-2">Registered Address</p>
-                <p>Dubai, United Arab Emirates</p>
+                <p>Unit 302, Bldg 2, New Sonal Industrial Estate, Kachpada, Link Road, Malad West, Mumbai 400064, Maharashtra, India</p>
               </div>
               <div>
                 <p className="text-gray-500 text-xs uppercase tracking-wider font-semibold mb-2">Contact</p>

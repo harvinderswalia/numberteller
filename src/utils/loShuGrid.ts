@@ -166,37 +166,27 @@ function analyzeArrows(numberCounts: { [key: number]: number }) {
   const present: string[] = [];
   const missing: string[] = [];
 
-  const presentArrows: { [name: string]: number[] } = {
-    'Arrow of Determination': [1, 5, 9],
-    'Arrow of Intellect':     [3, 5, 7],
-    'Arrow of Activity':      [4, 5, 6],
-    'Arrow of Spirituality':  [2, 5, 8],
-    'Arrow of Planning':      [1, 2, 3],
-    'Arrow of Will':          [4, 5, 6],
-    'Arrow of Action':        [7, 8, 9],
-    'Arrow of Passivity':     [3, 6, 9],
-    'Arrow of Balance':       [2, 5, 8],
-    'Arrow of Materialization': [1, 4, 7],
-  };
+  // Standard Lo Shu arrows — 8 lines through the grid
+  // Horizontal: top row [4,9,2], middle row [3,5,7], bottom row [8,1,6]
+  // Vertical: left col [4,3,8], middle col [9,5,1], right col [2,7,6]
+  // Diagonals: [4,5,6] (top-left to bottom-right), [2,5,8] (top-right to bottom-left)
+  const arrows: { name: string; nums: number[]; missingName: string }[] = [
+    { name: 'Arrow of Intellect',      nums: [4, 9, 2], missingName: 'Arrow of Poor Memory' },
+    { name: 'Arrow of Emotion',        nums: [3, 5, 7], missingName: 'Arrow of Skepticism' },
+    { name: 'Arrow of Practicality',   nums: [8, 1, 6], missingName: 'Arrow of Frustration' },
+    { name: 'Arrow of Thought',        nums: [4, 3, 8], missingName: 'Arrow of Hesitation' },
+    { name: 'Arrow of Will',           nums: [9, 5, 1], missingName: 'Arrow of Emotional Sensitivity' },
+    { name: 'Arrow of Action',         nums: [2, 7, 6], missingName: 'Arrow of Passivity' },
+    { name: 'Arrow of Determination',  nums: [4, 5, 6], missingName: 'Arrow of Indecision' },
+    { name: 'Arrow of Compassion',     nums: [2, 5, 8], missingName: 'Arrow of Imbalance' },
+  ];
 
-  const missingArrows: { [name: string]: number[] } = {
-    'Arrow of Frustration':         [4, 5, 6],
-    'Arrow of Hesitation':          [2, 5, 8],
-    'Arrow of Poor Memory':         [4, 3, 8],
-    'Arrow of Emotional Sensitivity': [1, 5, 9],
-    'Arrow of Skepticism':          [3, 5, 7],
-    'Arrow of Confusion':           [7, 8, 9],
-  };
-
-  for (const [arrowName, nums] of Object.entries(presentArrows)) {
-    if (nums.every(n => numberCounts[n] && numberCounts[n] > 0)) {
-      if (!present.includes(arrowName)) present.push(arrowName);
+  for (const arrow of arrows) {
+    if (arrow.nums.every(n => numberCounts[n] && numberCounts[n] > 0)) {
+      present.push(arrow.name);
     }
-  }
-
-  for (const [arrowName, nums] of Object.entries(missingArrows)) {
-    if (nums.every(n => !numberCounts[n] || numberCounts[n] === 0)) {
-      missing.push(arrowName);
+    if (arrow.nums.every(n => !numberCounts[n] || numberCounts[n] === 0)) {
+      missing.push(arrow.missingName);
     }
   }
 
