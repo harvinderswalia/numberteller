@@ -4,7 +4,7 @@ import Breadcrumbs from '../components/marketing/Breadcrumbs';
 import CTABand from '../components/marketing/CTABand';
 import MarkdownContent from '../components/marketing/MarkdownContent';
 import { getFeatureDoc, type ContentDoc } from '../utils/contentLoader';
-import { breadcrumbSchema, softwareApplicationSchema } from '../components/seo/schema';
+import { breadcrumbSchema, softwareApplicationSchema, faqSchema } from '../components/seo/schema';
 import { ArrowRight } from 'lucide-react';
 
 interface FeaturePageProps {
@@ -20,6 +20,37 @@ function relatedLinks(doc: ContentDoc): { href: string; title?: string }[] {
 
 function pageTitle(doc: ContentDoc): string {
   return (doc.frontmatter.seoTitle as string) || doc.title;
+}
+
+function extractFaqs(body: string): { question: string; answer: string }[] {
+  const faqMatch = body.match(/## Frequently asked questions\s*([\s\S]*?)$/i);
+  if (!faqMatch) return [];
+  const section = faqMatch[1];
+  const faqs: { question: string; answer: string }[] = [];
+  const qaBlocks = section.split(/^### /m).slice(1);
+  for (const block of qaBlocks) {
+    const lines = block.trim().split('\n');
+    const question = lines[0].trim();
+    const answer = lines.slice(1).join('\n').trim().replace(/^>\s*/gm, '');
+    if (question && answer) {
+      faqs.push({ question, answer: answer.replace(/\*\*/g, '') });
+    }
+  }
+  return faqs;
+}
+
+function extractToc(body: string): { id: string; text: string; level: number }[] {
+  const headings = body.match(/^#{2,3}\s+(.+)$/gm);
+  if (!headings) return [];
+  return headings
+    .filter((h) => !h.startsWith('### ') || true)
+    .map((h) => {
+      const level = h.startsWith('### ') ? 3 : 2;
+      const text = h.replace(/^#{2,3}\s+/, '').trim();
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      return { id, text, level };
+    })
+    .filter((h) => !/^frequently asked/i.test(h.text));
 }
 
 export default function FeatureMarkdownPage({ slug, path }: FeaturePageProps) {
@@ -43,6 +74,19 @@ export default function FeatureMarkdownPage({ slug, path }: FeaturePageProps) {
   const secondaryCta = fm.secondaryCta as { label: string; href: string } | undefined;
   const related = relatedLinks(doc);
   const breadcrumbName = h1.split(':')[0] || h1;
+  const faqs = extractFaqs(doc.body);
+  const toc = extractToc(doc.body);
+
+  const jsonLd: object[] = [
+    softwareApplicationSchema(),
+    breadcrumbSchema([
+      { name: 'Features', path: '/features' },
+      { name: breadcrumbName, path },
+    ]),
+  ];
+  if (faqs.length > 0) {
+    jsonLd.push(faqSchema(faqs));
+  }
 
   return (
     <>
@@ -50,13 +94,7 @@ export default function FeatureMarkdownPage({ slug, path }: FeaturePageProps) {
         title={pageTitle(doc)}
         description={doc.description}
         path={path}
-        jsonLd={[
-          softwareApplicationSchema(),
-          breadcrumbSchema([
-            { name: 'Features', path: '/features' },
-            { name: breadcrumbName, path },
-          ]),
-        ]}
+        jsonLd={jsonLd}
       />
 
       <section className="py-20 bg-slate-900">
@@ -100,6 +138,23 @@ export default function FeatureMarkdownPage({ slug, path }: FeaturePageProps) {
 
       <section className="py-16 bg-slate-950">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          {toc.length > 3 && (
+            <nav className="mb-10 p-5 bg-slate-800/40 border border-white/10 rounded-xl">
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">On this page</h2>
+              <ul className="space-y-1.5">
+                {toc.map((item) => (
+                  <li key={item.id} className={item.level === 3 ? 'ml-4' : ''}>
+                    <a
+                      href={`#${item.id}`}
+                      className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+                    >
+                      {item.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
           <MarkdownContent content={doc.body} />
         </div>
       </section>

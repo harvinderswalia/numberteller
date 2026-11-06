@@ -64,6 +64,15 @@ export const SITE = {
 
   ogImage: '/og/numberteller-og.png',
 
+  legal: {
+    gstin: '27AAGCC9381F2ZD',
+    paymentProcessor: 'Cashfree Payments',
+    emailProvider: 'Resend',
+    aiProvider: '',
+    grievanceOfficerName: 'Harvinder Singh',
+    grievanceOfficerDesignation: 'Director',
+  },
+
   footerLegal:
     'NumberTeller is published by Confiex Data Room Private Limited, Mumbai, India.',
 } as const;

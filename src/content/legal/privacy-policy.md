@@ -6,8 +6,6 @@ slug: "privacy"
 lastUpdated: "{{EFFECTIVE_DATE}}"
 ---
 
-**Last updated:** {{EFFECTIVE_DATE}}
-
 ## 1. Who we are
 
 NumberTeller is owned and operated by **Confiex Data Room Private Limited**, Unit 302, Bldg 2, New Sonal Industrial Estate, Kachpada, Link Road, Malad West, Mumbai 400064, Maharashtra, India ("**Confiex**", "**we**", "**us**", "**our**").
@@ -53,7 +51,7 @@ We process account data for these purposes:
 | Improving the Platform using aggregated, de-identified usage information | Your consent |
 | Product news and offers, by email or WhatsApp | Separate, optional consent. You can withdraw it at any time with the unsubscribe link or by telling us. |
 
-We do **not** sell or rent personal data. We do **not** use client data to train artificial-intelligence models, and we do not allow our providers to do so.
+We do **not** sell or rent personal data. We do **not** share client data with any artificial-intelligence provider. Features labelled "AI" run on NumberTeller's own rules-based engine.
 
 ## 5. Who we share data with
 
@@ -63,9 +61,8 @@ We share personal data only with service providers who process it on our behalf 
 |---|---|---|
 | Supabase | Database and user authentication | Account data and client data |
 | Vercel | Website and application hosting | Technical data |
-| {{EMAIL_PROVIDER}} | Sending service emails | Name and email address |
-| {{PAYMENT_PROCESSOR}} | Processing payments | Billing data; card data goes to them directly |
-| {{AI_PROVIDER}} | Generating text for AI-assisted features such as name-correction narratives and tarot readings | Only the inputs needed for that request, which may include the client name and core numbers |
+| Resend | Sending service emails | Name and email address |
+| Cashfree Payments | Processing payments | Billing data; card, UPI and bank details go to them directly |
 | Google Analytics (only if enabled) | Aggregated website statistics | Technical and usage data, via cookies |
 | WhatsApp (Meta) | Support chats you start with us | Your messages and phone number |
 

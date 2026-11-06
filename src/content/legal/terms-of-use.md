@@ -6,11 +6,9 @@ slug: "terms"
 lastUpdated: "{{EFFECTIVE_DATE}}"
 ---
 
-**Last updated:** {{EFFECTIVE_DATE}}
-
 > ### Important disclaimer — please read carefully
 >
-> NumberTeller is a calculation and reference tool for professional numerology practitioners. All calculations, interpretations, name suggestions, tarot narratives, remedies and other outputs are produced by automated systems, which may include rule-based algorithms and artificial-intelligence models. They are not the result of human expertise, psychic ability or verified spiritual knowledge, and they are not professional advice of any kind.
+> NumberTeller is a calculation and reference tool for professional numerology practitioners. All calculations, interpretations, name suggestions, tarot narratives, remedies and other outputs are produced by automated, rules-based systems built into the Platform. They are not the result of human expertise, psychic ability or verified spiritual knowledge, and they are not professional advice of any kind.
 >
 > Outputs may be incomplete, partly incorrect or entirely incorrect. Numerology is an interpretive practice and every output carries uncertainty. You must check all outputs yourself before relying on them or sharing them with any client or other person. Confiex Data Room Private Limited is not responsible for decisions made, actions taken or outcomes arising from reliance on the platform's outputs, to the extent permitted by law.
 
@@ -18,7 +16,7 @@ lastUpdated: "{{EFFECTIVE_DATE}}"
 
 1.1 These Terms of Use ("**Terms**") govern your access to and use of NumberTeller, including the website at www.numberteller.com, the web application and all related tools, reports and services (together, the "**Platform**").
 
-1.2 The Platform is owned and operated by **Confiex Data Room Private Limited**, a company incorporated in India with its registered office at Unit 302, Bldg 2, New Sonal Industrial Estate, Kachpada, Link Road, Malad West, Mumbai 400064, Maharashtra, India (CIN: {{CIN}}) ("**Confiex**", "**we**", "**us**", "**our**").
+1.2 The Platform is owned and operated by **Confiex Data Room Private Limited**, a company incorporated in India with its registered office at Unit 302, Bldg 2, New Sonal Industrial Estate, Kachpada, Link Road, Malad West, Mumbai 400064, Maharashtra, India ("**Confiex**", "**we**", "**us**", "**our**").
 
 1.3 By creating an account, starting a free trial, subscribing to a plan or otherwise using the Platform, you agree to these Terms, our [Privacy Policy](/privacy) and our [Billing Policy](/billing-policy). If you do not agree, do not use the Platform.
 
@@ -38,14 +36,14 @@ lastUpdated: "{{EFFECTIVE_DATE}}"
 
 3.2 We may add, change or remove features from time to time. If we remove a feature that is a material part of your paid plan, we will give you reasonable notice. If you do not accept the change, you may cancel and receive a refund for any prepaid period not yet used.
 
-3.3 Some features use third-party service providers, including hosting, database, email and (where applicable) artificial-intelligence providers. Their availability and performance are partly outside our control.
+3.3 The Platform relies on third-party service providers for hosting, database, email and payments. Features labelled "AI" run on NumberTeller's own rules-based engine; no third-party artificial-intelligence provider is used.
 
 ## 4. Nature of outputs and no professional advice
 
 4.1 All outputs of the Platform ("**Outputs**") are provided "as is" and "as computed". They:
 
 - may be partly or wholly incorrect, misleading or inapplicable to any person or situation;
-- are produced by automated calculation, rule-based logic and, for some features, artificial-intelligence models that can generate plausible but wrong text;
+- are produced by automated calculation and rules-based logic, including the features labelled "AI", and may contain errors;
 - do not include human intuition, lived experience or knowledge of your client's circumstances; and
 - must never be presented to any person as definitive, guaranteed or infallible.
 

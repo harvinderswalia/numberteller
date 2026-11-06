@@ -6,8 +6,6 @@ slug: "billing-policy"
 lastUpdated: "{{EFFECTIVE_DATE}}"
 ---
 
-**Last updated:** {{EFFECTIVE_DATE}}
-
 This Billing Policy applies to all paid NumberTeller plans provided by **Confiex Data Room Private Limited** ("**Confiex**", "**we**", "**us**"). It forms part of our [Terms of Use](/terms). By choosing a paid plan, you agree to it.
 
 ## 1. Free trial
@@ -35,13 +33,13 @@ We currently offer two ways to pay.
 
 **a) Activation on request.** Request activation in the app or message us on WhatsApp (+91 79000 75531). We send a payment link or invoice. Your plan starts when we receive the payment and runs for one month from that date.
 
-**b) Online checkout (when available).** Pay by card, UPI or other methods shown at checkout through our payment processor, {{PAYMENT_PROCESSOR}}. Card and bank details go directly to the processor; Confiex does not store them.
+**b) Online checkout (when available).** Pay by card, UPI or other methods shown at checkout through our payment processor, Cashfree Payments. Card and bank details go directly to the processor; Confiex does not store them.
 
 In either case, we email you a receipt or tax invoice.
 
 ## 4. Tax invoices and GST
 
-- We issue a GST-compliant tax invoice for every payment, showing Confiex's GSTIN ({{GSTIN}}).
+- We issue a GST-compliant tax invoice for every payment, showing Confiex's GSTIN (27AAGCC9381F2ZD).
 - If you are a GST-registered business, enter your GSTIN and legal name **before** paying so the invoice can show them. We cannot reissue invoices with a different GSTIN once filed, except as allowed by GST law.
 - For practitioners outside India, applicable taxes are determined under Indian GST law and shown before payment.
 

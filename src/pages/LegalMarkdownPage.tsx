@@ -19,9 +19,12 @@ function replacePlaceholders(text: string): string {
   });
   return text
     .replace(/{{EFFECTIVE_DATE}}/g, date)
-    .replace(/{{CIN}}/g, '[to be inserted]')
-    .replace(/{{GRIEVANCE_OFFICER_NAME}}/g, '[to be appointed]')
-    .replace(/{{GRIEVANCE_OFFICER_DESIGNATION}}/g, 'Grievance Officer');
+    .replace(/{{GRIEVANCE_OFFICER_NAME}}/g, 'Harvinder Singh')
+    .replace(/{{GRIEVANCE_OFFICER_DESIGNATION}}/g, 'Director')
+    .replace(/{{GSTIN}}/g, '27AAGCC9381F2ZD')
+    .replace(/{{PAYMENT_PROCESSOR}}/g, 'Cashfree Payments')
+    .replace(/{{EMAIL_PROVIDER}}/g, 'Resend')
+    .replace(/{{AI_PROVIDER}}/g, '');
 }
 
 export default function LegalMarkdownPage({ slug, path, breadcrumbName }: LegalPageProps) {

@@ -10,6 +10,21 @@ interface SeoProps {
   jsonLd?: object[];
 }
 
+function truncateTitle(title: string): string {
+  const suffix = ' | NumberTeller';
+  if (title.endsWith(suffix)) {
+    const base = title.slice(0, -suffix.length);
+    if (base.length + suffix.length <= 60) return title;
+    if (base.length <= 60) return base;
+  } else {
+    if (title.length <= 60) return title;
+  }
+  const base = title.endsWith(suffix) ? title.slice(0, -suffix.length) : title;
+  const cut = base.slice(0, 57);
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > 30 ? cut.slice(0, lastSpace) : cut) + '\u2026';
+}
+
 export default function Seo({
   title,
   description,
@@ -20,10 +35,11 @@ export default function Seo({
 }: SeoProps) {
   const canonical = `${SITE.url}${path}`;
   const ogImage = `${SITE.url}${SITE.ogImage}`;
+  const finalTitle = truncateTitle(title);
 
   return (
     <Head>
-      <title>{title}</title>
+      <title>{finalTitle}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={canonical} />
       <meta
@@ -36,7 +52,7 @@ export default function Seo({
       />
       <meta property="og:type" content={type} />
       <meta property="og:site_name" content={SITE.name} />
-      <meta property="og:title" content={title} />
+      <meta property="og:title" content={finalTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={canonical} />
       <meta property="og:image" content={ogImage} />
@@ -44,7 +60,7 @@ export default function Seo({
       <meta property="og:image:height" content="630" />
       <meta property="og:locale" content={SITE.locale} />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={title} />
+      <meta name="twitter:title" content={finalTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
       {jsonLd.map((schema, i) => (

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite-react-ssg build && tsx scripts/generate-sitemap.ts",
+    "build": "vite-react-ssg build && tsx scripts/generate-sitemap.ts && tsx scripts/post-build-check.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
