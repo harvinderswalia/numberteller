@@ -42,7 +42,7 @@ Expression and Soul Urge add the texture that Life Path lacks.
 
 It is also worth checking **cross-links**. One partner's Expression may match the other's Soul Urge. In practice this is often read as one partner naturally providing what the other inwardly seeks.
 
-Before calculating, settle your Y convention for Soul Urge. Treating Y as a vowel in one partner's name and not the other's will distort the comparison.
+Before calculating, use the same vowels for both partners: A, E, I, O and U, with Y counted as a consonant, as NumberTeller does.
 
 ## Scoring with the harmony scheme
 

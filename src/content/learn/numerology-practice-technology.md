@@ -8,7 +8,7 @@ published: 2026-11-06
 updated: 2026-11-06
 readingTime: "7 min read"
 draft: false
-related: ["common-numerology-calculation-errors", "y-vowel-or-consonant-numerology", "personal-year-numbers"]
+related: ["common-numerology-calculation-errors", "pythagorean-number-table", "personal-year-numbers"]
 tags: ["numerology practice", "numerology software", "consultation", "client reports", "practice management", "pythagorean numerology"]
 ---
 
@@ -116,16 +116,9 @@ Take a chart you know well and calculate it fully by hand. Compare every number 
 
 Test dates and names that produce 11, 22 or 33, and compounds of 13, 14, 16 or 19. Does the software keep master numbers where your method keeps them? Does it flag karmic debt at the stage you expect? These are the places where tools most often differ.
 
-### Check the Y convention
+### Check the vowels
 
-Enter a name where Y could be either a vowel or a consonant. Take the fictional name **Kavya Nair**:
-
-| Y treated as | Vowels counted | Soul Urge |
-|---|---|---|
-| Consonant | KAVYA: A1 A1 = 2; NAIR: A1 I9 = 10 → 1 | 2 + 1 = **3** |
-| Vowel | KAVYA: A1 Y7 A1 = 9; NAIR: 10 → 1 | 9 + 1 = 10 → **1** |
-
-One letter changes the Soul Urge from 3 to 1. Find out which convention the software uses and whether you can change it. See our guide on [Y as a vowel or consonant](/learn/y-vowel-or-consonant-numerology).
+Check which letters the software counts as vowels for Soul Urge. NumberTeller counts A, E, I, O and U as vowels and treats Y as a consonant. For the fictional name **Kavya Nair**, the vowels are KAVYA: A1 A1 = 2 and NAIR: A1 I9 = 10 → 1, so the Soul Urge is 2 + 1 = **3**.
 
 ## Key points
 

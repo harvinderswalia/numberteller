@@ -137,7 +137,7 @@ The 3-day free trial uses Silver tools and needs no card. Check the base calcula
 ## Limits and responsible use
 
 - **The engine follows rules; it does not judge.** A top-ranked spelling is the best fit by the stated rules, not a guarantee.
-- **Your school may differ.** Friendship tables and Y-as-vowel decisions vary. Pick one convention and apply it consistently.
+- **Your school may differ.** Friendship tables vary between schools. Pick one convention and apply it consistently.
 - **Check the arithmetic on anything you deliver.**
 - **Do not promise results.** This is supportive, traditional guidance. It does not guarantee wealth, marriage, health or success. Health and legal questions go to qualified professionals.
 - **Respect the client's identity.** A name carries family, religious and legal weight. Offer options; let the client choose.

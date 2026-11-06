@@ -8,7 +8,7 @@ published: 2026-11-06
 updated: 2026-11-06
 readingTime: "8 min read"
 draft: false
-related: ["pythagorean-number-table", "karmic-debt-numbers", "y-vowel-or-consonant-numerology"]
+related: ["pythagorean-number-table", "karmic-debt-numbers", "common-numerology-calculation-errors"]
 tags: ["name correction", "expression number", "soul urge", "pythagorean numerology", "name numerology", "consultation practice"]
 ---
 
@@ -42,7 +42,7 @@ Your task is to judge how EX and SU sit alongside BD and LP. Schools differ on w
 Two conventions need settling before you calculate anything:
 
 1. **Reduction order.** This library reduces each part of the name separately, then adds the parts and reduces again. Some practitioners total every letter at once. Usually the result is the same, but not always.
-2. **The letter Y.** Decide when Y counts as a vowel for Soul Urge, and record it. See our guide on [treating Y as a vowel or consonant](/learn/y-vowel-or-consonant-numerology).
+2. **The vowels.** Count only A, E, I, O and U as vowels for Soul Urge. Y is a consonant.
 
 Look up letter values from the standard [Pythagorean number table](/learn/pythagorean-number-table) every time rather than from memory.
 

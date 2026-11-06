@@ -32,7 +32,6 @@ const rules = [
   'Pythagorean letter table A=1 through I=9, J=1 through R=9, S=1 through Z=8',
   'Master numbers 11, 22 and 33 are preserved and shown as 11/2, 22/4 and 33/6',
   'Karmic debt numbers 13, 14, 16 and 19 are flagged before reduction',
-  'The letter Y is treated as a vowel when surrounded by consonants, and as a consonant when surrounded by vowels',
 ];
 
 const faqs = [
@@ -44,7 +43,7 @@ const faqs = [
   {
     question: 'How does the tool handle the letter Y?',
     answer:
-      'The engine treats Y as a vowel when it is surrounded by consonants (as in “Bryan”) and as a consonant when it sits next to vowels (as in “Yvonne”). This follows the standard Pythagorean convention used by most practising numerologists.',
+      'Vowels are A, E, I, O and U; Y is counted as a consonant. This is how NumberTeller calculates Soul Urge and Personality.',
   },
   {
     question: 'Can I generate a PDF of the core chart?',

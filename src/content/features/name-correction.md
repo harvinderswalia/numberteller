@@ -127,7 +127,7 @@ The decision for the client: keep the goal-aligned original, or accept a small c
 ## Using the name correction numerology tool in a consultation
 
 1. **Confirm the legal spelling** and every name part the client actually uses, including initials.
-2. **Agree your conventions** with yourself before the session: Y as vowel or consonant, and part-by-part reduction.
+2. **Agree your conventions** with yourself before the session, such as part-by-part reduction.
 3. **Enter the date and name.** Read the base harmony labels and any over-energy flag aloud with the client.
 4. **Ask about the goal** and select it, so targets for Expression and Soul Urge guide the search.
 5. **Review the top 8.** Look past the percentage to the labels, compounds and number of changes.
@@ -178,7 +178,6 @@ No. It searches and scores. You weigh the goal, the number of changes, pronuncia
 - [AI-assisted numerology tools](/features/ai-numerology): the hub for all three AI features.
 - [Business Numerology](/features/business-numerology): brand names and partner checks.
 - [Name correction: the Pythagorean method](/learn/name-correction-pythagorean-method)
-- [Y as vowel or consonant](/learn/y-vowel-or-consonant-numerology)
 - [Karmic debt numbers](/learn/karmic-debt-numbers)
 
 ---

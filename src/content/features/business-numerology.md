@@ -45,7 +45,7 @@ Each letter takes its Pythagorean value: 1 = A J S; 2 = B K T; 3 = C L U; 4 = D 
 
 Compounds of 13, 14, 16 or 19 are noted as karmic debt. Some schools add all letters at once instead. The result can differ, so choose one approach and use it for every company you assess. See the [Pythagorean number table](/learn/pythagorean-number-table) for the letter values.
 
-The Soul Urge uses the same steps with vowels only (A, E, I, O, U). How you treat Y is a convention choice; the [guide to Y as vowel or consonant](/learn/y-vowel-or-consonant-numerology) covers the options.
+The Soul Urge uses the same steps with vowels only (A, E, I, O, U). NumberTeller counts Y as a consonant.
 
 ### Harmony between numbers
 

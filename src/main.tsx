@@ -36,6 +36,7 @@ import CompareManualPage from './pages/compare/ManualCalculation';
 import CompareDecozPage from './pages/compare/Decoz';
 import LearnHubPage from './pages/LearnHub';
 import LearnArticlePage from './pages/LearnArticlePage';
+import { getAllLearnDocs } from './utils/contentLoader';
 import NotFoundPage from './pages/NotFound';
 
 // Client-only app wrapper
@@ -93,7 +94,7 @@ export const routes = [
       { path: 'compare/manual-calculation', element: <CompareManualPage /> },
       { path: 'compare/decoz-numerology-software', element: <CompareDecozPage /> },
       { path: 'learn', element: <LearnHubPage /> },
-      { path: 'learn/:slug', element: <LearnArticlePage /> },
+      { path: 'learn/:slug', element: <LearnArticlePage />, getStaticPaths: () => getAllLearnDocs().map((d) => `/learn/${d.slug}`) },
       { path: 'about', element: <AboutPage /> },
       { path: 'contact', element: <ContactPage /> },
       { path: 'terms', element: <LegalMarkdownPage slug="terms-of-use" path="/terms" breadcrumbName="Terms" /> },

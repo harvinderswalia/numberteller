@@ -8,7 +8,7 @@ published: 2026-11-06
 updated: 2026-11-06
 readingTime: "8 min read"
 draft: false
-related: ["how-to-calculate-life-path-number", "karmic-debt-numbers", "y-vowel-or-consonant-numerology", "when-to-stop-reducing-numbers"]
+related: ["how-to-calculate-life-path-number", "karmic-debt-numbers", "when-to-stop-reducing-numbers"]
 tags: ["calculation rules", "master numbers", "karmic debt", "life path", "name numerology", "lo shu grid", "pythagorean numerology"]
 ---
 
@@ -55,13 +55,13 @@ Same date, same final digit, but one method gives a master number and the other 
 
 **Fix:** Build the core chart from the full name exactly as recorded at birth. Calculate the everyday name separately as a current or "used" name, and label it clearly.
 
-## 5. Inconsistent Y handling
+## 5. Counting Y as a vowel
 
-**What goes wrong:** Y is treated as a vowel in one chart and a consonant in the next, which shifts both Soul Urge and Personality.
+**What goes wrong:** Y is counted as a vowel, which moves its 7 from Personality into Soul Urge.
 
-**Quick example:** The fictional name **Kyra Mehta**. With Y as a consonant, KYRA's only vowel is A1, and MEHTA's vowels are E5 + A1 = 6. Soul Urge = 1 + 6 = 7. With Y as a vowel, KYRA's vowels are Y7 + A1 = 8, so Soul Urge = 8 + 6 = 14/5, a karmic debt. The Expression stays 3 either way.
+**Quick example:** The fictional name **Kyra Mehta**. KYRA's only vowel is A1, and MEHTA's vowels are E5 + A1 = 6, so the Soul Urge is 1 + 6 = 7. Counting Y as a vowel would wrongly give 14/5. The Expression stays 3 either way.
 
-**Fix:** Adopt one written rule for Y and apply it to every name. Our guide on [Y as a vowel or consonant](/learn/y-vowel-or-consonant-numerology) sets out the common options.
+**Fix:** Count only A, E, I, O and U as vowels. Y is a consonant, as in NumberTeller.
 
 ## 6. Using the wrong letter values
 

@@ -88,7 +88,7 @@ In name correction, the BD, LP, EX and SU pairs are scored the same way, with on
 
 ## Worked example
 
-Both clients are fictional. Every figure was checked in Python, using this library's conventions: Life Path components reduced separately; each name part reduced separately (keeping master numbers), then added and reduced; Y treated as a consonant here.
+Both clients are fictional. Every figure was checked in Python, using this library's conventions: Life Path components reduced separately; each name part reduced separately (keeping master numbers), then added and reduced; Y counted as a consonant, as NumberTeller does.
 
 ### Part 1: one person's internal harmony
 
@@ -190,7 +190,6 @@ No. A high score shows strong harmony under these rules. Whether a name suits th
 - [Over-energy analysis](/features/over-energy-analysis): when repeated numbers lower a pair's weight.
 - [Friendly numbers and number harmony](/learn/friendly-numbers-number-harmony): friendship tables across schools.
 - [Numerology compatibility readings](/learn/numerology-compatibility-readings): structuring a relationship reading.
-- [Y as vowel or consonant](/learn/y-vowel-or-consonant-numerology): why the Y convention changes Soul Urge.
 
 ---
 

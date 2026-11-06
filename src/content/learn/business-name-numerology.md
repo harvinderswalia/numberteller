@@ -60,7 +60,7 @@ The results for each form of the name:
 
 The same business produces three different Expression numbers. That is the practical reason to decide your convention first. Note also that "Pvt" totals 13, a [karmic debt](/learn/karmic-debt-numbers) compound at word level. Some practitioners flag this; others only check the final total.
 
-One quirk worth knowing: Y in "Banyan" is a consonant here, which affects Soul Urge but not Expression. Expression counts every letter regardless.
+The Y in "Banyan" is counted as a consonant, as NumberTeller does, so it is not part of the Soul Urge. Expression counts every letter regardless.
 
 ## Founder alignment
 

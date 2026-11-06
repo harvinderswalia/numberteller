@@ -8,7 +8,7 @@ published: 2026-11-06
 updated: 2026-11-06
 readingTime: "7 min read"
 draft: false
-related: ["y-vowel-or-consonant-numerology", "name-correction-pythagorean-method", "common-numerology-calculation-errors", "master-numbers-11-22-33"]
+related: ["name-correction-pythagorean-method", "common-numerology-calculation-errors", "master-numbers-11-22-33"]
 tags: ["pythagorean numerology", "letter values", "expression number", "soul urge", "personality number", "name numerology"]
 ---
 
@@ -34,7 +34,7 @@ Two features are worth committing to memory. First, the numbers 1 to 8 each carr
 
 A quick way to find any letter: take its position in the alphabet and reduce it. K is the 11th letter, and 1 + 1 = 2. T is the 20th, and 2 + 0 = 2. Some practitioners note that K (11) and V (22) carry master vibrations at the letter level. That is an interpretive layer, not a change to the value used in calculation: K is still counted as 2 and V as 4.
 
-## Vowels, consonants and Y
+## Vowels and consonants
 
 The table gives each letter its value. The vowel and consonant split decides which letters go into which number.
 
@@ -42,9 +42,7 @@ The table gives each letter its value. The vowel and consonant split decides whi
 - **Soul Urge** (also called Heart's Desire) uses the vowels.
 - **Personality** uses the consonants.
 
-A, E, I, O and U are always vowels. W is almost always treated as a consonant in Pythagorean practice. Y is where schools differ. Some treat Y as a vowel when it sounds like one, as in "Lily" or "Krystal", and as a consonant when it begins a syllable, as in "Yash". Others always treat Y as a consonant, or always as a vowel.
-
-Whichever rule you follow, the value of Y never changes: it is always 7. Only its placement between Soul Urge and Personality moves. We cover the debate in detail in [is Y a vowel or a consonant in numerology](/learn/y-vowel-or-consonant-numerology). Choose one rule, write it in your practice notes, and apply it to every name.
+The vowels are A, E, I, O and U. Every other letter, including Y and W, is a consonant. This is how NumberTeller calculates Soul Urge and Personality. Y always has the value 7 and always goes into Personality.
 
 ## Worked example: Expression, Soul Urge and Personality
 
@@ -135,7 +133,7 @@ The Chaldean system uses a different table, assigning letters to 1–8 based on 
 
 - The Pythagorean table runs A = 1 to I = 9, then repeats; Z = 8.
 - Expression uses all letters, Soul Urge the vowels, Personality the consonants.
-- Y is always 7; only its vowel or consonant status varies by school.
+- Y is always 7 and is counted as a consonant.
 - House convention: reduce each name part, then add the parts and reduce again.
 - Soul Urge plus Personality must reduce to the same digit as Expression.
 - Kiran Joshi: Expression 15/6, Soul Urge 7, Personality 8, and 7 + 8 = 15 → 6.

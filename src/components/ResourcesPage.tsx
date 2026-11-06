@@ -93,7 +93,7 @@ const articles = [
   {
     category: 'Fundamentals',
     title: 'The Pythagorean Number Table — Every Practitioner\'s Foundation',
-    excerpt: 'The Pythagorean letter-to-number table (A=1 through Z=8 repeating) is the basis of all Western numerology calculations. This article covers the correct letter assignments, how to handle Y as a vowel or consonant, and how to verify your calculations.',
+    excerpt: 'The Pythagorean letter-to-number table (A=1 through Z=8 repeating) is the basis of all Western numerology calculations. This article covers the correct letter assignments, vowels and consonants, and how to verify your calculations.',
     readTime: '5 min',
     keywords: ['pythagorean numerology', 'numerology letter values', 'numerology calculator'],
     slug: 'pythagorean-table',
