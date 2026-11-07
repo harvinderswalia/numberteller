@@ -99,27 +99,6 @@ export default function SampleReport() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-800/40 border border-white/10 rounded-2xl p-6">
-            <div>
-              <p className="text-white font-semibold mb-1">
-                Download the full sample PDF
-              </p>
-              <p className="text-sm text-gray-400">
-                A complete sample report with written interpretation, ready to
-                share with a client.
-              </p>
-            </div>
-            <a
-              href={`${SITE.url}/sample-reports/numberteller-sample-report.pdf`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold rounded-xl hover:from-blue-500 hover:to-cyan-500 transition-all whitespace-nowrap"
-            >
-              <Download className="w-5 h-5" />
-              Download sample PDF
-            </a>
-          </div>
-
           <p className="text-sm text-gray-500 mt-6 text-center">
             Want to produce reports like this for your own clients?{' '}
             <Link to="/app/signup" className="text-cyan-400 hover:underline">

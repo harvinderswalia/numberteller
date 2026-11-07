@@ -1,6 +1,6 @@
 ---
 title: "When to Stop Reducing: Master and Karmic Numbers"
-description: "A clear rule set for when a number is reduced, kept as a master number or flagged as karmic debt."
+description: "A clear rule set for numerologists on when to stop reducing a number: when to reduce, when to keep a master number, and when to flag karmic debt."
 slug: "when-to-stop-reducing-numbers"
 category: "Calculation rules"
 author: "NumberTeller Editorial Team"

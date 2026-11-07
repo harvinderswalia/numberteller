@@ -7,11 +7,18 @@ export function organizationSchema() {
     name: SITE.name,
     url: SITE.url,
     logo: `${SITE.url}/icon-512.png`,
+    email: SITE.contact.email,
+    parentOrganization: {
+      '@type': 'Organization',
+      name: SITE.publisher.legalName,
+    },
     address: {
       '@type': 'PostalAddress',
-      addressLocality: SITE.publisher.city,
-      addressCountry: SITE.publisher.country,
-      streetAddress: SITE.publisher.address,
+      streetAddress: 'Unit 302, Bldg 2, New Sonal Industrial Estate, Kachpada, Link Road, Malad West',
+      addressLocality: 'Mumbai',
+      postalCode: '400064',
+      addressRegion: 'Maharashtra',
+      addressCountry: 'IN',
     },
     telephone: SITE.publisher.telephone,
     contactPoint: {

@@ -1,7 +1,7 @@
 ---
 title: "Terms of Use"
 seoTitle: "Terms of Use | NumberTeller"
-description: "The terms that govern use of NumberTeller, the professional numerology platform for practitioners."
+description: "The terms of use that govern access to NumberTeller, the professional numerology software for practising numerologists, from Confiex Data Room Pvt Ltd."
 slug: "terms"
 lastUpdated: "{{EFFECTIVE_DATE}}"
 ---
@@ -14,7 +14,7 @@ lastUpdated: "{{EFFECTIVE_DATE}}"
 
 ## 1. About these Terms
 
-1.1 These Terms of Use ("**Terms**") govern your access to and use of NumberTeller, including the website at www.numberteller.com, the web application and all related tools, reports and services (together, the "**Platform**").
+1.1 These Terms of Use ("**Terms**") govern your access to and use of NumberTeller, including the website at https://www.numberteller.com/, the web application and all related tools, reports and services (together, the "**Platform**").
 
 1.2 The Platform is owned and operated by **Confiex Data Room Private Limited**, a company incorporated in India with its registered office at Unit 302, Bldg 2, New Sonal Industrial Estate, Kachpada, Link Road, Malad West, Mumbai 400064, Maharashtra, India ("**Confiex**", "**we**", "**us**", "**our**").
 

@@ -1,7 +1,7 @@
 ---
 title: "Billing Policy"
 seoTitle: "Billing Policy | NumberTeller"
-description: "How NumberTeller plans are billed, activated, renewed, cancelled and refunded."
+description: "How NumberTeller numerology software plans are billed, activated, renewed, cancelled and refunded. Read the billing policy before you choose a plan."
 slug: "billing-policy"
 lastUpdated: "{{EFFECTIVE_DATE}}"
 ---

@@ -1,6 +1,6 @@
 ---
 title: "The Pythagorean Number Table for Numerologists"
-description: "The A=1 to Z=8 letter values, how to treat Y and how to check your calculations."
+description: "The Pythagorean number table for numerologists: letter values from A=1 to Z=8, how to treat the letter Y, and how to check each calculation you make."
 slug: "pythagorean-number-table"
 category: "Fundamentals"
 author: "NumberTeller Editorial Team"

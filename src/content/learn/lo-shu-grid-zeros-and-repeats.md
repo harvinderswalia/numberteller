@@ -1,6 +1,6 @@
 ---
 title: "Zeros and Repeated Digits in the Lo Shu Grid"
-description: "How to treat zeros and repeated digits when plotting and reading the Lo Shu grid."
+description: "How to treat zeros and repeated digits when you plot and read a Lo Shu grid, so each client chart you prepare shows the right count in every box."
 slug: "lo-shu-grid-zeros-and-repeats"
 category: "Lo Shu Grid"
 author: "NumberTeller Editorial Team"

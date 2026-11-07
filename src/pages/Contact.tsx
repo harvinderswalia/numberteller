@@ -11,7 +11,7 @@ export default function Contact() {
     <>
       <Seo
         title="Contact NumberTeller — Support & Plan Activation"
-        description="Reach the NumberTeller team on WhatsApp, phone or email for demos, plan activation and support."
+        description="Contact the NumberTeller team on WhatsApp, phone or email to book a demo, activate your plan or get support with the numerology software you use."
         path="/contact"
         jsonLd={[webPageSchema(), breadcrumbSchema([{ name: 'Contact', path: '/contact' }])]}
       />

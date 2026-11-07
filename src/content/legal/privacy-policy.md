@@ -1,7 +1,7 @@
 ---
 title: "Privacy Policy"
 seoTitle: "Privacy Policy | NumberTeller"
-description: "How NumberTeller collects, uses and protects your data and your clients' chart data."
+description: "How NumberTeller collects, uses and protects your personal data and your clients' chart data when you use the numerology software and this website."
 slug: "privacy"
 lastUpdated: "{{EFFECTIVE_DATE}}"
 ---
@@ -12,7 +12,7 @@ NumberTeller is owned and operated by **Confiex Data Room Private Limited**, Uni
 
 This Privacy Policy explains what personal data we collect, why we collect it, who we share it with, how long we keep it and what rights you have. It is written to meet India's Digital Personal Data Protection Act, 2023 and the Digital Personal Data Protection Rules, 2025 (together, the "**DPDP law**"), and the Information Technology Act, 2000 and its rules.
 
-It applies to www.numberteller.com, the NumberTeller web application and related services (the "**Platform**").
+It applies to https://www.numberteller.com/, the NumberTeller web application and related services (the "**Platform**").
 
 ## 2. Two kinds of data, two roles
 
