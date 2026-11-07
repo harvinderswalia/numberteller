@@ -5,6 +5,7 @@ import { SITE } from '../../config/site';
 const toolLinks = [
   { label: 'Core Chart Reading', path: '/features/core-chart' },
   { label: 'Lo Shu Grid', path: '/features/lo-shu-grid' },
+  { label: 'Free Lo Shu grid calculator', path: '/lo-shu-grid-calculator' },
   { label: 'AI Name Correction', path: '/features/name-correction' },
   { label: 'Compatibility', path: '/features/compatibility' },
   { label: 'Transit Chart', path: '/features/transit-chart' },

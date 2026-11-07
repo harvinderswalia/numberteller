@@ -4,6 +4,7 @@ import Breadcrumbs from '../components/marketing/Breadcrumbs';
 import CTABand from '../components/marketing/CTABand';
 import { SITE } from '../config/site';
 import { webPageSchema, breadcrumbSchema } from '../components/seo/schema';
+import { trackLeadEvent } from '../utils/firstTouch';
 import { Mail, Phone, MessageCircle, MapPin, Building2 } from 'lucide-react';
 
 export default function Contact() {
@@ -31,6 +32,7 @@ export default function Contact() {
               href={SITE.contact.whatsapp}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackLeadEvent('whatsapp')}
               className="group bg-slate-800/60 border border-white/10 rounded-2xl p-6 hover:border-white/25 transition-all"
             >
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 mb-4">
@@ -47,6 +49,7 @@ export default function Contact() {
 
             <a
               href={SITE.contact.phoneHref}
+              onClick={() => trackLeadEvent('phone')}
               className="group bg-slate-800/60 border border-white/10 rounded-2xl p-6 hover:border-white/25 transition-all"
             >
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-4">
@@ -63,6 +66,7 @@ export default function Contact() {
 
             <a
               href={`mailto:${SITE.contact.email}`}
+              onClick={() => trackLeadEvent('email')}
               className="group bg-slate-800/60 border border-white/10 rounded-2xl p-6 hover:border-white/25 transition-all"
             >
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 mb-4">

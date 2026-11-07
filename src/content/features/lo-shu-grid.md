@@ -16,6 +16,8 @@ updated: 2026-11-06
 
 The Lo Shu grid is one of the fastest ways to show a client the shape of their date of birth. It is also one of the easiest charts to plot wrongly when you are working quickly. NumberTeller's Lo Shu grid software plots the 3×3 square, checks every line and lists missing and repeated numbers, so you can spend the consultation reading rather than counting.
 
+> **Free tool:** Try the [Free Lo Shu grid calculator](/lo-shu-grid-calculator) — enter any date of birth and see the grid instantly.
+
 ## The practitioner problem
 
 A Lo Shu reading looks simple on paper: nine boxes, a few digits, some patterns. In a busy week, though, small slips creep in.

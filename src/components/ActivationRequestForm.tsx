@@ -3,6 +3,7 @@ import { CheckCircle, ArrowRight, Sparkles, AlertCircle, Phone, User, MessageCir
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { PLANS, WHATSAPP_LINK, PlanId } from '../utils/subscription';
+import { trackLeadEvent, getAttributionForLead } from '../utils/firstTouch';
 
 interface ActivationRequestFormProps {
   onNavigate: (page: string) => void;
@@ -88,6 +89,7 @@ export default function ActivationRequestForm({ onNavigate }: ActivationRequestF
           phone: phone.trim(),
           requested_plan_id: selectedPlan,
           status: 'pending',
+          attribution: getAttributionForLead(),
         });
 
       if (insertError) throw insertError;
@@ -109,6 +111,7 @@ export default function ActivationRequestForm({ onNavigate }: ActivationRequestF
         }),
       }).catch(() => {/* email is best-effort */});
 
+      trackLeadEvent('trial');
       setSuccess(true);
     } catch {
       setError('Failed to submit request. Please try again or contact us via WhatsApp.');

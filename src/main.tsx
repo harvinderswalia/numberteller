@@ -34,9 +34,11 @@ import VedicAstrologersPage from './pages/for/VedicAstrologers';
 import LifeCoachesPage from './pages/for/LifeCoaches';
 import CompareManualPage from './pages/compare/ManualCalculation';
 import CompareDecozPage from './pages/compare/Decoz';
+import LoShuGridCalculatorPage from './pages/LoShuGridCalculator';
 import LearnHubPage from './pages/LearnHub';
 import LearnArticlePage from './pages/LearnArticlePage';
 import { getAllLearnDocs } from './utils/contentLoader';
+import { captureFirstTouch } from './utils/firstTouch';
 import NotFoundPage from './pages/NotFound';
 
 // Client-only app wrapper
@@ -93,6 +95,7 @@ export const routes = [
       { path: 'for/life-coaches', element: <LifeCoachesPage /> },
       { path: 'compare/manual-calculation', element: <CompareManualPage /> },
       { path: 'compare/decoz-numerology-software', element: <CompareDecozPage /> },
+      { path: 'lo-shu-grid-calculator', element: <LoShuGridCalculatorPage /> },
       { path: 'learn', element: <LearnHubPage /> },
       { path: 'learn/:slug', element: <LearnArticlePage />, getStaticPaths: () => getAllLearnDocs().map((d) => `/learn/${d.slug}`) },
       { path: 'about', element: <AboutPage /> },
@@ -130,6 +133,10 @@ export const routes = [
     ),
   },
 ];
+
+if (typeof window !== 'undefined') {
+  captureFirstTouch();
+}
 
 export const createRoot = ViteReactSSG({
   routes,

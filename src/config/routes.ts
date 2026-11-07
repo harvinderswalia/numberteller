@@ -165,6 +165,12 @@ export const MARKETING_ROUTES: RouteMeta[] = [
     noindex: true,
   },
   {
+    path: '/lo-shu-grid-calculator',
+    title: 'Lo Shu Grid Calculator — Free Online Chart | NumberTeller',
+    description:
+      'Free Lo Shu grid calculator: enter a date of birth to see the 3×3 Lo Shu chart with missing and repeated numbers, then build client reports in NumberTeller.',
+  },
+  {
     path: '/learn',
     title: 'Numerology Calculation Guides for Practitioners',
     description:

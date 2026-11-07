@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   CalendarClock,
 } from 'lucide-react';
+import { trackLeadEvent } from '../utils/firstTouch';
 
 const walkthroughPoints = [
   'Core chart and Lo Shu grid on a real client',
@@ -75,6 +76,7 @@ export default function Demo() {
                   href={SITE.contact.whatsappDemo}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackLeadEvent('demo')}
                   className="flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl hover:from-green-500 hover:to-emerald-500 transition-all"
                 >
                   <MessageCircle className="w-5 h-5" />
@@ -82,6 +84,7 @@ export default function Demo() {
                 </a>
                 <a
                   href={`mailto:${SITE.contact.email}?subject=NumberTeller%20demo%20request`}
+                  onClick={() => trackLeadEvent('demo')}
                   className="flex items-center justify-center gap-3 px-6 py-4 bg-white/5 border border-white/15 text-white font-semibold rounded-xl hover:bg-white/10 hover:border-white/25 transition-all"
                 >
                   <Mail className="w-5 h-5" />

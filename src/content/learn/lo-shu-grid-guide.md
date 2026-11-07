@@ -14,6 +14,8 @@ tags: ["lo shu grid", "numerology", "arrows of strength", "missing numbers", "pl
 
 The Lo Shu grid gives you a visual summary of a client's date of birth. It shows which numbers are strong, which are absent and which lines of energy are complete. This guide covers how to build the grid, how to read each layer and how to structure a full consultation around it.
 
+> **Free tool:** Try the [Free Lo Shu grid calculator](/lo-shu-grid-calculator) — enter any date of birth and see the grid instantly.
+
 ## Building the grid
 
 The Lo Shu is a 3×3 magic square. Every row, column and diagonal adds to 15. Each digit from 1 to 9 has a fixed position:
